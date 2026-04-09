@@ -15,8 +15,9 @@ import re
 import sys
 from dataclasses import dataclass
 from typing import Iterable
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
 
-import requests
 from bs4 import BeautifulSoup
 from bs4.element import Tag
 
@@ -134,9 +135,12 @@ def extract_lyrics_from_html(html: str, primary_selector: str = DEFAULT_SELECTOR
 
 
 def fetch_html(url: str, timeout_seconds: int = 20) -> str:
-    response = requests.get(url, headers=REQUEST_HEADERS, timeout=timeout_seconds)
-    response.raise_for_status()
-    return response.text
+    request = Request(url=url, headers=REQUEST_HEADERS, method="GET")
+    with urlopen(request, timeout=timeout_seconds) as response:
+        charset = response.headers.get_content_charset() or "utf-8"
+        body = response.read()
+
+    return body.decode(charset, errors="replace")
 
 
 def fetch_musixmatch_lyrics(url: str, selector: str = DEFAULT_SELECTOR) -> LyricsResult:
@@ -191,11 +195,10 @@ def main() -> int:
 
     try:
         result = fetch_musixmatch_lyrics(url=url, selector=args.selector)
-    except requests.HTTPError as error:
-        status = getattr(error.response, "status_code", "unknown")
-        print(f"HTTP error while fetching Musixmatch page: {status}", file=sys.stderr)
+    except HTTPError as error:
+        print(f"HTTP error while fetching Musixmatch page: {error.code}", file=sys.stderr)
         return 1
-    except requests.RequestException as error:
+    except URLError as error:
         print(f"Network error while fetching Musixmatch page: {error}", file=sys.stderr)
         return 1
     except LyricsFetchError as error:

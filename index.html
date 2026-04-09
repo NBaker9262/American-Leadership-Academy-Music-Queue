@@ -275,6 +275,49 @@
             Search Spotify to verify and add the exact track you want.
           </div>
         </div>
+
+        <div class="dj-desk-divider" aria-hidden="true"></div>
+
+        <div class="section-heading dj-desk-heading">
+          <div>
+            <p class="section-kicker">DJ Assisted Request</p>
+            <h2>Add Request for Student</h2>
+          </div>
+        </div>
+
+        <div class="summary-text">
+          For students without phones: paste a Spotify track link, optional student name, and optional theme.
+        </div>
+
+        <div class="dj-desk-grid">
+          <input
+            id="djStudentNameInput"
+            class="search-input"
+            type="text"
+            placeholder="Student name (optional)"
+            aria-label="Student name"
+          />
+
+          <input
+            id="djThemeInput"
+            class="search-input"
+            type="text"
+            placeholder="Theme (optional, for moderation)"
+            aria-label="Request theme"
+          />
+
+          <input
+            id="djSpotifyLinkInput"
+            class="search-input"
+            type="url"
+            placeholder="Spotify track link"
+            aria-label="Spotify track link"
+          />
+
+          <button id="btnAddDjAssistedRequest" class="btn btn-small btn-primary" type="button">
+            Add DJ Request
+          </button>
+        </div>
       </section>
 
         <div class="mod-right-stack">
@@ -324,10 +367,89 @@
             <div id="approvedPreviewTable" class="requests-list approved-preview-large">
               <div class="empty-state">No approved songs yet.</div>
             </div>
+
+            <div class="playlist-routing-panel">
+              <p class="playlist-routing-title">Vetted Song Playlist Routing</p>
+              <p class="summary-text">
+                Save the selected vetted song into your event playlists before the event.
+              </p>
+
+              <div class="playlist-routing-actions">
+                <button id="btnAddSelectedToMainPlaylist" class="btn btn-small" type="button">
+                  Add to Main Playlist
+                </button>
+                <button id="btnAddSelectedToSlowPlaylist" class="btn btn-small" type="button">
+                  Add to Slow Playlist
+                </button>
+                <button id="btnAddSelectedToFunPlaylist" class="btn btn-small" type="button">
+                  Add to Fun Playlist
+                </button>
+              </div>
+            </div>
           </section>
 
         </div>
       </div>
+    </div>
+  </aside>
+
+  <!-- MODERATION REASONING BACKDROP -->
+  <div id="moderationReasonBackdrop" class="moderation-reason-backdrop"></div>
+
+  <!-- MODERATION REASONING MODAL -->
+  <aside
+    id="moderationReasonModal"
+    class="moderation-reason-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Moderation Reasoning"
+  >
+    <div class="moderation-reason-header">
+      <div>
+        <p class="section-kicker">Moderation Details</p>
+        <h2 id="moderationReasonTitle">Song Moderation Analysis</h2>
+      </div>
+
+      <button id="btnCloseModerationReason" class="btn lyrics-close-btn" type="button">
+        &#x2715; Close
+      </button>
+    </div>
+
+    <div id="moderationReasonBody" class="moderation-reason-body">
+      <div class="empty-state">Choose a song and open Moderation Details.</div>
+    </div>
+  </aside>
+
+  <!-- LYRICS BACKDROP -->
+  <div id="lyricsBackdrop" class="lyrics-backdrop"></div>
+
+  <!-- LYRICS MODAL -->
+  <aside
+    id="lyricsModal"
+    class="lyrics-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Lyrics"
+  >
+    <div class="lyrics-modal-header">
+      <div>
+        <p class="section-kicker">Lyrics</p>
+        <h2 id="lyricsModalTitle">Track Lyrics</h2>
+        <p id="lyricsModalMeta" class="lyrics-modal-meta">Artist</p>
+      </div>
+
+      <div class="lyrics-modal-actions">
+        <a id="lyricsModalExternalLink" class="btn btn-small" href="#" target="_blank" rel="noopener noreferrer">
+          Open Musixmatch
+        </a>
+        <button id="btnCloseLyricsModal" class="btn lyrics-close-btn" type="button">
+          &#x2715; Close
+        </button>
+      </div>
+    </div>
+
+    <div id="lyricsModalBody" class="lyrics-modal-body">
+      <div class="lyrics-loading">Loading lyrics...</div>
     </div>
   </aside>
 
