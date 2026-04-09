@@ -2493,8 +2493,8 @@ body.mod-panel-open {
 .mod-overlay {
   right: 12px;
   bottom: 12px;
-  width: min(1480px, calc(100vw - 24px));
-  max-height: calc(100dvh - 24px);
+  width: min(1560px, calc(100vw - 24px));
+  max-height: calc(100dvh - 18px);
   height: auto;
 }
 
@@ -2502,7 +2502,7 @@ body.mod-panel-open {
   position: sticky;
   top: 0;
   z-index: 2;
-  padding: 16px 20px 12px;
+  padding: 18px 24px 14px;
 }
 
 .mod-overlay-title-row {
@@ -2516,36 +2516,43 @@ body.mod-panel-open {
 .mod-overlay-body {
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 16px 22px 22px;
+  padding: 18px 24px 26px;
   scrollbar-gutter: stable;
-  gap: 18px;
+  gap: 20px;
 }
 
 .mod-grid {
-  grid-template-columns: minmax(0, 1.45fr) minmax(420px, 1fr);
-  gap: 18px;
+  grid-template-columns: minmax(0, 1.34fr) minmax(430px, 1fr);
+  gap: 20px;
   align-content: start;
 }
 
 .mod-overlay .requests-card {
   overflow: visible;
-  padding: 18px;
+  padding: 20px;
+}
+
+.mod-grid > .requests-card,
+.mod-right-stack,
+.mod-right-stack .approved-card,
+.mod-right-stack .up-next-card {
+  min-height: 0;
 }
 
 .mod-top-search-card,
 .mod-right-stack .approved-card,
 .mod-right-stack .up-next-card {
-  padding: 20px;
+  padding: 22px;
 }
 
 .mod-right-stack {
-  gap: 18px;
+  gap: 20px;
 }
 
 .request-actions,
 .queue-item-actions {
-  gap: 8px;
-  align-items: center;
+  gap: 10px;
+  align-items: flex-start;
 }
 
 #requestTableBody,
@@ -2558,21 +2565,21 @@ body.mod-panel-open {
 }
 
 #requestTableBody {
-  max-height: min(48dvh, 560px);
+  max-height: min(52dvh, 640px);
 }
 
 #manualSearchResults {
-  max-height: min(28dvh, 280px);
+  max-height: min(30dvh, 320px);
 }
 
 #approvedQueueList {
-  max-height: min(34dvh, 420px);
-  min-height: 220px;
+  max-height: min(36dvh, 460px);
+  min-height: 250px;
 }
 
 #approvedPreviewTable {
-  max-height: min(30dvh, 360px);
-  min-height: 160px;
+  max-height: min(32dvh, 390px);
+  min-height: 190px;
 }
 
 @media (max-width: 900px) {
@@ -2588,18 +2595,18 @@ body.mod-panel-open {
   }
 
   .mod-overlay-body {
-    padding: 12px 14px 16px;
+    padding: 14px 16px 18px;
   }
 
   .mod-grid {
-    gap: 12px;
+    gap: 14px;
   }
 
   .mod-overlay .requests-card,
   .mod-top-search-card,
   .mod-right-stack .approved-card,
   .mod-right-stack .up-next-card {
-    padding: 14px;
+    padding: 16px;
   }
 
   #requestTableBody,
@@ -2783,6 +2790,24 @@ body.mod-panel-open {
 .moderation-reason-callout p {
   margin: 0;
   color: var(--md-on-surface);
+}
+
+.moderation-reason-override-callout {
+  border-color: color-mix(in srgb, var(--role-override-on) 24%, var(--md-outline));
+  background: color-mix(in srgb, var(--role-override-container) 56%, var(--md-surface));
+}
+
+.moderation-override-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.moderation-override-warning {
+  margin: 0;
+  color: color-mix(in srgb, var(--md-error) 88%, black);
+  font-weight: 600;
 }
 
 .moderation-reason-section {

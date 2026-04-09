@@ -7,6 +7,7 @@ Usage:
 
 Endpoint:
   GET /lyrics?artist=<artist>&song=<song>
+    GET /rating?artist=<artist>&song=<song>
 
 Response:
   {
@@ -27,6 +28,7 @@ from urllib.parse import parse_qs, urlparse
 from musixmatch_lyrics_scraper import (
     LyricsFetchError,
     build_musixmatch_url,
+    fetch_musixmatch_content_rating,
     fetch_musixmatch_lyrics,
 )
 
@@ -60,7 +62,7 @@ class LyricsApiHandler(BaseHTTPRequestHandler):
             self._send_json(200, {"ok": True, "service": "lyrics-api"})
             return
 
-        if parsed.path != "/lyrics":
+        if parsed.path not in {"/lyrics", "/rating"}:
             self._send_json(404, {"ok": False, "error": "Not found"})
             return
 
@@ -79,6 +81,42 @@ class LyricsApiHandler(BaseHTTPRequestHandler):
             return
 
         url = build_musixmatch_url(artist=artist, song=song)
+
+        if parsed.path == "/rating":
+            try:
+                content_rating, rating_selector_used = fetch_musixmatch_content_rating(url=url)
+            except LyricsFetchError as error:
+                self._send_json(
+                    422,
+                    {
+                        "ok": False,
+                        "error": str(error),
+                        "url": url,
+                    },
+                )
+                return
+            except Exception as error:  # noqa: BLE001
+                self._send_json(
+                    500,
+                    {
+                        "ok": False,
+                        "error": f"Unexpected server error: {error}",
+                        "url": url,
+                    },
+                )
+                return
+
+            self._send_json(
+                200,
+                {
+                    "ok": True,
+                    "url": url,
+                    "content_rating": content_rating,
+                    "rating_selector_used": rating_selector_used,
+                    "source": "musixmatch_lyrics_scraper.py",
+                },
+            )
+            return
 
         try:
             result = fetch_musixmatch_lyrics(url=url)
@@ -110,6 +148,8 @@ class LyricsApiHandler(BaseHTTPRequestHandler):
                 "url": result.url,
                 "selector_used": result.selector_used,
                 "lyrics": result.lyrics,
+                "content_rating": result.content_rating,
+                "rating_selector_used": result.rating_selector_used,
                 "source": "musixmatch_lyrics_scraper.py",
             },
         )

@@ -37,77 +37,149 @@ const CONFIG = {
   trackLookupRetryDelayMs: 500,
   manualSearchLimit: 8,
   debugLogging: true,
-  debugVerbose: true,
+  debugVerbose: false,
   lyricsApiBaseUrl: "",
   lyricsApiTimeoutMs: 12000,
-  themeHardBlockTerms: [
-    "sex",
-    "sexy",
-    "strip",
-    "nude",
-    "porn",
-    "drunk",
-    "drug",
-    "weed",
-    "high",
-    "gang",
-    "kill",
-    "murder",
-    "suicide"
-  ],
-  themeReviewTerms: [
-    "party",
-    "club",
-    "breakup",
-    "heartbreak",
-    "revenge",
-    "rage",
-    "wild",
-    "after dark",
-    "late night"
-  ],
   themePolicyRules: [
     {
       id: "sexual-block",
       category: "Sexual Content",
       severity: "block",
-      terms: ["sex", "sexy", "porn", "nude", "strip", "hookup", "bdsm", "fetish"],
-      phrases: ["one night stand", "explicit content", "sexual fantasy", "body shots"]
+      terms: [
+        "sex",
+        "sexy",
+        "porn",
+        "nude",
+        "strip",
+        "hookup",
+        "bdsm",
+        "fetish",
+        "rape",
+        "molest",
+        "incest",
+        "smash",
+        "hookin"
+      ],
+      phrases: [
+        "one night stand",
+        "explicit content",
+        "sexual fantasy",
+        "body shots",
+        "for adults only",
+        "netflix and chill",
+        "hit it"
+      ]
     },
     {
       id: "drugs-block",
       category: "Drug References",
       severity: "block",
-      terms: ["cocaine", "meth", "heroin", "ecstasy", "xanax", "perc", "weed", "blunt", "drug"],
-      phrases: ["pop a pill", "getting high", "rolling up", "drug run"]
+      terms: [
+        "cocaine",
+        "meth",
+        "heroin",
+        "ecstasy",
+        "xanax",
+        "perc",
+        "weed",
+        "blunt",
+        "drug",
+        "opioid",
+        "fentanyl",
+        "lean",
+        "syrup",
+        "drunk",
+        "high",
+        "molly",
+        "perkies",
+        "zaza",
+        "gas"
+      ],
+      phrases: [
+        "pop a pill",
+        "getting high",
+        "rolling up",
+        "drug run",
+        "off the pills",
+        "spark up",
+        "blowin clouds"
+      ]
     },
     {
       id: "violence-block",
       category: "Violence",
       severity: "block",
-      terms: ["kill", "murder", "suicide", "shoot", "stab", "blood", "homicide"],
-      phrases: ["take your life", "pull the trigger", "body bag", "die tonight"]
+      terms: [
+        "kill",
+        "murder",
+        "suicide",
+        "shoot",
+        "stab",
+        "blood",
+        "homicide",
+        "gun",
+        "knife",
+        "bomb",
+        "assault",
+        "opp",
+        "strap",
+        "blick"
+      ],
+      phrases: [
+        "take your life",
+        "pull the trigger",
+        "body bag",
+        "die tonight",
+        "open fire",
+        "catch a body",
+        "drop an opp"
+      ]
+    },
+    {
+      id: "self-harm-block",
+      category: "Self-Harm",
+      severity: "block",
+      terms: ["self harm", "self-harm", "overdose", "cutting", "unalive", "kms"],
+      phrases: ["hurt myself", "end it all", "take my own life", "off myself"]
+    },
+    {
+      id: "severe-language-block",
+      category: "Severe Language",
+      severity: "block",
+      terms: [
+        "fuck",
+        "fucking",
+        "motherfucker",
+        "shit",
+        "bitch",
+        "asshole",
+        "slut",
+        "whore",
+        "douche",
+        "jackass"
+      ],
+      phrases: ["f you", "go to hell", "piece of shit", "dirty slut", "shut the hell up"]
     },
     {
       id: "hate-block",
       category: "Hate or Harassment",
       severity: "block",
-      terms: ["slur", "racist", "nazi", "hate", "lynch"],
-      phrases: ["hate them", "ethnic cleansing", "white power"]
+      terms: ["slur", "racist", "nazi", "lynch", "homophobic", "antisemitic", "bigot"],
+      phrases: ["ethnic cleansing", "white power", "hate crime", "targeted hate", "hate on them"]
     },
     {
       id: "gang-block",
       category: "Gang or Criminal Themes",
       severity: "block",
-      terms: ["gang", "cartel", "driveby", "robbery", "crime", "weapon"],
-      phrases: ["gang life", "armed robbery", "hit list", "territory war"]
+      terms: ["gang", "cartel", "driveby", "robbery", "crime", "weapon", "extortion", "drill", "set"],
+      phrases: ["gang life", "armed robbery", "hit list", "territory war", "spin the block", "rep the set"]
     },
     {
       id: "party-review",
       category: "Party / Club",
       severity: "review",
-      terms: ["party", "club", "wild", "rager", "lit"],
-      phrases: ["all night", "turn up", "dance floor", "after party"]
+      terms: ["party", "club", "wild", "rager", "lit", "drinking", "rage", "after dark", "late night"],
+      phrases: ["all night", "turn up", "dance floor", "after party", "shots all night"]
     },
     {
       id: "romance-review",
@@ -117,10 +189,17 @@ const CONFIG = {
       phrases: ["broke my heart", "love triangle", "toxic love", "get back at"]
     },
     {
+      id: "substance-review",
+      category: "Mild Substance References",
+      severity: "review",
+      terms: ["smoking", "cigarette", "beer", "vodka", "tequila"],
+      phrases: ["drinking tonight", "tipsy", "buzzed"]
+    },
+    {
       id: "language-review",
       category: "Mild Language",
       severity: "review",
-      terms: ["damn", "hell", "sucks", "freakin"],
+      terms: ["damn", "hell", "sucks", "freakin", "crap", "pissed"],
       phrases: ["lose my mind", "out of control"]
     }
   ]
@@ -263,6 +342,14 @@ const DEBUG_SCOPE = Object.freeze({
   queue: "QUEUE"
 });
 
+const DEBUG_LOG_STYLES = Object.freeze({
+  label: "background:#1d3557;color:#f8fafc;padding:1px 6px;border-radius:999px;font-weight:700;",
+  scope: "color:#1d3557;font-weight:700;",
+  verbose: "color:#6b7280;font-style:italic;",
+  warn: "color:#9a3412;font-weight:700;",
+  error: "color:#b91c1c;font-weight:700;"
+});
+
 function isDebugEnabled() {
   return CONFIG.debugLogging !== false;
 }
@@ -271,44 +358,45 @@ function isVerboseDebugEnabled() {
   return isDebugEnabled() && CONFIG.debugVerbose !== false;
 }
 
-function logDebug(scope, message, details) {
-  if (!isDebugEnabled()) return;
-  const prefix = `[ALA][${scope}] ${message}`;
+function emitDebugLog(level, scope, message, details, mode = "normal") {
+  const modeSuffix = mode === "verbose" ? " [verbose]" : mode === "warn" ? " [warn]" : mode === "error" ? " [error]" : "";
+  const scopeStyle = mode === "verbose"
+    ? DEBUG_LOG_STYLES.verbose
+    : mode === "warn"
+      ? DEBUG_LOG_STYLES.warn
+      : mode === "error"
+        ? DEBUG_LOG_STYLES.error
+        : DEBUG_LOG_STYLES.scope;
+
+  const logFn = level === "warn" ? console.warn : level === "error" ? console.error : console.log;
+  const header = `%cALA%c ${scope}${modeSuffix}`;
+
   if (details === undefined) {
-    console.log(prefix);
+    logFn(`${header} ${message}`, DEBUG_LOG_STYLES.label, scopeStyle);
     return;
   }
-  console.log(prefix, details);
+
+  logFn(`${header} ${message}`, DEBUG_LOG_STYLES.label, scopeStyle, details);
+}
+
+function logDebug(scope, message, details) {
+  if (!isDebugEnabled()) return;
+  emitDebugLog("log", scope, message, details, "normal");
 }
 
 function logDebugVerbose(scope, message, details) {
   if (!isVerboseDebugEnabled()) return;
-  const prefix = `[ALA][${scope}][verbose] ${message}`;
-  if (details === undefined) {
-    console.log(prefix);
-    return;
-  }
-  console.log(prefix, details);
+  emitDebugLog("log", scope, message, details, "verbose");
 }
 
 function logDebugWarn(scope, message, details) {
   if (!isDebugEnabled()) return;
-  const prefix = `[ALA][${scope}][warn] ${message}`;
-  if (details === undefined) {
-    console.warn(prefix);
-    return;
-  }
-  console.warn(prefix, details);
+  emitDebugLog("warn", scope, message, details, "warn");
 }
 
 function logDebugError(scope, message, details) {
   if (!isDebugEnabled()) return;
-  const prefix = `[ALA][${scope}][error] ${message}`;
-  if (details === undefined) {
-    console.error(prefix);
-    return;
-  }
-  console.error(prefix, details);
+  emitDebugLog("error", scope, message, details, "error");
 }
 
 function logDebugStart(scope, operation, details) {
@@ -333,7 +421,7 @@ function exposeDebugControls() {
     },
     disable() {
       CONFIG.debugLogging = false;
-      console.log("[ALA][APP] Debug logging disabled.");
+      emitDebugLog("log", DEBUG_SCOPE.app, "Debug logging disabled.", undefined, "normal");
     },
     verboseOn() {
       CONFIG.debugVerbose = true;
@@ -358,7 +446,7 @@ function exposeDebugControls() {
 // ======================================================
 function setStatus(message) {
   if (el.status) el.status.textContent = message;
-  logDebug(DEBUG_SCOPE.app, `STATUS: ${message}`);
+  logDebugVerbose(DEBUG_SCOPE.app, `STATUS: ${message}`);
 }
 
 function escapeHtml(value) {
@@ -457,6 +545,64 @@ function getModerationSearchEntries(request) {
   ];
 }
 
+function getRequestContentRating(request) {
+  const candidates = [
+    request?.musixmatchContentRating,
+    request?.contentRating,
+    request?.lyricsContentRating,
+    request?.lyrics?.contentRating
+  ];
+
+  for (const value of candidates) {
+    const normalized = normalizeMusixmatchContentRating(value);
+    if (normalized) return normalized;
+  }
+
+  return "";
+}
+
+function evaluateContentRating(request) {
+  const rating = getRequestContentRating(request);
+
+  if (!rating) {
+    return {
+      rating: "",
+      status: "unknown",
+      label: "No Rating",
+      source: "Musixmatch AI content rating",
+      reason: "No Musixmatch content rating was available for this request."
+    };
+  }
+
+  if (rating === "G" || rating === "PG") {
+    return {
+      rating,
+      status: "clear",
+      label: `${rating} (Allowed)`,
+      source: "Musixmatch AI content rating",
+      reason: "G and PG ratings are allowed for auto-approval when other checks pass."
+    };
+  }
+
+  if (rating === "PG-13") {
+    return {
+      rating,
+      status: "flagged",
+      label: "PG-13 (Manual Review)",
+      source: "Musixmatch AI content rating",
+      reason: "PG-13 tracks are flagged for manual review before approval."
+    };
+  }
+
+  return {
+    rating,
+    status: "blocked",
+    label: `${rating} (Blocked)`,
+    source: "Musixmatch AI content rating",
+    reason: "R and NC-17 tracks are blocked from approval."
+  };
+}
+
 function collectThemePolicyHits(request) {
   const entries = getModerationSearchEntries(request)
     .map((entry) => ({
@@ -536,26 +682,11 @@ function summarizePolicyHits(hits) {
   }));
 }
 
-function findThemeMatches(rawTheme, termList) {
-  const normalizedTheme = normalizeModerationText(rawTheme);
-  if (!normalizedTheme) return [];
-
-  const paddedTheme = ` ${normalizedTheme} `;
-  return termList.filter((term) => {
-    const normalizedTerm = normalizeModerationText(term);
-    if (!normalizedTerm) return false;
-    return paddedTheme.includes(` ${normalizedTerm} `);
-  });
-}
-
 function analyzeThemeModeration(request) {
   const theme = String(request?.theme ?? "").trim();
   const policyHits = collectThemePolicyHits(request);
   const hardHits = policyHits.filter((hit) => hit.severity === "block");
   const reviewHits = policyHits.filter((hit) => hit.severity === "review");
-
-  const fallbackHardTerms = findThemeMatches(theme, CONFIG.themeHardBlockTerms);
-  const fallbackReviewTerms = findThemeMatches(theme, CONFIG.themeReviewTerms);
 
   if (!theme && !policyHits.length) {
     return {
@@ -568,27 +699,25 @@ function analyzeThemeModeration(request) {
     };
   }
 
-  if (hardHits.length || fallbackHardTerms.length) {
+  if (hardHits.length) {
     const categories = [...new Set(hardHits.map((hit) => hit.category))];
-    const fallbackCategory = fallbackHardTerms.length ? ["Legacy Theme Blocklist"] : [];
     return {
       status: "blocked",
       label: "Theme Blocked",
-      reason: `Detected blocked policy categories: ${[...categories, ...fallbackCategory].join(", ")}.`,
-      matchedTerms: [...new Set([...hardHits.map((hit) => hit.matchedText), ...fallbackHardTerms])],
+      reason: `Detected blocked policy categories: ${categories.join(", ")}.`,
+      matchedTerms: [...new Set(hardHits.map((hit) => hit.matchedText))],
       hits: policyHits,
       summary: summarizePolicyHits(policyHits)
     };
   }
 
-  if (reviewHits.length || fallbackReviewTerms.length) {
+  if (reviewHits.length) {
     const categories = [...new Set(reviewHits.map((hit) => hit.category))];
-    const fallbackCategory = fallbackReviewTerms.length ? ["Legacy Theme Review"] : [];
     return {
       status: "flagged",
       label: "Theme Review",
-      reason: `Detected review categories: ${[...categories, ...fallbackCategory].join(", ")}. Manual review is recommended.`,
-      matchedTerms: [...new Set([...reviewHits.map((hit) => hit.matchedText), ...fallbackReviewTerms])],
+      reason: `Detected review categories: ${categories.join(", ")}. Manual review is recommended.`,
+      matchedTerms: [...new Set(reviewHits.map((hit) => hit.matchedText))],
       hits: policyHits,
       summary: summarizePolicyHits(policyHits)
     };
@@ -607,6 +736,7 @@ function analyzeThemeModeration(request) {
 function buildModerationMetadata(request) {
   const explicitFlag = request?.spotify?.explicit;
   const themeEvaluation = analyzeThemeModeration(request);
+  const contentRatingEvaluation = evaluateContentRating(request);
   const policyHits = Array.isArray(themeEvaluation.hits) ? themeEvaluation.hits : [];
 
   const hardHitCount = policyHits.filter((hit) => hit.severity === "block").length;
@@ -628,28 +758,39 @@ function buildModerationMetadata(request) {
 
   let recommendation = "pass";
   let recommendationLabel = "Auto-Approve Eligible";
-  let recommendationReason = "No explicit or blocked theme signals were detected.";
+  let recommendationReason = "No explicit, blocked theme, or blocked rating signals were detected.";
 
-  if (explicitStatus === "explicit" || themeEvaluation.status === "blocked") {
+  if (
+    explicitStatus === "explicit" ||
+    themeEvaluation.status === "blocked" ||
+    contentRatingEvaluation.status === "blocked"
+  ) {
     recommendation = "block";
     recommendationLabel = "Block";
     recommendationReason =
       explicitStatus === "explicit"
         ? "Track is marked explicit by Spotify metadata."
-        : "Theme or metadata triggered blocked policy categories. Review required before any approval.";
-  } else if (themeEvaluation.status === "flagged") {
+        : contentRatingEvaluation.status === "blocked"
+          ? `Musixmatch content rating ${contentRatingEvaluation.rating} is blocked by policy.`
+          : "Theme or metadata triggered blocked policy categories. Review required before any approval.";
+  } else if (themeEvaluation.status === "flagged" || contentRatingEvaluation.status === "flagged") {
     recommendation = "review";
     recommendationLabel = "Manual Review";
-    recommendationReason = "Theme/metadata passed hard blocks but matched review categories that need manual review.";
+    recommendationReason =
+      contentRatingEvaluation.status === "flagged"
+        ? `Musixmatch content rating ${contentRatingEvaluation.rating} requires manual review.`
+        : "Theme/metadata passed hard blocks but matched review categories that need manual review.";
   }
 
-  const compactReason = `${explicitLabel} by Spotify metadata | ${themeEvaluation.label} (${hardHitCount} hard, ${reviewHitCount} review hits)`;
+  const compactReason = `${explicitLabel} Spotify | ${contentRatingEvaluation.label} | ${themeEvaluation.label} (${hardHitCount} hard, ${reviewHitCount} review hits)`;
 
   logDebugVerbose(DEBUG_SCOPE.moderation, "Computed moderation metadata", {
     requestId: request?.requestId || null,
     trackId: request?.spotify?.id || null,
     trackName: request?.spotify?.name || null,
     explicitStatus,
+    contentRating: contentRatingEvaluation.rating || null,
+    contentRatingStatus: contentRatingEvaluation.status,
     themeStatus: themeEvaluation.status,
     recommendation,
     hardHitCount,
@@ -662,6 +803,11 @@ function buildModerationMetadata(request) {
     explicitLabel,
     explicitReason,
     explicitSource: "Spotify track metadata",
+    contentRating: contentRatingEvaluation.rating,
+    contentRatingStatus: contentRatingEvaluation.status,
+    contentRatingLabel: contentRatingEvaluation.label,
+    contentRatingReason: contentRatingEvaluation.reason,
+    contentRatingSource: contentRatingEvaluation.source,
     themeStatus: themeEvaluation.status,
     themeLabel: themeEvaluation.label,
     themeReason: themeEvaluation.reason,
@@ -673,7 +819,12 @@ function buildModerationMetadata(request) {
     recommendationReason,
     compactReason,
     evaluatedAt: new Date().toISOString(),
-    confidence: explicitStatus === "unknown" && !policyHits.length ? "Medium" : "High"
+    confidence:
+      explicitStatus === "unknown" &&
+      !policyHits.length &&
+      contentRatingEvaluation.status === "unknown"
+        ? "Medium"
+        : "High"
   };
 }
 
@@ -1031,6 +1182,100 @@ function buildLyricsApiUrl(artist, song) {
   return `${base}/lyrics?${params.toString()}`;
 }
 
+function buildLyricsRatingApiUrl(artist, song) {
+  const base = getLyricsApiBaseUrl();
+  if (!base) return "";
+
+  const params = new URLSearchParams({
+    artist: String(artist || "").trim(),
+    song: String(song || "").trim()
+  });
+
+  return `${base}/rating?${params.toString()}`;
+}
+
+function normalizeMusixmatchContentRating(value) {
+  const cleaned = String(value ?? "")
+    .trim()
+    .toUpperCase()
+    .replace(/[\u2013\u2014]/g, "-")
+    .replace(/_/g, "-")
+    .replace(/\s+/g, "");
+
+  if (!cleaned) return "";
+  if (cleaned === "PG13") return "PG-13";
+  if (cleaned === "NC17") return "NC-17";
+  if (["G", "PG", "PG-13", "R", "NC-17"].includes(cleaned)) return cleaned;
+  return "";
+}
+
+async function fetchContentRatingFromApi(artist, song) {
+  const apiUrl = buildLyricsRatingApiUrl(artist, song);
+  if (!apiUrl) {
+    return {
+      ok: false,
+      status: "not-configured"
+    };
+  }
+
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), CONFIG.lyricsApiTimeoutMs);
+
+  try {
+    const response = await fetch(apiUrl, {
+      method: "GET",
+      headers: {
+        Accept: "application/json"
+      },
+      signal: controller.signal
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      logDebugVerbose(DEBUG_SCOPE.lyrics, "Rating API returned non-OK status", {
+        artist,
+        song,
+        status: response.status,
+        body: text
+      });
+      return {
+        ok: false,
+        status: "api-error",
+        reason: text || `Rating API responded with ${response.status}.`
+      };
+    }
+
+    const json = await response.json();
+    const contentRating = normalizeMusixmatchContentRating(
+      json?.content_rating || json?.contentRating || ""
+    );
+
+    if (!contentRating) {
+      return {
+        ok: false,
+        status: "missing-rating",
+        reason: "No Musixmatch content rating was returned."
+      };
+    }
+
+    return {
+      ok: true,
+      status: "ok",
+      contentRating,
+      source: String(json?.source || "Musixmatch AI content rating"),
+      ratingSelectorUsed: String(json?.rating_selector_used || "")
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      status: error?.name === "AbortError" ? "timeout" : "request-failed",
+      reason: error?.name === "AbortError" ? "Rating API request timed out." : (error?.message || "Rating API request failed.")
+    };
+  } finally {
+    window.clearTimeout(timeoutId);
+  }
+}
+
 async function fetchLyricsFromApi(artist, song) {
   const startedAt = logDebugStart(DEBUG_SCOPE.lyrics, "Lyrics API request", {
     artist,
@@ -1079,6 +1324,9 @@ async function fetchLyricsFromApi(artist, song) {
 
     const json = await response.json();
     const lyrics = String(json?.lyrics || "").trim();
+    const contentRating = normalizeMusixmatchContentRating(
+      json?.content_rating || json?.contentRating || ""
+    );
     if (!lyrics) {
       logDebugWarn(DEBUG_SCOPE.lyrics, "Lyrics API returned empty lyrics payload", {
         artist,
@@ -1095,6 +1343,7 @@ async function fetchLyricsFromApi(artist, song) {
       artist,
       song,
       lyricsLength: lyrics.length,
+      contentRating: contentRating || "(none)",
       selectorUsed: String(json?.selector_used || "") || "(none)",
       source: String(json?.source || "Lyrics API")
     });
@@ -1102,7 +1351,9 @@ async function fetchLyricsFromApi(artist, song) {
       ok: true,
       lyrics,
       selectorUsed: String(json?.selector_used || ""),
-      source: String(json?.source || "Lyrics API")
+      source: String(json?.source || "Lyrics API"),
+      contentRating,
+      ratingSelectorUsed: String(json?.rating_selector_used || "")
     };
   } catch (error) {
     logDebugWarn(DEBUG_SCOPE.lyrics, "Lyrics API request failed", {
@@ -1373,7 +1624,6 @@ async function getAccessToken() {
       status: response.status,
       body: text
     });
-    console.error("Refresh failed:", text);
     return null;
   }
 
@@ -1558,7 +1808,9 @@ async function getCurrentlyPlaying() {
   try {
     return await spotifyFetch("/me/player");
   } catch (error) {
-    console.warn("Currently playing unavailable:", error);
+    logDebugVerbose(DEBUG_SCOPE.playback, "Currently playing unavailable", {
+      error: error?.message || "unknown"
+    });
     return null;
   }
 }
@@ -1940,6 +2192,7 @@ async function enrichRequestRows(rows) {
     rawRowCount: rows.length,
     concurrency: Math.max(1, Math.min(CONFIG.trackLookupConcurrency, rows.length || 1))
   });
+  const shouldFetchRatings = !!getLyricsApiBaseUrl();
   const rejected = getRejectedIds();
   const enriched = new Array(rows.length);
   let cursor = 0;
@@ -1985,6 +2238,26 @@ async function enrichRequestRows(rows) {
           trackId,
           explicit: result.spotify?.explicit ?? null
         });
+
+        if (shouldFetchRatings && result.spotify?.artist && result.spotify?.name) {
+          const ratingResult = await fetchContentRatingFromApi(result.spotify.artist, result.spotify.name);
+          if (ratingResult.ok) {
+            result.musixmatchContentRating = ratingResult.contentRating;
+            logDebugVerbose(DEBUG_SCOPE.requests, "Fetched Musixmatch content rating", {
+              requestId,
+              trackId,
+              contentRating: ratingResult.contentRating,
+              ratingSelectorUsed: ratingResult.ratingSelectorUsed || "(none)"
+            });
+          } else if (ratingResult.status !== "missing-rating") {
+            logDebugVerbose(DEBUG_SCOPE.requests, "No content rating attached for request", {
+              requestId,
+              trackId,
+              status: ratingResult.status,
+              reason: ratingResult.reason || "none"
+            });
+          }
+        }
       } catch (error) {
         result.error = error?.message || "Spotify lookup failed";
         logDebugWarn(DEBUG_SCOPE.requests, "Spotify lookup failed for request", {
@@ -2013,7 +2286,10 @@ async function enrichRequestRows(rows) {
     invalid: enriched.filter((item) => !item?.spotify).length,
     explicit: enriched.filter((item) => item?.spotify?.explicit === true).length,
     blockedTheme: enriched.filter((item) => item?.moderation?.themeStatus === "blocked").length,
-    reviewTheme: enriched.filter((item) => item?.moderation?.themeStatus === "flagged").length
+    reviewTheme: enriched.filter((item) => item?.moderation?.themeStatus === "flagged").length,
+    blockedRating: enriched.filter((item) => item?.moderation?.contentRatingStatus === "blocked").length,
+    reviewRating: enriched.filter((item) => item?.moderation?.contentRatingStatus === "flagged").length,
+    ratingsAttached: enriched.filter((item) => !!item?.musixmatchContentRating).length
   };
 
   logDebugEnd(DEBUG_SCOPE.requests, "Enrich request rows", startedAt, stats);
@@ -2036,10 +2312,15 @@ function buildRequestSummary(requests) {
   const errors = requests.filter((r) => !r.spotify).length;
   const themeReview = requests.filter((r) => ensureModerationMetadata(r)?.themeStatus === "flagged").length;
   const themeBlocked = requests.filter((r) => ensureModerationMetadata(r)?.themeStatus === "blocked").length;
+  const ratingReview = requests.filter((r) => ensureModerationMetadata(r)?.contentRatingStatus === "flagged").length;
+  const ratingBlocked = requests.filter((r) => ensureModerationMetadata(r)?.contentRatingStatus === "blocked").length;
+  const autoPass = requests.filter((r) => ensureModerationMetadata(r)?.recommendation === "pass").length;
+  const manualReview = requests.filter((r) => ensureModerationMetadata(r)?.recommendation === "review").length;
+  const autoBlocked = requests.filter((r) => ensureModerationMetadata(r)?.recommendation === "block").length;
 
   if (el.requestSummary) {
     el.requestSummary.textContent =
-      `Loaded ${total} request(s) | Valid Spotify links: ${valid} | Clean: ${clean} | Explicit: ${explicit} | Theme Review: ${themeReview} | Theme Blocked: ${themeBlocked} | Errors: ${errors}`;
+      `Loaded ${total} request(s) | Valid Spotify links: ${valid} | Clean: ${clean} | Explicit: ${explicit} | Theme Review: ${themeReview} | Theme Blocked: ${themeBlocked} | Rating Review: ${ratingReview} | Rating Blocked: ${ratingBlocked} | Pass: ${autoPass} | Manual Review: ${manualReview} | Block: ${autoBlocked} | Errors: ${errors}`;
   }
 
   logDebug(DEBUG_SCOPE.requests, "Request summary rebuilt", {
@@ -2049,6 +2330,11 @@ function buildRequestSummary(requests) {
     explicit,
     themeReview,
     themeBlocked,
+    ratingReview,
+    ratingBlocked,
+    autoPass,
+    manualReview,
+    autoBlocked,
     errors
   });
 }
@@ -2062,7 +2348,8 @@ function approveRequest(request, options = {}) {
     allowExplicit = false,
     allowDuplicateTrack = false,
     selectAdded = false,
-    allowThemeBlocked = false
+    allowThemeBlocked = false,
+    allowBlockedContentRating = false
   } = options;
 
   const moderation = ensureModerationMetadata(request);
@@ -2090,6 +2377,17 @@ function approveRequest(request, options = {}) {
       themeStatus: moderation?.themeStatus
     });
     if (!silentStatus) setStatus("Cannot approve: theme contains blocked terms.");
+    return false;
+  }
+
+  if (moderation?.contentRatingStatus === "blocked" && !allowBlockedContentRating) {
+    logDebugWarn(DEBUG_SCOPE.moderation, "Approve blocked: content rating policy block", {
+      requestId: request.requestId,
+      contentRating: moderation?.contentRating || null
+    });
+    if (!silentStatus) {
+      setStatus(`Cannot approve: Musixmatch rating ${moderation?.contentRating || "R/NC-17"} is blocked by policy.`);
+    }
     return false;
   }
 
@@ -2234,7 +2532,7 @@ function approveAllVisibleCleanRequests() {
   const visible = getVisibleUnapprovedRequests(currentRequests);
   const cleanVisible = visible.filter((request) => {
     const moderation = ensureModerationMetadata(request);
-    return request.spotify && request.spotify.explicit === false && moderation?.themeStatus !== "blocked";
+    return request.spotify && moderation?.recommendation === "pass";
   });
 
   if (!cleanVisible.length) {
@@ -2419,7 +2717,10 @@ function renderRequests(requests) {
         : "Error";
 
       const approveDisabled =
-        !request.spotify || request.spotify.explicit || moderation?.themeStatus === "blocked"
+        !request.spotify ||
+        request.spotify.explicit ||
+        moderation?.themeStatus === "blocked" ||
+        moderation?.contentRatingStatus === "blocked"
           ? "disabled"
           : "";
       const lyricsUrl = request.spotify ? buildLyricsUrl(request.spotify.artist, request.spotify.name) : "";
@@ -2915,7 +3216,9 @@ async function addSelectedApprovedToQueue() {
   try {
     await refreshPlayback();
   } catch (error) {
-    console.warn("Playback refresh after add-to-queue failed:", error);
+    logDebugWarn(DEBUG_SCOPE.playback, "Playback refresh after add-to-queue failed", {
+      error: error?.message || "unknown"
+    });
   }
 
   return item;
@@ -2979,9 +3282,170 @@ async function addDjAssistedRequestFromForm() {
 }
 
 function badgeClassForRecommendation(moderation) {
+  if (moderation?.manualSafetyOverride) return "badge-override";
   if (moderation?.recommendation === "block") return "badge-explicit";
   if (moderation?.recommendation === "review") return "badge-error";
   return "badge-clean";
+}
+
+function getBlockedSignalLabels(moderation) {
+  const labels = [];
+
+  if (moderation?.explicitStatus === "explicit") {
+    labels.push("Spotify Explicit");
+  }
+
+  if (moderation?.themeStatus === "blocked") {
+    labels.push("Theme Policy Block");
+  }
+
+  if (moderation?.contentRatingStatus === "blocked") {
+    labels.push(`Musixmatch Rating ${moderation?.contentRating || "R/NC-17"}`);
+  }
+
+  return labels;
+}
+
+function validateSafetyOverrideEligibility(request, moderation) {
+  if (!request) {
+    return {
+      allowed: false,
+      reason: "Could not find request data for override.",
+      blockedSignals: []
+    };
+  }
+
+  if (!request.spotify) {
+    return {
+      allowed: false,
+      reason: "Cannot override: missing Spotify track metadata.",
+      blockedSignals: []
+    };
+  }
+
+  const blockedSignals = getBlockedSignalLabels(moderation);
+  if (!blockedSignals.length) {
+    return {
+      allowed: false,
+      reason: "Safety override is only available when a request is blocked.",
+      blockedSignals: []
+    };
+  }
+
+  return {
+    allowed: true,
+    reason: "",
+    blockedSignals
+  };
+}
+
+function confirmSafetyOverrideFlow(request, moderation, blockedSignals) {
+  const trackName = request?.spotify?.name || "this track";
+  const trackIdSuffix = String(request?.spotify?.id || "").slice(-4).toUpperCase();
+  const signalSummary = (Array.isArray(blockedSignals) && blockedSignals.length
+    ? blockedSignals
+    : getBlockedSignalLabels(moderation)).join(", ");
+
+  const firstConfirm = window.confirm(
+    `This request is blocked by: ${signalSummary || "policy checks"}.\\n\\nDo you want to start a full safety override?`
+  );
+  if (!firstConfirm) return false;
+
+  const secondConfirm = window.confirm(
+    "This can bypass explicit, theme, and rating safety blocks.\\nOnly continue if you manually reviewed the song."
+  );
+  if (!secondConfirm) return false;
+
+  const typedPhrase = window.prompt('Type "OVERRIDE ALL BLOCKS" to continue.');
+  if (String(typedPhrase || "").trim().toUpperCase() !== "OVERRIDE ALL BLOCKS") return false;
+
+  if (trackIdSuffix) {
+    const typedTrackSuffix = window.prompt(
+      `Type the last 4 characters of the track ID (${trackIdSuffix}) to continue.`
+    );
+    if (String(typedTrackSuffix || "").trim().toUpperCase() !== trackIdSuffix) return false;
+  }
+
+  const thirdConfirm = window.confirm(
+    `Final confirmation: approve ${trackName} with full safety override?`
+  );
+  if (!thirdConfirm) return false;
+
+  const typedFinal = window.prompt('Type "APPROVE OVERRIDE" for the final step.');
+  return String(typedFinal || "").trim().toUpperCase() === "APPROVE OVERRIDE";
+}
+
+function applySafetyOverrideMetadata(request, moderation, blockedSignals) {
+  if (!request || !moderation || typeof moderation !== "object") return;
+
+  const effectiveSignals = Array.isArray(blockedSignals) ? blockedSignals : getBlockedSignalLabels(moderation);
+
+  moderation.manualSafetyOverride = true;
+  moderation.overrideBlockedSignals = effectiveSignals;
+  moderation.contentRatingOverride = moderation.contentRatingStatus === "blocked";
+  moderation.explicitOverride = moderation.explicitStatus === "explicit";
+  moderation.themeOverride = moderation.themeStatus === "blocked";
+  moderation.contentRatingOverrideAt = new Date().toISOString();
+  moderation.contentRatingOverrideBy = "moderator";
+  moderation.recommendation = "pass";
+  moderation.recommendationLabel = "Moderator Safety Override";
+  moderation.recommendationReason =
+    `Moderator approved after overriding blocked signals: ${effectiveSignals.join(", ") || "Policy Block"}.`;
+  moderation.compactReason =
+    `${moderation.explicitLabel || "Unknown"} Spotify | ${moderation.contentRatingLabel || "No Rating"} | ${moderation.themeLabel || "No Theme"} (Safety Override)`;
+
+  request.moderation = moderation;
+}
+
+function approveRequestWithSafetyOverride(requestId) {
+  const request = currentRequests.find((item) => item.requestId === requestId);
+  if (!request) {
+    setStatus("Could not find request to apply safety override.");
+    return;
+  }
+
+  if (isApproved(requestId)) {
+    setStatus("This request is already approved.");
+    return;
+  }
+
+  const moderation = ensureModerationMetadata(request);
+  const eligibility = validateSafetyOverrideEligibility(request, moderation);
+
+  if (!eligibility.allowed) {
+    setStatus(eligibility.reason || "Safety override is not available for this request.");
+    return;
+  }
+
+  const confirmed = confirmSafetyOverrideFlow(request, moderation, eligibility.blockedSignals);
+  if (!confirmed) {
+    setStatus("Safety override canceled.");
+    return;
+  }
+
+  applySafetyOverrideMetadata(request, moderation, eligibility.blockedSignals);
+
+  const approved = approveRequest(request, {
+    silentStatus: true,
+    allowExplicit: true,
+    allowThemeBlocked: true,
+    allowBlockedContentRating: true,
+    selectAdded: true
+  });
+
+  if (!approved) {
+    setStatus("Safety override could not approve this request.");
+    return;
+  }
+
+  closeModerationReasonModal();
+  setStatus(`Moderator safety override approved: ${request.spotify.artist} - ${request.spotify.name}`);
+  logDebugWarn(DEBUG_SCOPE.moderation, "Moderator approved request via full safety override", {
+    requestId,
+    trackId: request.spotify?.id || null,
+    contentRating: moderation?.contentRating || null,
+    blockedSignals: eligibility.blockedSignals
+  });
 }
 
 function moderationReasonHtml(request, moderation) {
@@ -3019,6 +3483,40 @@ function moderationReasonHtml(request, moderation) {
       .join("")
     : "<tr><td colspan=\"5\">No keyword or phrase matches.</td></tr>";
 
+  const requestId = String(request?.requestId || "");
+  const isPreviewRequest = requestId.startsWith("preview|");
+  const alreadyApproved = requestId ? isApproved(requestId) : false;
+  const overrideEligibility = validateSafetyOverrideEligibility(request, moderation);
+  const showSafetyOverrideAction =
+    !!requestId &&
+    !isPreviewRequest &&
+    !alreadyApproved &&
+    moderation?.recommendation === "block";
+
+  const safetyOverrideActions = showSafetyOverrideAction
+    ? `
+      <div class="moderation-reason-callout moderation-reason-override-callout">
+        <span class="badge badge-override">Safety Override</span>
+        <p>
+          This can override explicit, theme, and rating blocks. It requires multiple confirmations plus typed checks.
+        </p>
+        ${
+          overrideEligibility.allowed
+            ? `<div class="moderation-override-actions">
+                <button
+                  class="btn btn-small btn-primary moderation-safety-override-btn"
+                  type="button"
+                  data-request-id="${escapeHtml(requestId)}"
+                >
+                  Override All Blocks and Approve
+                </button>
+              </div>`
+            : `<p class="moderation-override-warning">${escapeHtml(overrideEligibility.reason)}</p>`
+        }
+      </div>
+    `
+    : "";
+
   return `
     <div class="moderation-reason-grid">
       <div class="moderation-reason-item">
@@ -3044,11 +3542,20 @@ function moderationReasonHtml(request, moderation) {
       <p>${escapeHtml(moderation?.recommendationReason || "Manual review recommended.")}</p>
     </div>
 
+    ${safetyOverrideActions}
+
     <div class="moderation-reason-section">
       <h3>Explicit Classification</h3>
       <p><strong>Verdict:</strong> ${escapeHtml(moderation?.explicitLabel || "Unknown")}</p>
       <p><strong>Source:</strong> ${escapeHtml(moderation?.explicitSource || "Spotify metadata")}</p>
       <p><strong>Reason:</strong> ${escapeHtml(moderation?.explicitReason || "No explicit reasoning available.")}</p>
+    </div>
+
+    <div class="moderation-reason-section">
+      <h3>Musixmatch Content Rating</h3>
+      <p><strong>Verdict:</strong> ${escapeHtml(moderation?.contentRatingLabel || "No Rating")}</p>
+      <p><strong>Source:</strong> ${escapeHtml(moderation?.contentRatingSource || "Musixmatch AI content rating")}</p>
+      <p><strong>Reason:</strong> ${escapeHtml(moderation?.contentRatingReason || "No rating reasoning available.")}</p>
     </div>
 
     <div class="moderation-reason-section">
@@ -3178,13 +3685,18 @@ function renderLyricsLoading() {
   el.lyricsModalBody.innerHTML = '<div class="lyrics-loading">Loading lyrics...</div>';
 }
 
-function renderLyricsSuccess({ lyrics, selectorUsed, source }) {
+function renderLyricsSuccess({ lyrics, selectorUsed, source, contentRating, ratingSelectorUsed }) {
   if (!el.lyricsModalBody) return;
 
   el.lyricsModalBody.innerHTML = `
     <div class="lyrics-success-wrap">
       <pre class="lyrics-text-pre">${escapeHtml(lyrics)}</pre>
-      <p class="lyrics-fallback-copy">Source: ${escapeHtml(source || "Lyrics API")} ${selectorUsed ? `• Selector: ${escapeHtml(selectorUsed)}` : ""}</p>
+      <p class="lyrics-fallback-copy">
+        Source: ${escapeHtml(source || "Lyrics API")}
+        ${selectorUsed ? ` • Selector: ${escapeHtml(selectorUsed)}` : ""}
+        ${contentRating ? ` • Rating: ${escapeHtml(contentRating)}` : ""}
+        ${ratingSelectorUsed ? ` • Rating Selector: ${escapeHtml(ratingSelectorUsed)}` : ""}
+      </p>
     </div>
   `;
 }
@@ -3239,7 +3751,9 @@ async function openLyricsModal({ artist, song, fallbackUrl }) {
     artist: safeArtist,
     song: safeSong,
     source: result.source,
+    contentRating: result.contentRating || "(none)",
     selectorUsed: result.selectorUsed || "(none)",
+    ratingSelectorUsed: result.ratingSelectorUsed || "(none)",
     lyricsLength: result.lyrics.length
   });
 }
@@ -3330,7 +3844,6 @@ async function loadRequests() {
     sheetRows = await fetchStudentRequestRows();
   } catch (error) {
     sheetError = error;
-    console.warn("Sheet request load failed:", error);
     logDebugWarn(DEBUG_SCOPE.requests, "Sheet request load failed. Continuing with DJ local requests.", {
       error: error?.message || "unknown"
     });
@@ -3413,7 +3926,9 @@ function wireStaticEvents() {
     try {
       await loadRequests();
     } catch (error) {
-      console.error(error);
+      logDebugWarn(DEBUG_SCOPE.requests, "Load requests button action failed", {
+        error: error?.message || "unknown"
+      });
       setStatus(error?.message || "Failed to load requests.");
     }
   });
@@ -3433,7 +3948,9 @@ function wireStaticEvents() {
       setStatus("Main playlist started.");
       await refreshPlayback();
     } catch (error) {
-      console.error(error);
+      logDebugWarn(DEBUG_SCOPE.spotify, "Start main playlist action failed", {
+        error: error?.message || "unknown"
+      });
       setStatus(error?.message || "Could not start main playlist.");
     }
   });
@@ -3444,7 +3961,9 @@ function wireStaticEvents() {
       setStatus("Slow playlist started.");
       await refreshPlayback();
     } catch (error) {
-      console.error(error);
+      logDebugWarn(DEBUG_SCOPE.spotify, "Start slow playlist action failed", {
+        error: error?.message || "unknown"
+      });
       setStatus(error?.message || "Could not start slow playlist.");
     }
   });
@@ -3455,7 +3974,9 @@ function wireStaticEvents() {
       setStatus("Fun playlist started.");
       await refreshPlayback();
     } catch (error) {
-      console.error(error);
+      logDebugWarn(DEBUG_SCOPE.spotify, "Start fun playlist action failed", {
+        error: error?.message || "unknown"
+      });
       setStatus(error?.message || "Could not start fun playlist.");
     }
   });
@@ -3467,7 +3988,9 @@ function wireStaticEvents() {
         `Added to queue: ${item?.spotify?.artist || "Unknown Artist"} — ${item?.spotify?.name || "Unknown Song"}`
       );
     } catch (error) {
-      console.error(error);
+      logDebugWarn(DEBUG_SCOPE.queue, "Add approved song to playback queue action failed", {
+        error: error?.message || "unknown"
+      });
       setStatus(error?.message || "Could not add approved song to queue.");
     }
   });
@@ -3496,7 +4019,9 @@ function wireStaticEvents() {
     try {
       await runManualTrackSearch();
     } catch (error) {
-      console.error(error);
+      logDebugWarn(DEBUG_SCOPE.spotify, "Manual Spotify search action failed", {
+        error: error?.message || "unknown"
+      });
       setStatus(error?.message || "Spotify search failed.");
     }
   });
@@ -3505,7 +4030,9 @@ function wireStaticEvents() {
     try {
       await addDjAssistedRequestFromForm();
     } catch (error) {
-      console.error(error);
+      logDebugWarn(DEBUG_SCOPE.requests, "DJ-assisted add action failed", {
+        error: error?.message || "unknown"
+      });
       setStatus(error?.message || "Could not add DJ-assisted request.");
     }
   });
@@ -3517,7 +4044,9 @@ function wireStaticEvents() {
     try {
       await addDjAssistedRequestFromForm();
     } catch (error) {
-      console.error(error);
+      logDebugWarn(DEBUG_SCOPE.requests, "DJ-assisted add via Enter key failed", {
+        error: error?.message || "unknown"
+      });
       setStatus(error?.message || "Could not add DJ-assisted request.");
     }
   });
@@ -3529,7 +4058,9 @@ function wireStaticEvents() {
     try {
       await runManualTrackSearch();
     } catch (error) {
-      console.error(error);
+      logDebugWarn(DEBUG_SCOPE.spotify, "Manual Spotify search via Enter key failed", {
+        error: error?.message || "unknown"
+      });
       setStatus(error?.message || "Spotify search failed.");
     }
   });
@@ -3639,7 +4170,9 @@ function wireStaticEvents() {
     try {
       await addManualSearchResultToQueue(addButton.dataset.trackId || "");
     } catch (error) {
-      console.error(error);
+      logDebugWarn(DEBUG_SCOPE.moderation, "Add manual search result to queue failed", {
+        error: error?.message || "unknown"
+      });
       setStatus(error?.message || "Moderator add failed.");
     }
   });
@@ -3656,7 +4189,9 @@ function wireStaticEvents() {
       const item = await addSelectedApprovedToPlaylist(CONFIG.defaultPlaylistId);
       setStatus(`Added to Main playlist: ${item?.spotify?.artist || "Unknown Artist"} - ${item?.spotify?.name || "Unknown Song"}`);
     } catch (error) {
-      console.error(error);
+      logDebugWarn(DEBUG_SCOPE.queue, "Add selected approved song to Main playlist failed", {
+        error: error?.message || "unknown"
+      });
       setStatus(error?.message || "Could not add selected song to Main playlist.");
     }
   });
@@ -3666,7 +4201,9 @@ function wireStaticEvents() {
       const item = await addSelectedApprovedToPlaylist(CONFIG.slowPlaylistId);
       setStatus(`Added to Slow playlist: ${item?.spotify?.artist || "Unknown Artist"} - ${item?.spotify?.name || "Unknown Song"}`);
     } catch (error) {
-      console.error(error);
+      logDebugWarn(DEBUG_SCOPE.queue, "Add selected approved song to Slow playlist failed", {
+        error: error?.message || "unknown"
+      });
       setStatus(error?.message || "Could not add selected song to Slow playlist.");
     }
   });
@@ -3676,7 +4213,9 @@ function wireStaticEvents() {
       const item = await addSelectedApprovedToPlaylist(CONFIG.funPlaylistId);
       setStatus(`Added to Fun playlist: ${item?.spotify?.artist || "Unknown Artist"} - ${item?.spotify?.name || "Unknown Song"}`);
     } catch (error) {
-      console.error(error);
+      logDebugWarn(DEBUG_SCOPE.queue, "Add selected approved song to Fun playlist failed", {
+        error: error?.message || "unknown"
+      });
       setStatus(error?.message || "Could not add selected song to Fun playlist.");
     }
   });
@@ -3686,6 +4225,12 @@ function wireStaticEvents() {
   document.getElementById("modBackdrop")?.addEventListener("click", () => closeModerationPanel());
   el.btnCloseModerationReason?.addEventListener("click", () => closeModerationReasonModal());
   el.moderationReasonBackdrop?.addEventListener("click", () => closeModerationReasonModal());
+  el.moderationReasonBody?.addEventListener("click", (event) => {
+    const safetyOverrideButton = event.target.closest(".moderation-safety-override-btn");
+    if (!safetyOverrideButton) return;
+
+    approveRequestWithSafetyOverride(safetyOverrideButton.dataset.requestId || "");
+  });
   el.btnCloseLyricsModal?.addEventListener("click", () => closeLyricsModal());
   el.lyricsBackdrop?.addEventListener("click", () => closeLyricsModal());
 
@@ -3699,7 +4244,9 @@ function wireStaticEvents() {
     const title = currentNowPlayingTrack.name || "Unknown Song";
     const url = buildLyricsUrl(artist, title);
     openLyricsModal({ artist, song: title, fallbackUrl: url }).catch((error) => {
-      console.error(error);
+      logDebugWarn(DEBUG_SCOPE.lyrics, "Now playing lyrics modal failed; opening fallback URL", {
+        error: error?.message || "unknown"
+      });
       window.open(url, "_blank", "noopener,noreferrer");
     });
   });
@@ -3713,7 +4260,9 @@ function wireStaticEvents() {
     const fallbackUrl = String(lyricsButton.dataset.lyricsUrl || buildLyricsUrl(artist, song));
 
     openLyricsModal({ artist, song, fallbackUrl }).catch((error) => {
-      console.error(error);
+      logDebugWarn(DEBUG_SCOPE.lyrics, "Row lyrics modal failed; opening fallback URL", {
+        error: error?.message || "unknown"
+      });
       window.open(fallbackUrl, "_blank", "noopener,noreferrer");
     });
   });
@@ -3726,7 +4275,9 @@ function wireStaticEvents() {
       await wait(500);
       await refreshPlayback();
     } catch (error) {
-      console.error(error);
+      logDebugWarn(DEBUG_SCOPE.playback, "Skip to previous track action failed", {
+        error: error?.message || "unknown"
+      });
       setStatus(error?.message || "Could not go to previous track.");
     } finally {
       setTransportBusy(false);
@@ -3741,7 +4292,9 @@ function wireStaticEvents() {
       await refreshPlayback();
       setStatus(isPlaybackActive ? "Playback resumed." : "Playback paused.");
     } catch (error) {
-      console.error(error);
+      logDebugWarn(DEBUG_SCOPE.playback, "Toggle play/pause action failed", {
+        error: error?.message || "unknown"
+      });
       setStatus(error?.message || "Could not toggle playback.");
     } finally {
       setTransportBusy(false);
@@ -3756,7 +4309,9 @@ function wireStaticEvents() {
       await wait(500);
       await refreshPlayback();
     } catch (error) {
-      console.error(error);
+      logDebugWarn(DEBUG_SCOPE.playback, "Skip to next track action failed", {
+        error: error?.message || "unknown"
+      });
       setStatus(error?.message || "Could not go to next track.");
     } finally {
       setTransportBusy(false);
@@ -3777,7 +4332,9 @@ function wireStaticEvents() {
       currentPlaybackProgressMs = nextProgressMs;
       setStatus(`Seeked to ${msToMinSec(nextProgressMs)}.`);
     } catch (error) {
-      console.error(error);
+      logDebugWarn(DEBUG_SCOPE.playback, "Seek action failed", {
+        error: error?.message || "unknown"
+      });
       setStatus(error?.message || "Could not seek playback.");
       await refreshPlayback();
     }
@@ -3793,7 +4350,9 @@ function wireStaticEvents() {
       await setPlaybackVolume(percent);
       setStatus(`Volume set to ${Math.round(percent)}%.`);
     } catch (error) {
-      console.error(error);
+      logDebugWarn(DEBUG_SCOPE.playback, "Volume change action failed", {
+        error: error?.message || "unknown"
+      });
       setStatus(error?.message || "Could not change playback volume.");
       await refreshPlayback();
     }
@@ -3828,7 +4387,9 @@ function startPlaybackPolling() {
     try {
       await refreshPlayback();
     } catch (error) {
-      console.warn("Playback poll failed:", error);
+      logDebugWarn(DEBUG_SCOPE.playback, "Playback poll failed", {
+        error: error?.message || "unknown"
+      });
     }
   }, CONFIG.playbackPollMs);
 }
@@ -3877,7 +4438,9 @@ async function init() {
   try {
     await refreshPlayback();
   } catch (error) {
-    console.warn("Initial playback refresh failed:", error);
+    logDebugWarn(DEBUG_SCOPE.playback, "Initial playback refresh failed", {
+      error: error?.message || "unknown"
+    });
   }
 
   if (hasActiveSpotifyLogin || !!authGet(LS.accessToken)) {
@@ -3893,7 +4456,9 @@ async function init() {
 
 window.addEventListener("DOMContentLoaded", () => {
   init().catch((error) => {
-    console.error(error);
+    logDebugError(DEBUG_SCOPE.app, "App init failed", {
+      error: error?.message || "unknown"
+    });
     setStatus(error?.message || "App failed to initialize.");
   });
 });

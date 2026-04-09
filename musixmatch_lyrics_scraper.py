@@ -27,11 +27,32 @@ DEFAULT_SELECTOR = (
     "div.css-g5y9jx.r-13awgt0.r-eqz5dr.r-1v1z2uz"
 )
 
+DEFAULT_RATING_SELECTOR = (
+    "#ritmo-portal > div:nth-child(1) > div > div:nth-child(1) > div:nth-child(1) > "
+    "div.css-g5y9jx.r-1smwm8v > div > div > div:nth-child(1) > "
+    "div.css-g5y9jx.r-13awgt0.r-eqz5dr.r-1v1z2uz"
+)
+
 FALLBACK_SELECTORS = (
     '[data-testid="lyrics-track"]',
     '[data-testid="lyrics-container"]',
+    "#root > main > div > div > div > div > div > div > div > div > div > div > div",
+    "#ritmo-portal > div > div > div > div > div > div > div > div > div",
     '#ritmo-portal div[class*="lyrics"]',
     'article[class*="lyrics"]',
+)
+
+RATING_FALLBACK_SELECTORS = (
+    '[data-testid="content-rating"]',
+    '[data-testid="lyrics-rating"]',
+    '[class*="content-rating"]',
+    '[class*="lyrics-rating"]',
+    '#ritmo-portal span',
+)
+
+CONTENT_RATING_PATTERN = re.compile(
+    r"\b(?:rating\s*)?(G|PG-13|PG13|PG|R|NC-17|NC17)\b",
+    re.IGNORECASE,
 )
 
 REQUEST_HEADERS = {
@@ -52,6 +73,8 @@ class LyricsResult:
     url: str
     selector_used: str
     lyrics: str
+    content_rating: str | None
+    rating_selector_used: str | None
 
 
 def slugify_for_musixmatch(value: str) -> str:
@@ -104,6 +127,68 @@ def selector_candidates(primary_selector: str) -> Iterable[str]:
             yield selector
 
 
+def rating_selector_candidates(primary_selector: str) -> Iterable[str]:
+    yield primary_selector
+    for selector in RATING_FALLBACK_SELECTORS:
+        if selector != primary_selector:
+            yield selector
+
+
+def normalize_content_rating(value: str) -> str | None:
+    cleaned = (
+        str(value or "")
+        .strip()
+        .upper()
+        .replace("_", "-")
+        .replace("–", "-")
+        .replace("—", "-")
+        .replace(" ", "")
+    )
+
+    if cleaned == "PG13":
+        cleaned = "PG-13"
+    elif cleaned == "NC17":
+        cleaned = "NC-17"
+
+    if cleaned in {"G", "PG", "PG-13", "R", "NC-17"}:
+        return cleaned
+
+    return None
+
+
+def extract_content_rating_from_text(text: str) -> str | None:
+    if not text:
+        return None
+
+    match = CONTENT_RATING_PATTERN.search(text)
+    if not match:
+        return None
+
+    return normalize_content_rating(match.group(1))
+
+
+def extract_content_rating_from_html(
+    html: str,
+    primary_selector: str = DEFAULT_RATING_SELECTOR,
+) -> tuple[str | None, str | None]:
+    soup = BeautifulSoup(html, "html.parser")
+
+    for selector in rating_selector_candidates(primary_selector):
+        node = soup.select_one(selector)
+        if not node:
+            continue
+
+        rating = extract_content_rating_from_text(text_from_tag(node))
+        if rating:
+            return rating, selector
+
+    page_rating = extract_content_rating_from_text(soup.get_text(" ", strip=True))
+    if page_rating:
+        return page_rating, "heuristic:page-text"
+
+    return None, None
+
+
 def extract_lyrics_from_html(html: str, primary_selector: str = DEFAULT_SELECTOR) -> tuple[str, str]:
     soup = BeautifulSoup(html, "html.parser")
 
@@ -151,7 +236,24 @@ def fetch_musixmatch_lyrics(url: str, selector: str = DEFAULT_SELECTOR) -> Lyric
         raise LyricsFetchError("Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.")
 
     lyrics, selector_used = extract_lyrics_from_html(html, primary_selector=selector)
-    return LyricsResult(url=url, selector_used=selector_used, lyrics=lyrics)
+    content_rating, rating_selector_used = extract_content_rating_from_html(html)
+    return LyricsResult(
+        url=url,
+        selector_used=selector_used,
+        lyrics=lyrics,
+        content_rating=content_rating,
+        rating_selector_used=rating_selector_used,
+    )
+
+
+def fetch_musixmatch_content_rating(url: str) -> tuple[str | None, str | None]:
+    html = fetch_html(url)
+
+    lower_html = html.lower()
+    if "captcha" in lower_html and "musixmatch" in lower_html:
+        raise LyricsFetchError("Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.")
+
+    return extract_content_rating_from_html(html)
 
 
 def parse_args() -> argparse.Namespace:
@@ -212,6 +314,8 @@ def main() -> int:
                     "url": result.url,
                     "selector_used": result.selector_used,
                     "lyrics": result.lyrics,
+                    "content_rating": result.content_rating,
+                    "rating_selector_used": result.rating_selector_used,
                 },
                 ensure_ascii=False,
                 indent=2,
