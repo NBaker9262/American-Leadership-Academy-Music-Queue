@@ -1,0 +1,52 @@
+name: Python Worker Checks
+
+'on':
+  workflow_dispatch:
+  push:
+    paths:
+      - lyrics_api_server.py
+      - musixmatch_lyrics_scraper.py
+      - requirements.txt
+      - .github/workflows/python-worker-checks.yml
+  pull_request:
+    paths:
+      - lyrics_api_server.py
+      - musixmatch_lyrics_scraper.py
+      - requirements.txt
+      - .github/workflows/python-worker-checks.yml
+
+jobs:
+  python-worker:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Compile Python files
+        run: |
+          python -m py_compile lyrics_api_server.py
+          python -m py_compile musixmatch_lyrics_scraper.py
+
+      - name: Start server and run health check
+        run: |
+          python lyrics_api_server.py serve --port 8787 &
+          SERVER_PID=$!
+
+          cleanup() {
+            kill $SERVER_PID || true
+          }
+          trap cleanup EXIT
+
+          sleep 2
+          curl -fsS "http://127.0.0.1:8787/health"

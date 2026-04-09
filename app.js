@@ -7,7 +7,7 @@
 // - Time progress + remaining
 // - Google Sheet request moderation
 // - Approved queue flow
-// - Musixmatch lyrics quick links
+// - Optional lyrics API integration
 // ======================================================
 
 // --------------------
@@ -3670,7 +3670,7 @@ function renderLyricsFallbackContent({ artist, song, fallbackUrl, reason }) {
       <p class="lyrics-fallback-copy">${escapeHtml(reason || "The API did not return lyrics.")}</p>
       <p class="lyrics-fallback-copy">
         GitHub Pages cannot run Python directly. To use live lyric scraping in-app,
-        host the Python endpoint separately and set CONFIG.lyricsApiBaseUrl.
+        set CONFIG.lyricsApiBaseUrl to your API endpoint.
       </p>
       <a class="btn btn-small btn-primary" href="${escapeHtml(fallbackUrl)}" target="_blank" rel="noopener noreferrer">
         Open Musixmatch Page

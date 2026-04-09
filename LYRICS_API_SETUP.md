@@ -1,16 +1,12 @@
-# Lyrics API Setup (GitHub Pages Compatible)
+# Lyrics Worker Setup (Python + GitHub Actions)
 
-GitHub Pages serves static files only, so it cannot execute Python directly.
+This repository now uses a Python lyrics worker and does not use committed lyrics cache files.
 
-This project now supports an optional external lyrics API.
-
-## 1) Run API locally
+## 1) Run lyrics API locally
 
 ```bash
-python lyrics_api_server.py
+python lyrics_api_server.py serve --port 8787
 ```
-
-API URL: `http://localhost:8787`
 
 Health check:
 
@@ -24,16 +20,41 @@ Lyrics check:
 curl "http://localhost:8787/lyrics?artist=Taron%20Egerton&song=I'm%20Still%20Standing%20From%20Sing%20Original%20Motion%20Picture%20Soundtrack"
 ```
 
-## 2) Deploy free/basic host
+Rating check:
 
-You can deploy `lyrics_api_server.py` to a free Python host (Render, Railway, Fly free tier, etc.).
-
-## 3) Point frontend to API
-
-In `app.js`, set:
-
-```js
-lyricsApiBaseUrl: "https://your-lyrics-api-host.example.com",
+```bash
+curl "http://localhost:8787/rating?artist=Taron%20Egerton&song=I'm%20Still%20Standing%20From%20Sing%20Original%20Motion%20Picture%20Soundtrack"
 ```
 
-If this value is blank, the UI falls back to opening Musixmatch directly.
+## 2) Frontend config
+
+In `app.js`, set your API endpoint:
+
+```js
+lyricsApiBaseUrl: "http://localhost:8787",
+```
+
+For GitHub Pages, set this to your deployed lyrics API URL.
+If it is blank, the UI falls back to opening Musixmatch pages.
+
+## 3) GitHub Actions worker checks
+
+Workflow file: `.github/workflows/python-worker-checks.yml`
+
+What it does:
+- Installs Python dependencies.
+- Compiles `lyrics_api_server.py` and `musixmatch_lyrics_scraper.py`.
+- Starts the server and verifies `/health` returns OK.
+
+Triggers:
+- Push to files related to the lyrics worker.
+- Pull requests touching those files.
+- Manual run via `workflow_dispatch`.
+
+## 4) Local Live Server extension testing
+
+Use VS Code Live Server for the frontend (do not use `file://`).
+
+Expected behavior:
+- Moderation still combines Spotify explicit flag + theme policy + lyrics content rating.
+- If `lyricsApiBaseUrl` is not set or API is unreachable, lyrics modal falls back to Musixmatch link.
