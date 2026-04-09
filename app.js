@@ -7,14 +7,14 @@
 // - Time progress + remaining
 // - Google Sheet request moderation
 // - Approved queue flow
-// - Genius lyrics popup with stronger embed handling
+// - Musixmatch lyrics quick links
 // ======================================================
 
 // --------------------
 // CONFIG
 // --------------------
 const CONFIG = {
-  clientId: "cbfd828db1414a2183039d01ceeaf181",
+  clientId: "6bcc4a0a3c1b4d869374c628d28a794a",
   redirectUriFallback: "https://coltonsharp-dev.github.io/American-Leadership-Academy-Music-Queue/",
   defaultPlaylistId: "3dcGJ6miJHVxZkQEIwGog5",
   slowPlaylistId: "36GLC9OyT3WQ8YA2yBQhFJ",
@@ -37,7 +37,7 @@ const CONFIG = {
 };
 
 // --------------------
-// LOCAL STORAGE KEYS
+// STORAGE KEYS
 // --------------------
 const LS = {
   pkceVerifier: "ala_dash_pkce_verifier",
@@ -49,6 +49,30 @@ const LS = {
   rejectedIds: "ala_rejected_ids",
   queuePointer: "ala_queue_pointer"
 };
+
+const authStorage = window.sessionStorage;
+const persistentStorage = window.localStorage;
+
+function authSet(key, value) {
+  authStorage.setItem(key, value);
+}
+
+function authGet(key) {
+  return authStorage.getItem(key);
+}
+
+function authRemove(key) {
+  authStorage.removeItem(key);
+}
+
+// Clears old auth values that may still exist from prior localStorage-based versions.
+function clearLegacyAuthStorage() {
+  persistentStorage.removeItem(LS.pkceVerifier);
+  persistentStorage.removeItem(LS.oauthState);
+  persistentStorage.removeItem(LS.accessToken);
+  persistentStorage.removeItem(LS.refreshToken);
+  persistentStorage.removeItem(LS.expiresAt);
+}
 
 // --------------------
 // DOM
@@ -279,21 +303,21 @@ function stopLocalProgressTimer() {
 // STORAGE HELPERS
 // ======================================================
 function ensureStorageDefaults() {
-  if (!localStorage.getItem(LS.approvedQueue)) {
-    localStorage.setItem(LS.approvedQueue, JSON.stringify([]));
+  if (!persistentStorage.getItem(LS.approvedQueue)) {
+    persistentStorage.setItem(LS.approvedQueue, JSON.stringify([]));
   }
-  if (!localStorage.getItem(LS.rejectedIds)) {
-    localStorage.setItem(LS.rejectedIds, JSON.stringify([]));
+  if (!persistentStorage.getItem(LS.rejectedIds)) {
+    persistentStorage.setItem(LS.rejectedIds, JSON.stringify([]));
   }
-  if (!localStorage.getItem(LS.queuePointer)) {
-    localStorage.setItem(LS.queuePointer, "0");
+  if (!persistentStorage.getItem(LS.queuePointer)) {
+    persistentStorage.setItem(LS.queuePointer, "0");
   }
 }
 
 function getApprovedQueue() {
-  const stored = localStorage.getItem(LS.approvedQueue);
+  const stored = persistentStorage.getItem(LS.approvedQueue);
   if (!stored) {
-    localStorage.setItem(LS.approvedQueue, JSON.stringify([]));
+    persistentStorage.setItem(LS.approvedQueue, JSON.stringify([]));
     return [];
   }
   const parsed = safeJsonParse(stored, []);
@@ -301,25 +325,25 @@ function getApprovedQueue() {
 }
 
 function saveApprovedQueue(queue) {
-  localStorage.setItem(LS.approvedQueue, JSON.stringify(queue));
+  persistentStorage.setItem(LS.approvedQueue, JSON.stringify(queue));
 }
 
 function getRejectedIds() {
-  const stored = safeJsonParse(localStorage.getItem(LS.rejectedIds), []);
+  const stored = safeJsonParse(persistentStorage.getItem(LS.rejectedIds), []);
   return new Set(Array.isArray(stored) ? stored : []);
 }
 
 function saveRejectedIds(setObj) {
-  localStorage.setItem(LS.rejectedIds, JSON.stringify([...setObj]));
+  persistentStorage.setItem(LS.rejectedIds, JSON.stringify([...setObj]));
 }
 
 function getQueuePointer() {
-  const raw = Number(localStorage.getItem(LS.queuePointer));
+  const raw = Number(persistentStorage.getItem(LS.queuePointer));
   return Number.isFinite(raw) && raw >= 0 ? raw : 0;
 }
 
 function setQueuePointer(index) {
-  localStorage.setItem(LS.queuePointer, String(Math.max(0, index)));
+  persistentStorage.setItem(LS.queuePointer, String(Math.max(0, index)));
 }
 
 function clampQueuePointer() {
@@ -428,10 +452,6 @@ function extractSpotifyTrackId(url) {
 // ======================================================
 // LYRICS HELPERS (MUSIXMATCH)
 // ======================================================
-function getGeniusSongIdFromUrl() {
-  return "";
-}
-
 function buildMusixmatchUrl(artist, song) {
   const slugify = (str) =>
     String(str || "")
@@ -448,13 +468,11 @@ function buildMusixmatchUrl(artist, song) {
   return `https://www.musixmatch.com/lyrics/${artistSlug}/${songSlug}`;
 }
 
-function buildGeniusUrl(artist, song) {
+function buildLyricsUrl(artist, song) {
   return buildMusixmatchUrl(artist, song);
 }
 
-function closeLyricsModal() {}
-
-function createLyricsButtonHtml({ url = "", songId = "", title = "", artist = "" } = {}) {
+function createLyricsButtonHtml({ url = "" } = {}) {
   return `
     <a class="ghost-btn btn-lyrics" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">
       Lyrics
@@ -549,8 +567,8 @@ async function loginToSpotify() {
   const state = randomString(32);
   const challenge = await createCodeChallenge(verifier);
 
-  localStorage.setItem(LS.pkceVerifier, verifier);
-  localStorage.setItem(LS.oauthState, state);
+  authSet(LS.pkceVerifier, verifier);
+  authSet(LS.oauthState, state);
 
   const params = new URLSearchParams({
     client_id: CONFIG.clientId,
@@ -579,12 +597,12 @@ async function handleSpotifyCallback() {
 
   if (!code) return;
 
-  const expectedState = localStorage.getItem(LS.oauthState);
+  const expectedState = authGet(LS.oauthState);
   if (!expectedState || !returnedState || expectedState !== returnedState) {
     throw new Error("Spotify login state mismatch. Please try logging in again.");
   }
 
-  const verifier = localStorage.getItem(LS.pkceVerifier);
+  const verifier = authGet(LS.pkceVerifier);
   if (!verifier) {
     setStatus("Missing PKCE verifier. Try logging in again.");
     return;
@@ -615,33 +633,34 @@ async function handleSpotifyCallback() {
 
   const json = await response.json();
 
-  localStorage.setItem(LS.accessToken, json.access_token);
+  authSet(LS.accessToken, json.access_token);
   if (json.refresh_token) {
-    localStorage.setItem(LS.refreshToken, json.refresh_token);
+    authSet(LS.refreshToken, json.refresh_token);
   }
-  localStorage.setItem(
+  authSet(
     LS.expiresAt,
     String(Date.now() + json.expires_in * 1000 - 30000)
   );
+  authRemove(LS.pkceVerifier);
 
   url.searchParams.delete("code");
   url.searchParams.delete("state");
   url.searchParams.delete("error");
   window.history.replaceState({}, document.title, url.toString());
-  localStorage.removeItem(LS.oauthState);
+  authRemove(LS.oauthState);
 
   setStatus("Spotify login successful.");
 }
 
 async function getAccessToken() {
-  const accessToken = localStorage.getItem(LS.accessToken);
-  const expiresAt = Number(localStorage.getItem(LS.expiresAt) || "0");
+  const accessToken = authGet(LS.accessToken);
+  const expiresAt = Number(authGet(LS.expiresAt) || "0");
 
   if (accessToken && Date.now() < expiresAt) {
     return accessToken;
   }
 
-  const refreshToken = localStorage.getItem(LS.refreshToken);
+  const refreshToken = authGet(LS.refreshToken);
   if (!refreshToken) return null;
 
   const body = new URLSearchParams({
@@ -666,8 +685,8 @@ async function getAccessToken() {
 
   const json = await response.json();
 
-  localStorage.setItem(LS.accessToken, json.access_token);
-  localStorage.setItem(
+  authSet(LS.accessToken, json.access_token);
+  authSet(
     LS.expiresAt,
     String(Date.now() + json.expires_in * 1000 - 30000)
   );
@@ -676,11 +695,11 @@ async function getAccessToken() {
 }
 
 function logoutSpotify() {
-  localStorage.removeItem(LS.accessToken);
-  localStorage.removeItem(LS.refreshToken);
-  localStorage.removeItem(LS.expiresAt);
-  localStorage.removeItem(LS.pkceVerifier);
-  localStorage.removeItem(LS.oauthState);
+  authRemove(LS.accessToken);
+  authRemove(LS.refreshToken);
+  authRemove(LS.expiresAt);
+  authRemove(LS.pkceVerifier);
+  authRemove(LS.oauthState);
 
   stopPlaybackPolling();
   stopLocalProgressTimer();
@@ -1397,7 +1416,7 @@ function renderRequests(requests) {
         : "Error";
 
       const approveDisabled = !request.spotify || request.spotify.explicit ? "disabled" : "";
-      const geniusUrl = request.spotify ? buildGeniusUrl(request.spotify.artist, request.spotify.name) : "";
+      const lyricsUrl = request.spotify ? buildLyricsUrl(request.spotify.artist, request.spotify.name) : "";
 
       return `
         <div class="request-item">
@@ -1428,10 +1447,7 @@ function renderRequests(requests) {
                 ? `
                   <a class="ghost-btn" href="${escapeHtml(request.spotify.externalUrl)}" target="_blank" rel="noopener noreferrer">Open in Spotify</a>
                   ${createLyricsButtonHtml({
-                    url: geniusUrl,
-                    songId: getGeniusSongIdFromUrl(geniusUrl),
-                    title: request.spotify.name,
-                    artist: request.spotify.artist
+                    url: lyricsUrl
                   })}
                 `
                 : `<span class="error-text">${escapeHtml(request.error || "No match")}</span>`
@@ -1475,7 +1491,7 @@ function renderApprovedQueue() {
         ? '<span class="badge badge-override">Moderator</span>'
         : "";
 
-      const geniusUrl = buildGeniusUrl(artist, name);
+      const lyricsUrl = buildLyricsUrl(artist, name);
 
       return `
         <div class="queue-item${activeClass}" data-queue-index="${index}">
@@ -1497,10 +1513,7 @@ function renderApprovedQueue() {
 
           <div class="queue-item-actions">
             ${createLyricsButtonHtml({
-              url: geniusUrl,
-              songId: getGeniusSongIdFromUrl(geniusUrl),
-              title: name,
-              artist
+              url: lyricsUrl
             })}
             <button class="remove-approved-btn" data-request-id="${escapeHtml(item.requestId)}">
               Remove
@@ -1535,7 +1548,7 @@ function renderApprovedPreview() {
   const item = current.spotify;
   const statusBadge = current.source === "moderator" ? "Moderator Override" : "Approved";
   const statusClass = current.source === "moderator" ? "badge-override" : "badge-clean";
-  const geniusUrl = buildGeniusUrl(item.artist, item.name);
+  const lyricsUrl = buildLyricsUrl(item.artist, item.name);
 
   el.approvedPreviewTable.innerHTML = `
     <div class="request-item queue-item-active">
@@ -1565,10 +1578,7 @@ function renderApprovedPreview() {
           Open in Spotify
         </a>
         ${createLyricsButtonHtml({
-          url: geniusUrl,
-          songId: getGeniusSongIdFromUrl(geniusUrl),
-          title: item.name,
-          artist: item.artist
+          url: lyricsUrl
         })}
       </div>
     </div>
@@ -1590,7 +1600,7 @@ function renderSpotifyQueue(queueData) {
 
   if (currentlyPlaying && isTrackObject(currentlyPlaying)) {
     const currentArtist = (currentlyPlaying.artists || []).map((a) => a.name).join(", ");
-    const currentGeniusUrl = buildGeniusUrl(currentArtist, currentlyPlaying.name);
+    const currentLyricsUrl = buildLyricsUrl(currentArtist, currentlyPlaying.name);
 
     blocks.push(`
       <div class="request-item queue-item-active">
@@ -1619,10 +1629,7 @@ function renderSpotifyQueue(queueData) {
             Open in Spotify
           </a>
           ${createLyricsButtonHtml({
-            url: currentGeniusUrl,
-            songId: getGeniusSongIdFromUrl(currentGeniusUrl),
-            title: currentlyPlaying.name,
-            artist: currentArtist
+            url: currentLyricsUrl
           })}
         </div>
       </div>
@@ -1633,7 +1640,7 @@ function renderSpotifyQueue(queueData) {
     if (!isTrackObject(item)) return;
 
     const artist = (item.artists || []).map((a) => a.name).join(", ");
-    const geniusUrl = buildGeniusUrl(artist, item.name);
+    const lyricsUrl = buildLyricsUrl(artist, item.name);
 
     blocks.push(`
       <div class="request-item">
@@ -1662,10 +1669,7 @@ function renderSpotifyQueue(queueData) {
             Open in Spotify
           </a>
           ${createLyricsButtonHtml({
-            url: geniusUrl,
-            songId: getGeniusSongIdFromUrl(geniusUrl),
-            title: item.name,
-            artist
+            url: lyricsUrl
           })}
         </div>
       </div>
@@ -1911,11 +1915,7 @@ function openModerationPanel() {
 function closeModerationPanel() {
   document.getElementById("modOverlay")?.classList.remove("mod-is-open");
   document.getElementById("modBackdrop")?.classList.remove("mod-is-open");
-
-  const lyricsOpen = el.lyricsModal?.classList.contains("lyrics-is-open");
-  if (!lyricsOpen) {
-    document.body.classList.remove("mod-panel-open");
-  }
+  document.body.classList.remove("mod-panel-open");
 }
 
 // ======================================================
@@ -2102,7 +2102,7 @@ function wireStaticEvents() {
 
     const artist = (currentNowPlayingTrack.artists || []).map((a) => a.name).join(", ");
     const title = currentNowPlayingTrack.name || "Unknown Song";
-    const url = buildMusixmatchUrl(artist, title);
+    const url = buildLyricsUrl(artist, title);
     window.open(url, "_blank", "noopener,noreferrer");
   });
 
@@ -2190,7 +2190,6 @@ function wireStaticEvents() {
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
       closeModerationPanel();
-      closeLyricsModal();
     }
   });
 }
@@ -2221,6 +2220,7 @@ function stopPlaybackPolling() {
 // INIT
 // ======================================================
 async function init() {
+  clearLegacyAuthStorage();
   ensureStorageDefaults();
   wireStaticEvents();
   renderApprovedQueue();
@@ -2252,7 +2252,7 @@ async function init() {
     console.warn("Initial playback refresh failed:", error);
   }
 
-  if (hasActiveSpotifyLogin || !!localStorage.getItem(LS.accessToken)) {
+  if (hasActiveSpotifyLogin || !!authGet(LS.accessToken)) {
     startPlaybackPolling();
   }
 }
