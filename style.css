@@ -2493,8 +2493,8 @@ body.mod-panel-open {
 .mod-overlay {
   right: 12px;
   bottom: 12px;
-  width: min(1560px, calc(100vw - 24px));
-  max-height: calc(100dvh - 18px);
+  width: min(1480px, calc(100vw - 24px));
+  max-height: calc(100dvh - 24px);
   height: auto;
 }
 
@@ -2502,7 +2502,7 @@ body.mod-panel-open {
   position: sticky;
   top: 0;
   z-index: 2;
-  padding: 18px 24px 14px;
+  padding: 16px 20px 12px;
 }
 
 .mod-overlay-title-row {
@@ -2516,43 +2516,36 @@ body.mod-panel-open {
 .mod-overlay-body {
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 18px 24px 26px;
+  padding: 16px 22px 22px;
   scrollbar-gutter: stable;
-  gap: 20px;
+  gap: 18px;
 }
 
 .mod-grid {
-  grid-template-columns: minmax(0, 1.34fr) minmax(430px, 1fr);
-  gap: 20px;
+  grid-template-columns: minmax(0, 1.45fr) minmax(420px, 1fr);
+  gap: 18px;
   align-content: start;
 }
 
 .mod-overlay .requests-card {
   overflow: visible;
-  padding: 20px;
-}
-
-.mod-grid > .requests-card,
-.mod-right-stack,
-.mod-right-stack .approved-card,
-.mod-right-stack .up-next-card {
-  min-height: 0;
+  padding: 18px;
 }
 
 .mod-top-search-card,
 .mod-right-stack .approved-card,
 .mod-right-stack .up-next-card {
-  padding: 22px;
+  padding: 20px;
 }
 
 .mod-right-stack {
-  gap: 20px;
+  gap: 18px;
 }
 
 .request-actions,
 .queue-item-actions {
-  gap: 10px;
-  align-items: flex-start;
+  gap: 8px;
+  align-items: center;
 }
 
 #requestTableBody,
@@ -2565,21 +2558,21 @@ body.mod-panel-open {
 }
 
 #requestTableBody {
-  max-height: min(52dvh, 640px);
+  max-height: min(48dvh, 560px);
 }
 
 #manualSearchResults {
-  max-height: min(30dvh, 320px);
+  max-height: min(28dvh, 280px);
 }
 
 #approvedQueueList {
-  max-height: min(36dvh, 460px);
-  min-height: 250px;
+  max-height: min(34dvh, 420px);
+  min-height: 220px;
 }
 
 #approvedPreviewTable {
-  max-height: min(32dvh, 390px);
-  min-height: 190px;
+  max-height: min(30dvh, 360px);
+  min-height: 160px;
 }
 
 @media (max-width: 900px) {
@@ -2595,18 +2588,18 @@ body.mod-panel-open {
   }
 
   .mod-overlay-body {
-    padding: 14px 16px 18px;
+    padding: 12px 14px 16px;
   }
 
   .mod-grid {
-    gap: 14px;
+    gap: 12px;
   }
 
   .mod-overlay .requests-card,
   .mod-top-search-card,
   .mod-right-stack .approved-card,
   .mod-right-stack .up-next-card {
-    padding: 16px;
+    padding: 14px;
   }
 
   #requestTableBody,
@@ -2792,24 +2785,6 @@ body.mod-panel-open {
   color: var(--md-on-surface);
 }
 
-.moderation-reason-override-callout {
-  border-color: color-mix(in srgb, var(--role-override-on) 24%, var(--md-outline));
-  background: color-mix(in srgb, var(--role-override-container) 56%, var(--md-surface));
-}
-
-.moderation-override-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 2px;
-}
-
-.moderation-override-warning {
-  margin: 0;
-  color: color-mix(in srgb, var(--md-error) 88%, black);
-  font-weight: 600;
-}
-
 .moderation-reason-section {
   border: 1px solid var(--md-outline);
   border-radius: 14px;
@@ -2888,5 +2863,126 @@ body.mod-panel-open {
 
   .moderation-reason-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+/* ======================================================
+   MODERATION CLARITY TAGS + ROW LAYOUT
+   ====================================================== */
+.mod-overlay .request-item,
+.mod-overlay .queue-item {
+  grid-template-columns: 72px minmax(0, 1fr);
+  align-items: start;
+}
+
+.mod-overlay .request-art-wrap,
+.mod-overlay .queue-item-art-wrap {
+  grid-row: 1 / span 2;
+}
+
+.mod-overlay .request-main,
+.mod-overlay .queue-item-main {
+  min-width: 0;
+}
+
+.mod-overlay .request-actions,
+.mod-overlay .queue-item-actions {
+  grid-column: 2;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.request-status-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.mod-status-tag {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 0.73rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  border: 1px solid transparent;
+  line-height: 1.2;
+}
+
+.mod-status-tag-ok {
+  background: #d7f4e6;
+  color: #114f34;
+  border-color: #b4ddc5;
+}
+
+.mod-status-tag-info {
+  background: #e0ebff;
+  color: #183768;
+  border-color: #c2d4f7;
+}
+
+.mod-status-tag-warn {
+  background: #fff1d8;
+  color: #6c4b00;
+  border-color: #ebd1a0;
+}
+
+.mod-status-tag-danger {
+  background: #ffe3e7;
+  color: #7b1228;
+  border-color: #efbecc;
+}
+
+.mod-status-tag-neutral {
+  background: var(--md-surface-container);
+  color: var(--md-on-surface-variant);
+  border-color: var(--md-outline);
+}
+
+.moderation-tags-wrap {
+  margin-top: 6px;
+}
+
+.moderation-reason-list {
+  margin: 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 6px;
+  color: var(--md-on-surface);
+}
+
+.moderation-reason-details {
+  border: 1px solid var(--md-outline);
+  border-radius: 14px;
+  background: var(--md-surface-high);
+  padding: 10px 12px;
+}
+
+.moderation-reason-details summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--md-on-surface);
+  margin-bottom: 8px;
+}
+
+.moderation-reason-details[open] summary {
+  margin-bottom: 10px;
+}
+
+@media (max-width: 700px) {
+  .mod-overlay .request-item,
+  .mod-overlay .queue-item {
+    grid-template-columns: 1fr;
+  }
+
+  .mod-overlay .request-art-wrap,
+  .mod-overlay .queue-item-art-wrap,
+  .mod-overlay .request-actions,
+  .mod-overlay .queue-item-actions {
+    grid-row: auto;
+    grid-column: auto;
   }
 }

@@ -7,7 +7,7 @@
 // - Time progress + remaining
 // - Google Sheet request moderation
 // - Approved queue flow
-// - Optional lyrics API integration
+// - Musixmatch lyrics quick links
 // ======================================================
 
 // --------------------
@@ -36,150 +36,76 @@ const CONFIG = {
   trackLookupRetryCount: 2,
   trackLookupRetryDelayMs: 500,
   manualSearchLimit: 8,
-  debugLogging: true,
-  debugVerbose: false,
   lyricsApiBaseUrl: "",
   lyricsApiTimeoutMs: 12000,
+  themeHardBlockTerms: [
+    "sex",
+    "sexy",
+    "strip",
+    "nude",
+    "porn",
+    "drunk",
+    "drug",
+    "weed",
+    "high",
+    "gang",
+    "kill",
+    "murder",
+    "suicide"
+  ],
+  themeReviewTerms: [
+    "party",
+    "club",
+    "breakup",
+    "heartbreak",
+    "revenge",
+    "rage",
+    "wild",
+    "after dark",
+    "late night"
+  ],
   themePolicyRules: [
     {
       id: "sexual-block",
       category: "Sexual Content",
       severity: "block",
-      terms: [
-        "sex",
-        "sexy",
-        "porn",
-        "nude",
-        "strip",
-        "hookup",
-        "bdsm",
-        "fetish",
-        "rape",
-        "molest",
-        "incest",
-        "smash",
-        "hookin"
-      ],
-      phrases: [
-        "one night stand",
-        "explicit content",
-        "sexual fantasy",
-        "body shots",
-        "for adults only",
-        "netflix and chill",
-        "hit it"
-      ]
+      terms: ["sex", "sexy", "porn", "nude", "strip", "hookup", "bdsm", "fetish"],
+      phrases: ["one night stand", "explicit content", "sexual fantasy", "body shots"]
     },
     {
       id: "drugs-block",
       category: "Drug References",
       severity: "block",
-      terms: [
-        "cocaine",
-        "meth",
-        "heroin",
-        "ecstasy",
-        "xanax",
-        "perc",
-        "weed",
-        "blunt",
-        "drug",
-        "opioid",
-        "fentanyl",
-        "lean",
-        "syrup",
-        "drunk",
-        "high",
-        "molly",
-        "perkies",
-        "zaza",
-        "gas"
-      ],
-      phrases: [
-        "pop a pill",
-        "getting high",
-        "rolling up",
-        "drug run",
-        "off the pills",
-        "spark up",
-        "blowin clouds"
-      ]
+      terms: ["cocaine", "meth", "heroin", "ecstasy", "xanax", "perc", "weed", "blunt", "drug"],
+      phrases: ["pop a pill", "getting high", "rolling up", "drug run"]
     },
     {
       id: "violence-block",
       category: "Violence",
       severity: "block",
-      terms: [
-        "kill",
-        "murder",
-        "suicide",
-        "shoot",
-        "stab",
-        "blood",
-        "homicide",
-        "gun",
-        "knife",
-        "bomb",
-        "assault",
-        "opp",
-        "strap",
-        "blick"
-      ],
-      phrases: [
-        "take your life",
-        "pull the trigger",
-        "body bag",
-        "die tonight",
-        "open fire",
-        "catch a body",
-        "drop an opp"
-      ]
-    },
-    {
-      id: "self-harm-block",
-      category: "Self-Harm",
-      severity: "block",
-      terms: ["self harm", "self-harm", "overdose", "cutting", "unalive", "kms"],
-      phrases: ["hurt myself", "end it all", "take my own life", "off myself"]
-    },
-    {
-      id: "severe-language-block",
-      category: "Severe Language",
-      severity: "block",
-      terms: [
-        "fuck",
-        "fucking",
-        "motherfucker",
-        "shit",
-        "bitch",
-        "asshole",
-        "slut",
-        "whore",
-        "douche",
-        "jackass"
-      ],
-      phrases: ["f you", "go to hell", "piece of shit", "dirty slut", "shut the hell up"]
+      terms: ["kill", "murder", "suicide", "shoot", "stab", "blood", "homicide"],
+      phrases: ["take your life", "pull the trigger", "body bag", "die tonight"]
     },
     {
       id: "hate-block",
       category: "Hate or Harassment",
       severity: "block",
-      terms: ["slur", "racist", "nazi", "lynch", "homophobic", "antisemitic", "bigot"],
-      phrases: ["ethnic cleansing", "white power", "hate crime", "targeted hate", "hate on them"]
+      terms: ["slur", "racist", "nazi", "hate", "lynch"],
+      phrases: ["hate them", "ethnic cleansing", "white power"]
     },
     {
       id: "gang-block",
       category: "Gang or Criminal Themes",
       severity: "block",
-      terms: ["gang", "cartel", "driveby", "robbery", "crime", "weapon", "extortion", "drill", "set"],
-      phrases: ["gang life", "armed robbery", "hit list", "territory war", "spin the block", "rep the set"]
+      terms: ["gang", "cartel", "driveby", "robbery", "crime", "weapon"],
+      phrases: ["gang life", "armed robbery", "hit list", "territory war"]
     },
     {
       id: "party-review",
       category: "Party / Club",
       severity: "review",
-      terms: ["party", "club", "wild", "rager", "lit", "drinking", "rage", "after dark", "late night"],
-      phrases: ["all night", "turn up", "dance floor", "after party", "shots all night"]
+      terms: ["party", "club", "wild", "rager", "lit"],
+      phrases: ["all night", "turn up", "dance floor", "after party"]
     },
     {
       id: "romance-review",
@@ -189,18 +115,11 @@ const CONFIG = {
       phrases: ["broke my heart", "love triangle", "toxic love", "get back at"]
     },
     {
-      id: "substance-review",
-      category: "Mild Substance References",
-      severity: "review",
-      terms: ["smoking", "cigarette", "beer", "vodka", "tequila"],
-      phrases: ["drinking tonight", "tipsy", "buzzed"]
-    },
-    {
       id: "language-review",
       category: "Mild Language",
       severity: "review",
-      terms: ["damn", "hell", "sucks", "freakin", "crap", "pissed"],
-      phrases: ["lose my mind", "out of control"]
+      terms: ["damn", "hell", "sucks", "freakin"],
+      phrases: ["lose my mind", "out of control", "shut up"]
     }
   ]
 };
@@ -330,123 +249,14 @@ let isPlaybackActive = false;
 let currentVolumePercent = 0;
 let moderationDetailContext = null;
 let draggingApprovedRequestId = null;
-
-const DEBUG_SCOPE = Object.freeze({
-  app: "APP",
-  auth: "AUTH",
-  spotify: "SPOTIFY",
-  requests: "REQUESTS",
-  moderation: "MODERATION",
-  lyrics: "LYRICS",
-  playback: "PLAYBACK",
-  queue: "QUEUE"
-});
-
-const DEBUG_LOG_STYLES = Object.freeze({
-  label: "background:#1d3557;color:#f8fafc;padding:1px 6px;border-radius:999px;font-weight:700;",
-  scope: "color:#1d3557;font-weight:700;",
-  verbose: "color:#6b7280;font-style:italic;",
-  warn: "color:#9a3412;font-weight:700;",
-  error: "color:#b91c1c;font-weight:700;"
-});
-
-function isDebugEnabled() {
-  return CONFIG.debugLogging !== false;
-}
-
-function isVerboseDebugEnabled() {
-  return isDebugEnabled() && CONFIG.debugVerbose !== false;
-}
-
-function emitDebugLog(level, scope, message, details, mode = "normal") {
-  const modeSuffix = mode === "verbose" ? " [verbose]" : mode === "warn" ? " [warn]" : mode === "error" ? " [error]" : "";
-  const scopeStyle = mode === "verbose"
-    ? DEBUG_LOG_STYLES.verbose
-    : mode === "warn"
-      ? DEBUG_LOG_STYLES.warn
-      : mode === "error"
-        ? DEBUG_LOG_STYLES.error
-        : DEBUG_LOG_STYLES.scope;
-
-  const logFn = level === "warn" ? console.warn : level === "error" ? console.error : console.log;
-  const header = `%cALA%c ${scope}${modeSuffix}`;
-
-  if (details === undefined) {
-    logFn(`${header} ${message}`, DEBUG_LOG_STYLES.label, scopeStyle);
-    return;
-  }
-
-  logFn(`${header} ${message}`, DEBUG_LOG_STYLES.label, scopeStyle, details);
-}
-
-function logDebug(scope, message, details) {
-  if (!isDebugEnabled()) return;
-  emitDebugLog("log", scope, message, details, "normal");
-}
-
-function logDebugVerbose(scope, message, details) {
-  if (!isVerboseDebugEnabled()) return;
-  emitDebugLog("log", scope, message, details, "verbose");
-}
-
-function logDebugWarn(scope, message, details) {
-  if (!isDebugEnabled()) return;
-  emitDebugLog("warn", scope, message, details, "warn");
-}
-
-function logDebugError(scope, message, details) {
-  if (!isDebugEnabled()) return;
-  emitDebugLog("error", scope, message, details, "error");
-}
-
-function logDebugStart(scope, operation, details) {
-  const startedAt = performance.now();
-  logDebug(scope, `${operation} started`, details);
-  return startedAt;
-}
-
-function logDebugEnd(scope, operation, startedAt, details) {
-  const durationMs = Math.max(0, Math.round(performance.now() - startedAt));
-  logDebug(scope, `${operation} completed`, {
-    durationMs,
-    ...(details || {})
-  });
-}
-
-function exposeDebugControls() {
-  window.ALA_DEBUG = {
-    enable() {
-      CONFIG.debugLogging = true;
-      logDebug(DEBUG_SCOPE.app, "Debug logging enabled.");
-    },
-    disable() {
-      CONFIG.debugLogging = false;
-      emitDebugLog("log", DEBUG_SCOPE.app, "Debug logging disabled.", undefined, "normal");
-    },
-    verboseOn() {
-      CONFIG.debugVerbose = true;
-      logDebug(DEBUG_SCOPE.app, "Verbose debug logging enabled.");
-    },
-    verboseOff() {
-      CONFIG.debugVerbose = false;
-      logDebug(DEBUG_SCOPE.app, "Verbose debug logging disabled.");
-    },
-    state() {
-      return {
-        debugLogging: CONFIG.debugLogging,
-        debugVerbose: CONFIG.debugVerbose,
-        lyricsApiBaseUrl: CONFIG.lyricsApiBaseUrl
-      };
-    }
-  };
-}
+const lyricsFetchStateByRequestId = new Map();
 
 // ======================================================
 // BASIC HELPERS
 // ======================================================
 function setStatus(message) {
   if (el.status) el.status.textContent = message;
-  logDebugVerbose(DEBUG_SCOPE.app, `STATUS: ${message}`);
+  console.log(message);
 }
 
 function escapeHtml(value) {
@@ -545,64 +355,6 @@ function getModerationSearchEntries(request) {
   ];
 }
 
-function getRequestContentRating(request) {
-  const candidates = [
-    request?.musixmatchContentRating,
-    request?.contentRating,
-    request?.lyricsContentRating,
-    request?.lyrics?.contentRating
-  ];
-
-  for (const value of candidates) {
-    const normalized = normalizeMusixmatchContentRating(value);
-    if (normalized) return normalized;
-  }
-
-  return "";
-}
-
-function evaluateContentRating(request) {
-  const rating = getRequestContentRating(request);
-
-  if (!rating) {
-    return {
-      rating: "",
-      status: "unknown",
-      label: "No Rating",
-      source: "Musixmatch AI content rating",
-      reason: "No Musixmatch content rating was available for this request."
-    };
-  }
-
-  if (rating === "G" || rating === "PG") {
-    return {
-      rating,
-      status: "clear",
-      label: `${rating} (Allowed)`,
-      source: "Musixmatch AI content rating",
-      reason: "G and PG ratings are allowed for auto-approval when other checks pass."
-    };
-  }
-
-  if (rating === "PG-13") {
-    return {
-      rating,
-      status: "flagged",
-      label: "PG-13 (Manual Review)",
-      source: "Musixmatch AI content rating",
-      reason: "PG-13 tracks are flagged for manual review before approval."
-    };
-  }
-
-  return {
-    rating,
-    status: "blocked",
-    label: `${rating} (Blocked)`,
-    source: "Musixmatch AI content rating",
-    reason: "R and NC-17 tracks are blocked from approval."
-  };
-}
-
 function collectThemePolicyHits(request) {
   const entries = getModerationSearchEntries(request)
     .map((entry) => ({
@@ -682,11 +434,26 @@ function summarizePolicyHits(hits) {
   }));
 }
 
+function findThemeMatches(rawTheme, termList) {
+  const normalizedTheme = normalizeModerationText(rawTheme);
+  if (!normalizedTheme) return [];
+
+  const paddedTheme = ` ${normalizedTheme} `;
+  return termList.filter((term) => {
+    const normalizedTerm = normalizeModerationText(term);
+    if (!normalizedTerm) return false;
+    return paddedTheme.includes(` ${normalizedTerm} `);
+  });
+}
+
 function analyzeThemeModeration(request) {
   const theme = String(request?.theme ?? "").trim();
   const policyHits = collectThemePolicyHits(request);
   const hardHits = policyHits.filter((hit) => hit.severity === "block");
   const reviewHits = policyHits.filter((hit) => hit.severity === "review");
+
+  const fallbackHardTerms = findThemeMatches(theme, CONFIG.themeHardBlockTerms);
+  const fallbackReviewTerms = findThemeMatches(theme, CONFIG.themeReviewTerms);
 
   if (!theme && !policyHits.length) {
     return {
@@ -699,25 +466,27 @@ function analyzeThemeModeration(request) {
     };
   }
 
-  if (hardHits.length) {
+  if (hardHits.length || fallbackHardTerms.length) {
     const categories = [...new Set(hardHits.map((hit) => hit.category))];
+    const fallbackCategory = fallbackHardTerms.length ? ["Legacy Theme Blocklist"] : [];
     return {
       status: "blocked",
       label: "Theme Blocked",
-      reason: `Detected blocked policy categories: ${categories.join(", ")}.`,
-      matchedTerms: [...new Set(hardHits.map((hit) => hit.matchedText))],
+      reason: `Detected blocked policy categories: ${[...categories, ...fallbackCategory].join(", ")}.`,
+      matchedTerms: [...new Set([...hardHits.map((hit) => hit.matchedText), ...fallbackHardTerms])],
       hits: policyHits,
       summary: summarizePolicyHits(policyHits)
     };
   }
 
-  if (reviewHits.length) {
+  if (reviewHits.length || fallbackReviewTerms.length) {
     const categories = [...new Set(reviewHits.map((hit) => hit.category))];
+    const fallbackCategory = fallbackReviewTerms.length ? ["Legacy Theme Review"] : [];
     return {
       status: "flagged",
       label: "Theme Review",
-      reason: `Detected review categories: ${categories.join(", ")}. Manual review is recommended.`,
-      matchedTerms: [...new Set(reviewHits.map((hit) => hit.matchedText))],
+      reason: `Detected review categories: ${[...categories, ...fallbackCategory].join(", ")}. Manual review is recommended.`,
+      matchedTerms: [...new Set([...reviewHits.map((hit) => hit.matchedText), ...fallbackReviewTerms])],
       hits: policyHits,
       summary: summarizePolicyHits(policyHits)
     };
@@ -736,7 +505,6 @@ function analyzeThemeModeration(request) {
 function buildModerationMetadata(request) {
   const explicitFlag = request?.spotify?.explicit;
   const themeEvaluation = analyzeThemeModeration(request);
-  const contentRatingEvaluation = evaluateContentRating(request);
   const policyHits = Array.isArray(themeEvaluation.hits) ? themeEvaluation.hits : [];
 
   const hardHitCount = policyHits.filter((hit) => hit.severity === "block").length;
@@ -758,56 +526,28 @@ function buildModerationMetadata(request) {
 
   let recommendation = "pass";
   let recommendationLabel = "Auto-Approve Eligible";
-  let recommendationReason = "No explicit, blocked theme, or blocked rating signals were detected.";
+  let recommendationReason = "No explicit or blocked theme signals were detected.";
 
-  if (
-    explicitStatus === "explicit" ||
-    themeEvaluation.status === "blocked" ||
-    contentRatingEvaluation.status === "blocked"
-  ) {
+  if (explicitStatus === "explicit" || themeEvaluation.status === "blocked") {
     recommendation = "block";
     recommendationLabel = "Block";
     recommendationReason =
       explicitStatus === "explicit"
         ? "Track is marked explicit by Spotify metadata."
-        : contentRatingEvaluation.status === "blocked"
-          ? `Musixmatch content rating ${contentRatingEvaluation.rating} is blocked by policy.`
-          : "Theme or metadata triggered blocked policy categories. Review required before any approval.";
-  } else if (themeEvaluation.status === "flagged" || contentRatingEvaluation.status === "flagged") {
+        : "Theme or metadata triggered blocked policy categories. Review required before any approval.";
+  } else if (themeEvaluation.status === "flagged") {
     recommendation = "review";
     recommendationLabel = "Manual Review";
-    recommendationReason =
-      contentRatingEvaluation.status === "flagged"
-        ? `Musixmatch content rating ${contentRatingEvaluation.rating} requires manual review.`
-        : "Theme/metadata passed hard blocks but matched review categories that need manual review.";
+    recommendationReason = "Theme/metadata passed hard blocks but matched review categories that need manual review.";
   }
 
-  const compactReason = `${explicitLabel} Spotify | ${contentRatingEvaluation.label} | ${themeEvaluation.label} (${hardHitCount} hard, ${reviewHitCount} review hits)`;
-
-  logDebugVerbose(DEBUG_SCOPE.moderation, "Computed moderation metadata", {
-    requestId: request?.requestId || null,
-    trackId: request?.spotify?.id || null,
-    trackName: request?.spotify?.name || null,
-    explicitStatus,
-    contentRating: contentRatingEvaluation.rating || null,
-    contentRatingStatus: contentRatingEvaluation.status,
-    themeStatus: themeEvaluation.status,
-    recommendation,
-    hardHitCount,
-    reviewHitCount,
-    themeTermCount: Array.isArray(themeEvaluation.matchedTerms) ? themeEvaluation.matchedTerms.length : 0
-  });
+  const compactReason = `${explicitLabel} by Spotify metadata | ${themeEvaluation.label} (${hardHitCount} hard, ${reviewHitCount} review hits)`;
 
   return {
     explicitStatus,
     explicitLabel,
     explicitReason,
     explicitSource: "Spotify track metadata",
-    contentRating: contentRatingEvaluation.rating,
-    contentRatingStatus: contentRatingEvaluation.status,
-    contentRatingLabel: contentRatingEvaluation.label,
-    contentRatingReason: contentRatingEvaluation.reason,
-    contentRatingSource: contentRatingEvaluation.source,
     themeStatus: themeEvaluation.status,
     themeLabel: themeEvaluation.label,
     themeReason: themeEvaluation.reason,
@@ -819,12 +559,7 @@ function buildModerationMetadata(request) {
     recommendationReason,
     compactReason,
     evaluatedAt: new Date().toISOString(),
-    confidence:
-      explicitStatus === "unknown" &&
-      !policyHits.length &&
-      contentRatingEvaluation.status === "unknown"
-        ? "Medium"
-        : "High"
+    confidence: explicitStatus === "unknown" && !policyHits.length ? "Medium" : "High"
   };
 }
 
@@ -1182,112 +917,9 @@ function buildLyricsApiUrl(artist, song) {
   return `${base}/lyrics?${params.toString()}`;
 }
 
-function buildLyricsRatingApiUrl(artist, song) {
-  const base = getLyricsApiBaseUrl();
-  if (!base) return "";
-
-  const params = new URLSearchParams({
-    artist: String(artist || "").trim(),
-    song: String(song || "").trim()
-  });
-
-  return `${base}/rating?${params.toString()}`;
-}
-
-function normalizeMusixmatchContentRating(value) {
-  const cleaned = String(value ?? "")
-    .trim()
-    .toUpperCase()
-    .replace(/[\u2013\u2014]/g, "-")
-    .replace(/_/g, "-")
-    .replace(/\s+/g, "");
-
-  if (!cleaned) return "";
-  if (cleaned === "PG13") return "PG-13";
-  if (cleaned === "NC17") return "NC-17";
-  if (["G", "PG", "PG-13", "R", "NC-17"].includes(cleaned)) return cleaned;
-  return "";
-}
-
-async function fetchContentRatingFromApi(artist, song) {
-  const apiUrl = buildLyricsRatingApiUrl(artist, song);
-  if (!apiUrl) {
-    return {
-      ok: false,
-      status: "not-configured"
-    };
-  }
-
-  const controller = new AbortController();
-  const timeoutId = window.setTimeout(() => controller.abort(), CONFIG.lyricsApiTimeoutMs);
-
-  try {
-    const response = await fetch(apiUrl, {
-      method: "GET",
-      headers: {
-        Accept: "application/json"
-      },
-      signal: controller.signal
-    });
-
-    if (!response.ok) {
-      const text = await response.text();
-      logDebugVerbose(DEBUG_SCOPE.lyrics, "Rating API returned non-OK status", {
-        artist,
-        song,
-        status: response.status,
-        body: text
-      });
-      return {
-        ok: false,
-        status: "api-error",
-        reason: text || `Rating API responded with ${response.status}.`
-      };
-    }
-
-    const json = await response.json();
-    const contentRating = normalizeMusixmatchContentRating(
-      json?.content_rating || json?.contentRating || ""
-    );
-
-    if (!contentRating) {
-      return {
-        ok: false,
-        status: "missing-rating",
-        reason: "No Musixmatch content rating was returned."
-      };
-    }
-
-    return {
-      ok: true,
-      status: "ok",
-      contentRating,
-      source: String(json?.source || "Musixmatch AI content rating"),
-      ratingSelectorUsed: String(json?.rating_selector_used || "")
-    };
-  } catch (error) {
-    return {
-      ok: false,
-      status: error?.name === "AbortError" ? "timeout" : "request-failed",
-      reason: error?.name === "AbortError" ? "Rating API request timed out." : (error?.message || "Rating API request failed.")
-    };
-  } finally {
-    window.clearTimeout(timeoutId);
-  }
-}
-
 async function fetchLyricsFromApi(artist, song) {
-  const startedAt = logDebugStart(DEBUG_SCOPE.lyrics, "Lyrics API request", {
-    artist,
-    song,
-    apiBaseUrl: getLyricsApiBaseUrl() || "(not configured)"
-  });
   const apiUrl = buildLyricsApiUrl(artist, song);
   if (!apiUrl) {
-    logDebugWarn(DEBUG_SCOPE.lyrics, "Lyrics API base URL not configured. Falling back to Musixmatch link.", {
-      artist,
-      song
-    });
     return {
       ok: false,
       reason: "Lyrics API is not configured.",
@@ -1309,12 +941,6 @@ async function fetchLyricsFromApi(artist, song) {
 
     if (!response.ok) {
       const errorText = await response.text();
-      logDebugWarn(DEBUG_SCOPE.lyrics, "Lyrics API returned non-OK status", {
-        artist,
-        song,
-        status: response.status,
-        body: errorText
-      });
       return {
         ok: false,
         reason: errorText || `Lyrics API responded with ${response.status}.`,
@@ -1324,14 +950,7 @@ async function fetchLyricsFromApi(artist, song) {
 
     const json = await response.json();
     const lyrics = String(json?.lyrics || "").trim();
-    const contentRating = normalizeMusixmatchContentRating(
-      json?.content_rating || json?.contentRating || ""
-    );
     if (!lyrics) {
-      logDebugWarn(DEBUG_SCOPE.lyrics, "Lyrics API returned empty lyrics payload", {
-        artist,
-        song
-      });
       return {
         ok: false,
         reason: "Lyrics API returned no lyrics text.",
@@ -1339,29 +958,13 @@ async function fetchLyricsFromApi(artist, song) {
       };
     }
 
-    logDebugEnd(DEBUG_SCOPE.lyrics, "Lyrics API request", startedAt, {
-      artist,
-      song,
-      lyricsLength: lyrics.length,
-      contentRating: contentRating || "(none)",
-      selectorUsed: String(json?.selector_used || "") || "(none)",
-      source: String(json?.source || "Lyrics API")
-    });
     return {
       ok: true,
       lyrics,
       selectorUsed: String(json?.selector_used || ""),
-      source: String(json?.source || "Lyrics API"),
-      contentRating,
-      ratingSelectorUsed: String(json?.rating_selector_used || "")
+      source: String(json?.source || "Lyrics API")
     };
   } catch (error) {
-    logDebugWarn(DEBUG_SCOPE.lyrics, "Lyrics API request failed", {
-      artist,
-      song,
-      error: error?.message || "unknown",
-      name: error?.name || "Error"
-    });
     return {
       ok: false,
       reason: error?.name === "AbortError" ? "Lyrics API request timed out." : (error?.message || "Lyrics API request failed."),
@@ -1372,7 +975,7 @@ async function fetchLyricsFromApi(artist, song) {
   }
 }
 
-function createLyricsButtonHtml({ url = "", artist = "", song = "" } = {}) {
+function createLyricsButtonHtml({ url = "", artist = "", song = "", requestId = "" } = {}) {
   return `
     <button
       class="ghost-btn btn-lyrics btn-lyrics-fetch"
@@ -1380,6 +983,7 @@ function createLyricsButtonHtml({ url = "", artist = "", song = "" } = {}) {
       data-lyrics-url="${escapeHtml(url)}"
       data-lyrics-artist="${escapeHtml(artist)}"
       data-lyrics-song="${escapeHtml(song)}"
+      data-lyrics-request-id="${escapeHtml(requestId)}"
     >
       Lyrics
     </button>
@@ -1467,10 +1071,6 @@ function getRedirectUri() {
 // SPOTIFY AUTH
 // ======================================================
 async function loginToSpotify() {
-  const startedAt = logDebugStart(DEBUG_SCOPE.auth, "Spotify PKCE login", {
-    redirectUri: getRedirectUri(),
-    scopeCount: CONFIG.scopes.length
-  });
   setStatus("Starting Spotify login...");
 
   const verifier = randomString(64);
@@ -1491,44 +1091,29 @@ async function loginToSpotify() {
     show_dialog: "true"
   });
 
-  logDebugEnd(DEBUG_SCOPE.auth, "Spotify PKCE login", startedAt, {
-    hasVerifier: !!verifier,
-    hasState: !!state
-  });
-
   window.location.href = `https://accounts.spotify.com/authorize?${params.toString()}`;
 }
 
 async function handleSpotifyCallback() {
-  const startedAt = logDebugStart(DEBUG_SCOPE.auth, "Handle Spotify callback");
   const url = new URL(window.location.href);
   const code = url.searchParams.get("code");
   const returnedState = url.searchParams.get("state");
   const error = url.searchParams.get("error");
 
   if (error) {
-    logDebugWarn(DEBUG_SCOPE.auth, "Spotify callback returned OAuth error", { error });
     setStatus(`Spotify login error: ${error}`);
     return;
   }
 
-  if (!code) {
-    logDebugVerbose(DEBUG_SCOPE.auth, "No OAuth callback code found. Skipping token exchange.");
-    return;
-  }
+  if (!code) return;
 
   const expectedState = authGet(LS.oauthState);
   if (!expectedState || !returnedState || expectedState !== returnedState) {
-    logDebugError(DEBUG_SCOPE.auth, "OAuth state mismatch", {
-      expectedStatePresent: !!expectedState,
-      returnedStatePresent: !!returnedState
-    });
     throw new Error("Spotify login state mismatch. Please try logging in again.");
   }
 
   const verifier = authGet(LS.pkceVerifier);
   if (!verifier) {
-    logDebugError(DEBUG_SCOPE.auth, "Missing PKCE verifier in session storage.");
     setStatus("Missing PKCE verifier. Try logging in again.");
     return;
   }
@@ -1553,10 +1138,6 @@ async function handleSpotifyCallback() {
 
   if (!response.ok) {
     const text = await response.text();
-    logDebugError(DEBUG_SCOPE.auth, "Token exchange failed", {
-      status: response.status,
-      body: text
-    });
     throw new Error(`Token exchange failed: ${response.status} ${text}`);
   }
 
@@ -1578,10 +1159,6 @@ async function handleSpotifyCallback() {
   window.history.replaceState({}, document.title, url.toString());
   authRemove(LS.oauthState);
 
-  logDebugEnd(DEBUG_SCOPE.auth, "Handle Spotify callback", startedAt, {
-    hasRefreshToken: !!json.refresh_token,
-    expiresInSec: json.expires_in
-  });
   setStatus("Spotify login successful.");
 }
 
@@ -1590,19 +1167,11 @@ async function getAccessToken() {
   const expiresAt = Number(authGet(LS.expiresAt) || "0");
 
   if (accessToken && Date.now() < expiresAt) {
-    logDebugVerbose(DEBUG_SCOPE.auth, "Using cached access token.", {
-      expiresInMs: expiresAt - Date.now()
-    });
     return accessToken;
   }
 
   const refreshToken = authGet(LS.refreshToken);
-  if (!refreshToken) {
-    logDebugWarn(DEBUG_SCOPE.auth, "No refresh token available. Spotify login required.");
-    return null;
-  }
-
-  const startedAt = logDebugStart(DEBUG_SCOPE.auth, "Refresh Spotify access token");
+  if (!refreshToken) return null;
 
   const body = new URLSearchParams({
     client_id: CONFIG.clientId,
@@ -1620,10 +1189,7 @@ async function getAccessToken() {
 
   if (!response.ok) {
     const text = await response.text();
-    logDebugError(DEBUG_SCOPE.auth, "Access token refresh failed", {
-      status: response.status,
-      body: text
-    });
+    console.error("Refresh failed:", text);
     return null;
   }
 
@@ -1634,10 +1200,6 @@ async function getAccessToken() {
     LS.expiresAt,
     String(Date.now() + json.expires_in * 1000 - 30000)
   );
-
-  logDebugEnd(DEBUG_SCOPE.auth, "Refresh Spotify access token", startedAt, {
-    expiresInSec: json.expires_in
-  });
 
   return json.access_token;
 }
@@ -1658,7 +1220,6 @@ function logoutSpotify() {
   currentPlaybackDurationMs = 0;
   isPlaybackActive = false;
 
-  logDebug(DEBUG_SCOPE.auth, "Cleared auth state and reset playback session.");
   resetNowPlayingUI();
   renderSpotifyQueue(null);
   setStatus("Logged out of Spotify.");
@@ -1666,29 +1227,13 @@ function logoutSpotify() {
 
 async function getTrackByIdWithRetry(trackId) {
   const maxAttempts = Math.max(1, CONFIG.trackLookupRetryCount + 1);
-  const startedAt = logDebugStart(DEBUG_SCOPE.spotify, "Track lookup with retry", {
-    trackId,
-    maxAttempts
-  });
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
-      const track = await getTrackById(trackId);
-      logDebugEnd(DEBUG_SCOPE.spotify, "Track lookup with retry", startedAt, {
-        trackId,
-        attempt
-      });
-      return track;
+      return await getTrackById(trackId);
     } catch (error) {
       const statusCode = getErrorStatusCode(error);
       const isLastAttempt = attempt === maxAttempts;
-
-      logDebugWarn(DEBUG_SCOPE.spotify, "Track lookup attempt failed", {
-        trackId,
-        attempt,
-        statusCode,
-        message: error?.message || "unknown"
-      });
 
       if (statusCode === 429 && !isLastAttempt) {
         await wait(CONFIG.trackLookupRetryDelayMs * attempt);
@@ -1706,17 +1251,8 @@ async function getTrackByIdWithRetry(trackId) {
 // SPOTIFY API
 // ======================================================
 async function spotifyFetch(path, options = {}) {
-  const method = String(options.method || "GET").toUpperCase();
-  const startedAt = logDebugStart(DEBUG_SCOPE.spotify, "Spotify API fetch", {
-    method,
-    path
-  });
   const token = await getAccessToken();
   if (!token) {
-    logDebugError(DEBUG_SCOPE.spotify, "Spotify API fetch blocked: missing token", {
-      method,
-      path
-    });
     throw new Error("Spotify login required.");
   }
 
@@ -1729,41 +1265,17 @@ async function spotifyFetch(path, options = {}) {
     }
   });
 
-  if (response.status === 204) {
-    logDebugEnd(DEBUG_SCOPE.spotify, "Spotify API fetch", startedAt, {
-      method,
-      path,
-      status: 204
-    });
-    return null;
-  }
+  if (response.status === 204) return null;
 
   if (!response.ok) {
     const text = await response.text();
-    logDebugError(DEBUG_SCOPE.spotify, "Spotify API fetch failed", {
-      method,
-      path,
-      status: response.status,
-      body: text
-    });
     throw new Error(`${response.status} ${text}`);
   }
-
-  logDebugEnd(DEBUG_SCOPE.spotify, "Spotify API fetch", startedAt, {
-    method,
-    path,
-    status: response.status
-  });
 
   return response.json();
 }
 
 async function spotifyNoContent(path, options = {}) {
-  const method = String(options.method || "GET").toUpperCase();
-  const startedAt = logDebugStart(DEBUG_SCOPE.spotify, "Spotify no-content request", {
-    method,
-    path
-  });
   const token = await getAccessToken();
   if (!token) throw new Error("Spotify login required.");
 
@@ -1778,20 +1290,8 @@ async function spotifyNoContent(path, options = {}) {
 
   if (!response.ok && response.status !== 204) {
     const text = await response.text();
-    logDebugError(DEBUG_SCOPE.spotify, "Spotify no-content request failed", {
-      method,
-      path,
-      status: response.status,
-      body: text
-    });
     throw new Error(`${response.status} ${text}`);
   }
-
-  logDebugEnd(DEBUG_SCOPE.spotify, "Spotify no-content request", startedAt, {
-    method,
-    path,
-    status: response.status
-  });
 
   return true;
 }
@@ -1808,9 +1308,7 @@ async function getCurrentlyPlaying() {
   try {
     return await spotifyFetch("/me/player");
   } catch (error) {
-    logDebugVerbose(DEBUG_SCOPE.playback, "Currently playing unavailable", {
-      error: error?.message || "unknown"
-    });
+    console.warn("Currently playing unavailable:", error);
     return null;
   }
 }
@@ -1824,10 +1322,6 @@ async function getSpotifyQueue() {
 }
 
 async function searchSpotifyTracks(query) {
-  const startedAt = logDebugStart(DEBUG_SCOPE.spotify, "Spotify track search", {
-    query,
-    limit: CONFIG.manualSearchLimit
-  });
   const params = new URLSearchParams({
     q: query,
     type: "track",
@@ -1835,21 +1329,12 @@ async function searchSpotifyTracks(query) {
   });
 
   const response = await spotifyFetch(`/search?${params.toString()}`);
-  const tracks = Array.isArray(response?.tracks?.items) ? response.tracks.items : [];
-  logDebugEnd(DEBUG_SCOPE.spotify, "Spotify track search", startedAt, {
-    query,
-    resultCount: tracks.length
-  });
-  return tracks;
+  return Array.isArray(response?.tracks?.items) ? response.tracks.items : [];
 }
 
 async function ensureActiveDevice() {
   const deviceData = await getAvailableDevices();
   const devices = deviceData?.devices || [];
-  logDebugVerbose(DEBUG_SCOPE.spotify, "Fetched Spotify devices", {
-    count: devices.length,
-    activeCount: devices.filter((device) => device.is_active).length
-  });
 
   if (!devices.length) {
     throw new Error(
@@ -1858,23 +1343,12 @@ async function ensureActiveDevice() {
   }
 
   const activeDevice = devices.find((d) => d.is_active);
-  if (activeDevice) {
-    logDebug(DEBUG_SCOPE.spotify, "Using active Spotify device", {
-      deviceId: activeDevice.id,
-      deviceName: activeDevice.name
-    });
-    return activeDevice;
-  }
+  if (activeDevice) return activeDevice;
 
   const controllable = devices.find((d) => !d.is_restricted) || devices[0];
   if (!controllable?.id) {
     throw new Error("A Spotify device was found, but it cannot be controlled.");
   }
-
-  logDebug(DEBUG_SCOPE.spotify, "No active device; selected fallback controllable device", {
-    deviceId: controllable.id,
-    deviceName: controllable.name
-  });
 
   return controllable;
 }
@@ -1892,9 +1366,6 @@ async function startFunPlaylist() {
 }
 
 async function startPlaylistById(playlistId) {
-  const startedAt = logDebugStart(DEBUG_SCOPE.spotify, "Start playlist", {
-    playlistId
-  });
   const token = await getAccessToken();
   if (!token) throw new Error("Spotify login required.");
 
@@ -1920,26 +1391,11 @@ async function startPlaylistById(playlistId) {
 
   if (!response.ok && response.status !== 204) {
     const text = await response.text();
-    logDebugError(DEBUG_SCOPE.spotify, "Start playlist failed", {
-      playlistId,
-      status: response.status,
-      body: text
-    });
     throw new Error(`${response.status} ${text}`);
   }
-
-  logDebugEnd(DEBUG_SCOPE.spotify, "Start playlist", startedAt, {
-    playlistId,
-    deviceId: device.id,
-    status: response.status
-  });
 }
 
 async function addTrackToPlaylist(playlistId, trackUri) {
-  const startedAt = logDebugStart(DEBUG_SCOPE.spotify, "Add track to playlist", {
-    playlistId,
-    trackUri
-  });
   if (!playlistId) {
     throw new Error("Missing playlist ID in app configuration.");
   }
@@ -1965,25 +1421,11 @@ async function addTrackToPlaylist(playlistId, trackUri) {
 
   if (!response.ok) {
     const text = await response.text();
-    logDebugError(DEBUG_SCOPE.spotify, "Add track to playlist failed", {
-      playlistId,
-      trackUri,
-      status: response.status,
-      body: text
-    });
     throw new Error(`${response.status} ${text}`);
   }
-
-  logDebugEnd(DEBUG_SCOPE.spotify, "Add track to playlist", startedAt, {
-    playlistId,
-    status: response.status
-  });
 }
 
 async function addTrackToSpotifyQueue(trackUri) {
-  const startedAt = logDebugStart(DEBUG_SCOPE.spotify, "Add track to playback queue", {
-    trackUri
-  });
   const token = await getAccessToken();
   if (!token) throw new Error("Spotify login required.");
 
@@ -2014,18 +1456,8 @@ async function addTrackToSpotifyQueue(trackUri) {
       );
     }
 
-    logDebugError(DEBUG_SCOPE.spotify, "Add track to playback queue failed", {
-      trackUri,
-      status: response.status,
-      body: text
-    });
     throw new Error(`${response.status} ${text}`);
   }
-
-  logDebugEnd(DEBUG_SCOPE.spotify, "Add track to playback queue", startedAt, {
-    trackUri,
-    status: response.status
-  });
 }
 
 async function pausePlayback() {
@@ -2090,9 +1522,6 @@ function findHeaderIndex(headers, candidates, fallbackIndex = -1) {
 }
 
 async function fetchStudentRequestRows() {
-  const startedAt = logDebugStart(DEBUG_SCOPE.requests, "Fetch student request rows", {
-    source: "Google Sheet CSV"
-  });
   const url = `${CONFIG.requestsCsvUrl}${CONFIG.requestsCsvUrl.includes("?") ? "&" : "?"}t=${Date.now()}`;
 
   const response = await fetch(url, {
@@ -2101,10 +1530,6 @@ async function fetchStudentRequestRows() {
   });
 
   if (!response.ok) {
-    logDebugError(DEBUG_SCOPE.requests, "Google Sheet CSV fetch failed", {
-      status: response.status,
-      url
-    });
     throw new Error(`Failed to fetch Google Sheet CSV: ${response.status}`);
   }
 
@@ -2152,15 +1577,12 @@ async function fetchStudentRequestRows() {
   );
 
   if (spotifyLinkIndex === -1) {
-    logDebugError(DEBUG_SCOPE.requests, "Spotify link column missing in sheet headers", {
-      headers
-    });
     throw new Error(
       `Could not find the Spotify link column in the sheet headers: ${headers.join(" | ")}`
     );
   }
 
-  const normalizedRows = rows
+  return rows
     .slice(1)
     .filter(
       (row) =>
@@ -2176,23 +1598,9 @@ async function fetchStudentRequestRows() {
       source: "request"
     }))
     .filter((row) => row.spotifyLink);
-
-  logDebugEnd(DEBUG_SCOPE.requests, "Fetch student request rows", startedAt, {
-    totalRows: rows.length,
-    requestRows: normalizedRows.length,
-    hasThemeColumn: themeIndex >= 0,
-    hasStudentColumn: studentNameIndex >= 0
-  });
-
-  return normalizedRows;
 }
 
 async function enrichRequestRows(rows) {
-  const startedAt = logDebugStart(DEBUG_SCOPE.requests, "Enrich request rows", {
-    rawRowCount: rows.length,
-    concurrency: Math.max(1, Math.min(CONFIG.trackLookupConcurrency, rows.length || 1))
-  });
-  const shouldFetchRatings = !!getLyricsApiBaseUrl();
   const rejected = getRejectedIds();
   const enriched = new Array(rows.length);
   let cursor = 0;
@@ -2222,10 +1630,6 @@ async function enrichRequestRows(rows) {
       if (!trackId) {
         result.error = "Invalid or missing Spotify track link";
         result.moderation = buildModerationMetadata(result);
-        logDebugWarn(DEBUG_SCOPE.requests, "Skipping row with invalid Spotify link", {
-          requestId,
-          spotifyLink: row.spotifyLink
-        });
         enriched[index] = result;
         continue;
       }
@@ -2233,38 +1637,8 @@ async function enrichRequestRows(rows) {
       try {
         const track = await getTrackByIdWithRetry(trackId);
         result.spotify = normalizeSpotifyTrack(track);
-        logDebugVerbose(DEBUG_SCOPE.requests, "Resolved Spotify track for request", {
-          requestId,
-          trackId,
-          explicit: result.spotify?.explicit ?? null
-        });
-
-        if (shouldFetchRatings && result.spotify?.artist && result.spotify?.name) {
-          const ratingResult = await fetchContentRatingFromApi(result.spotify.artist, result.spotify.name);
-          if (ratingResult.ok) {
-            result.musixmatchContentRating = ratingResult.contentRating;
-            logDebugVerbose(DEBUG_SCOPE.requests, "Fetched Musixmatch content rating", {
-              requestId,
-              trackId,
-              contentRating: ratingResult.contentRating,
-              ratingSelectorUsed: ratingResult.ratingSelectorUsed || "(none)"
-            });
-          } else if (ratingResult.status !== "missing-rating") {
-            logDebugVerbose(DEBUG_SCOPE.requests, "No content rating attached for request", {
-              requestId,
-              trackId,
-              status: ratingResult.status,
-              reason: ratingResult.reason || "none"
-            });
-          }
-        }
       } catch (error) {
         result.error = error?.message || "Spotify lookup failed";
-        logDebugWarn(DEBUG_SCOPE.requests, "Spotify lookup failed for request", {
-          requestId,
-          trackId,
-          error: result.error
-        });
       }
 
       result.moderation = buildModerationMetadata(result);
@@ -2279,20 +1653,6 @@ async function enrichRequestRows(rows) {
   );
 
   await Promise.all(workers);
-
-  const stats = {
-    total: enriched.length,
-    resolved: enriched.filter((item) => !!item?.spotify).length,
-    invalid: enriched.filter((item) => !item?.spotify).length,
-    explicit: enriched.filter((item) => item?.spotify?.explicit === true).length,
-    blockedTheme: enriched.filter((item) => item?.moderation?.themeStatus === "blocked").length,
-    reviewTheme: enriched.filter((item) => item?.moderation?.themeStatus === "flagged").length,
-    blockedRating: enriched.filter((item) => item?.moderation?.contentRatingStatus === "blocked").length,
-    reviewRating: enriched.filter((item) => item?.moderation?.contentRatingStatus === "flagged").length,
-    ratingsAttached: enriched.filter((item) => !!item?.musixmatchContentRating).length
-  };
-
-  logDebugEnd(DEBUG_SCOPE.requests, "Enrich request rows", startedAt, stats);
   return enriched;
 }
 
@@ -2312,31 +1672,11 @@ function buildRequestSummary(requests) {
   const errors = requests.filter((r) => !r.spotify).length;
   const themeReview = requests.filter((r) => ensureModerationMetadata(r)?.themeStatus === "flagged").length;
   const themeBlocked = requests.filter((r) => ensureModerationMetadata(r)?.themeStatus === "blocked").length;
-  const ratingReview = requests.filter((r) => ensureModerationMetadata(r)?.contentRatingStatus === "flagged").length;
-  const ratingBlocked = requests.filter((r) => ensureModerationMetadata(r)?.contentRatingStatus === "blocked").length;
-  const autoPass = requests.filter((r) => ensureModerationMetadata(r)?.recommendation === "pass").length;
-  const manualReview = requests.filter((r) => ensureModerationMetadata(r)?.recommendation === "review").length;
-  const autoBlocked = requests.filter((r) => ensureModerationMetadata(r)?.recommendation === "block").length;
 
   if (el.requestSummary) {
     el.requestSummary.textContent =
-      `Loaded ${total} request(s) | Valid Spotify links: ${valid} | Clean: ${clean} | Explicit: ${explicit} | Theme Review: ${themeReview} | Theme Blocked: ${themeBlocked} | Rating Review: ${ratingReview} | Rating Blocked: ${ratingBlocked} | Pass: ${autoPass} | Manual Review: ${manualReview} | Block: ${autoBlocked} | Errors: ${errors}`;
+      `Loaded ${total} request(s) | Valid Spotify links: ${valid} | Clean: ${clean} | Explicit: ${explicit} | Theme Review: ${themeReview} | Theme Blocked: ${themeBlocked} | Errors: ${errors}`;
   }
-
-  logDebug(DEBUG_SCOPE.requests, "Request summary rebuilt", {
-    total,
-    valid,
-    clean,
-    explicit,
-    themeReview,
-    themeBlocked,
-    ratingReview,
-    ratingBlocked,
-    autoPass,
-    manualReview,
-    autoBlocked,
-    errors
-  });
 }
 
 // ======================================================
@@ -2348,46 +1688,23 @@ function approveRequest(request, options = {}) {
     allowExplicit = false,
     allowDuplicateTrack = false,
     selectAdded = false,
-    allowThemeBlocked = false,
-    allowBlockedContentRating = false
+    allowThemeBlocked = false
   } = options;
 
   const moderation = ensureModerationMetadata(request);
 
   if (!request.spotify) {
-    logDebugWarn(DEBUG_SCOPE.moderation, "Approve blocked: missing Spotify data", {
-      requestId: request?.requestId || null
-    });
     if (!silentStatus) setStatus("Cannot approve a request with no valid Spotify track.");
     return false;
   }
 
   if (request.spotify.explicit && !allowExplicit) {
-    logDebugWarn(DEBUG_SCOPE.moderation, "Approve blocked: explicit track", {
-      requestId: request.requestId,
-      trackId: request.spotify?.id || null
-    });
     if (!silentStatus) setStatus("Cannot approve an explicit song.");
     return false;
   }
 
   if (moderation?.themeStatus === "blocked" && !allowThemeBlocked) {
-    logDebugWarn(DEBUG_SCOPE.moderation, "Approve blocked: theme policy block", {
-      requestId: request.requestId,
-      themeStatus: moderation?.themeStatus
-    });
     if (!silentStatus) setStatus("Cannot approve: theme contains blocked terms.");
-    return false;
-  }
-
-  if (moderation?.contentRatingStatus === "blocked" && !allowBlockedContentRating) {
-    logDebugWarn(DEBUG_SCOPE.moderation, "Approve blocked: content rating policy block", {
-      requestId: request.requestId,
-      contentRating: moderation?.contentRating || null
-    });
-    if (!silentStatus) {
-      setStatus(`Cannot approve: Musixmatch rating ${moderation?.contentRating || "R/NC-17"} is blocked by policy.`);
-    }
     return false;
   }
 
@@ -2399,10 +1716,6 @@ function approveRequest(request, options = {}) {
         (!allowDuplicateTrack && item.spotify?.id && item.spotify.id === request.spotify.id)
     )
   ) {
-    logDebugWarn(DEBUG_SCOPE.moderation, "Approve blocked: duplicate in approved queue", {
-      requestId: request.requestId,
-      trackId: request.spotify?.id || null
-    });
     if (!silentStatus) setStatus("Song is already approved.");
     return false;
   }
@@ -2437,13 +1750,6 @@ function approveRequest(request, options = {}) {
     setStatus(`Approved: ${request.spotify.artist} — ${request.spotify.name}`);
   }
 
-  logDebug(DEBUG_SCOPE.moderation, "Request approved", {
-    requestId: request.requestId,
-    trackId: request.spotify?.id || null,
-    source: request.source || "request",
-    recommendation: moderation?.recommendation || null
-  });
-
   return true;
 }
 
@@ -2459,12 +1765,6 @@ function rejectRequest(request) {
 
   renderRequests(currentRequests);
   setStatus("Request removed from unapproved list.");
-
-  logDebug(DEBUG_SCOPE.moderation, "Request rejected", {
-    requestId: request?.requestId || null,
-    trackId: request?.spotify?.id || null,
-    source: request?.source || "request"
-  });
 }
 
 function removeApproved(requestId) {
@@ -2497,11 +1797,6 @@ function removeApprovedItem(requestId, options = {}) {
     setStatus("Removed song from approved list.");
   }
 
-  logDebug(DEBUG_SCOPE.queue, "Removed song from approved queue", {
-    requestId,
-    hadItem: !!removedItem
-  });
-
   return removedItem;
 }
 
@@ -2532,7 +1827,7 @@ function approveAllVisibleCleanRequests() {
   const visible = getVisibleUnapprovedRequests(currentRequests);
   const cleanVisible = visible.filter((request) => {
     const moderation = ensureModerationMetadata(request);
-    return request.spotify && moderation?.recommendation === "pass";
+    return request.spotify && request.spotify.explicit === false && moderation?.themeStatus !== "blocked";
   });
 
   if (!cleanVisible.length) {
@@ -2548,11 +1843,6 @@ function approveAllVisibleCleanRequests() {
   }
 
   setStatus(`Approved ${approvedCount} clean visible request(s).`);
-  logDebug(DEBUG_SCOPE.moderation, "Bulk approve completed", {
-    visibleCount: visible.length,
-    cleanVisibleCount: cleanVisible.length,
-    approvedCount
-  });
 }
 
 function undoLastModerationAction() {
@@ -2717,10 +2007,7 @@ function renderRequests(requests) {
         : "Error";
 
       const approveDisabled =
-        !request.spotify ||
-        request.spotify.explicit ||
-        moderation?.themeStatus === "blocked" ||
-        moderation?.contentRatingStatus === "blocked"
+        !request.spotify || request.spotify.explicit || moderation?.themeStatus === "blocked"
           ? "disabled"
           : "";
       const lyricsUrl = request.spotify ? buildLyricsUrl(request.spotify.artist, request.spotify.name) : "";
@@ -2747,6 +2034,7 @@ function renderRequests(requests) {
               ${escapeHtml(album)} • ${request.spotify ? escapeHtml(msToMinSec(request.spotify.durationMs)) : "—"}
             </div>
             <div class="request-submitted">${escapeHtml(request.timestamp || "—")} • ${escapeHtml(sourceLabel)}</div>
+            <div class="request-status-tags">${buildRequestStatusTags(request, moderation)}</div>
             <div class="moderation-inline-note">${escapeHtml(moderation?.compactReason || "Moderation metadata unavailable.")}</div>
           </div>
 
@@ -2758,7 +2046,8 @@ function renderRequests(requests) {
                   ${createLyricsButtonHtml({
                     url: lyricsUrl,
                     artist: request.spotify.artist,
-                    song: request.spotify.name
+                    song: request.spotify.name,
+                    requestId: request.requestId
                   })}
                 `
                 : `<span class="error-text">${escapeHtml(request.error || "No match")}</span>`
@@ -2830,6 +2119,7 @@ function renderApprovedQueue() {
               ${sourceBadge}
             </div>
             <div class="queue-item-artist">${escapeHtml(artist)}</div>
+            <div class="request-status-tags">${buildRequestStatusTags(item, moderation)}</div>
             <div class="moderation-inline-note">${escapeHtml(sourceLabel)} • ${escapeHtml(moderation?.compactReason || "Moderation metadata unavailable.")}</div>
           </div>
 
@@ -2837,7 +2127,8 @@ function renderApprovedQueue() {
             ${createLyricsButtonHtml({
               url: lyricsUrl,
               artist,
-              song: name
+              song: name,
+              requestId: item.requestId
             })}
             <button class="remove-approved-btn" data-request-id="${escapeHtml(item.requestId)}">
               Remove
@@ -2896,6 +2187,7 @@ function renderApprovedPreview() {
           ${escapeHtml(item.album || "Unknown Album")} • ${escapeHtml(msToMinSec(item.durationMs))}
         </div>
         <div class="request-submitted">Selected approved track preview • ${escapeHtml(getSourceLabel(current.source))}</div>
+        <div class="request-status-tags">${buildRequestStatusTags(current, moderation)}</div>
         <div class="moderation-inline-note">${escapeHtml(moderation?.compactReason || "Moderation metadata unavailable.")}</div>
       </div>
 
@@ -2909,7 +2201,8 @@ function renderApprovedPreview() {
         ${createLyricsButtonHtml({
           url: lyricsUrl,
           artist: item.artist,
-          song: item.name
+          song: item.name,
+          requestId: current.requestId
         })}
       </div>
     </div>
@@ -3034,7 +2327,6 @@ function resetNowPlayingUI() {
 }
 
 async function refreshPlayback() {
-  const startedAt = logDebugStart(DEBUG_SCOPE.playback, "Refresh playback");
   if (!el.nowPlaying || !el.nowPlayingMeta) return;
 
   try {
@@ -3059,10 +2351,6 @@ async function refreshPlayback() {
       resetNowPlayingUI();
       renderSpotifyQueue(queueData);
       stopLocalProgressTimer();
-      logDebugEnd(DEBUG_SCOPE.playback, "Refresh playback", startedAt, {
-        hasItem: false,
-        queueCount: currentSpotifyQueueTracks.length
-      });
       return;
     }
 
@@ -3097,15 +2385,6 @@ async function refreshPlayback() {
     } else {
       stopLocalProgressTimer();
     }
-
-    logDebugEnd(DEBUG_SCOPE.playback, "Refresh playback", startedAt, {
-      hasItem: true,
-      trackId: item.id,
-      trackName: item.name,
-      isPlaybackActive,
-      volume: currentVolumePercent,
-      queueCount: currentSpotifyQueueTracks.length
-    });
   } catch (error) {
     currentNowPlayingTrack = null;
     currentSpotifyQueueTracks = [];
@@ -3129,10 +2408,6 @@ async function refreshPlayback() {
     updatePlaybackStateLabel();
     renderSpotifyQueue(null);
     stopLocalProgressTimer();
-
-    logDebugWarn(DEBUG_SCOPE.playback, "Refresh playback failed", {
-      error: error?.message || "unknown"
-    });
   }
 }
 
@@ -3207,18 +2482,10 @@ async function addSelectedApprovedToQueue() {
   await addTrackToSpotifyQueue(item.spotify.uri);
   removeApprovedItem(item.requestId, { silentStatus: true });
 
-  logDebug(DEBUG_SCOPE.queue, "Added selected approved song to playback queue", {
-    requestId: item.requestId,
-    trackId: item.spotify?.id || null,
-    trackName: item.spotify?.name || null
-  });
-
   try {
     await refreshPlayback();
   } catch (error) {
-    logDebugWarn(DEBUG_SCOPE.playback, "Playback refresh after add-to-queue failed", {
-      error: error?.message || "unknown"
-    });
+    console.warn("Playback refresh after add-to-queue failed:", error);
   }
 
   return item;
@@ -3238,16 +2505,10 @@ async function addSelectedApprovedToPlaylist(playlistId) {
   }
 
   await addTrackToPlaylist(playlistId, item.spotify.uri);
-  logDebug(DEBUG_SCOPE.queue, "Added selected approved song to playlist", {
-    playlistId,
-    requestId: item.requestId,
-    trackId: item.spotify?.id || null
-  });
   return item;
 }
 
 async function addDjAssistedRequestFromForm() {
-  const startedAt = logDebugStart(DEBUG_SCOPE.requests, "Add DJ-assisted request from form");
   const studentName = String(el.djStudentNameInput?.value || "").trim();
   const theme = String(el.djThemeInput?.value || "").trim();
   const spotifyLinkInput = String(el.djSpotifyLinkInput?.value || "").trim();
@@ -3274,178 +2535,112 @@ async function addDjAssistedRequestFromForm() {
 
   await loadRequests();
   setStatus("DJ-assisted request added and loaded for moderation.");
-  logDebugEnd(DEBUG_SCOPE.requests, "Add DJ-assisted request from form", startedAt, {
-    requestId: row.requestId,
-    studentName: row.studentName || null,
-    hasTheme: !!row.theme
-  });
 }
 
 function badgeClassForRecommendation(moderation) {
-  if (moderation?.manualSafetyOverride) return "badge-override";
   if (moderation?.recommendation === "block") return "badge-explicit";
   if (moderation?.recommendation === "review") return "badge-error";
   return "badge-clean";
 }
 
-function getBlockedSignalLabels(moderation) {
-  const labels = [];
-
-  if (moderation?.explicitStatus === "explicit") {
-    labels.push("Spotify Explicit");
-  }
-
-  if (moderation?.themeStatus === "blocked") {
-    labels.push("Theme Policy Block");
-  }
-
-  if (moderation?.contentRatingStatus === "blocked") {
-    labels.push(`Musixmatch Rating ${moderation?.contentRating || "R/NC-17"}`);
-  }
-
-  return labels;
+function statusTagToneForTheme(themeStatus) {
+  if (themeStatus === "blocked") return "danger";
+  if (themeStatus === "flagged") return "warn";
+  if (themeStatus === "clear") return "ok";
+  return "neutral";
 }
 
-function validateSafetyOverrideEligibility(request, moderation) {
-  if (!request) {
+function statusTagToneForRecommendation(recommendation) {
+  if (recommendation === "block") return "danger";
+  if (recommendation === "review") return "warn";
+  return "ok";
+}
+
+function statusTagHtml(label, tone = "neutral") {
+  return `<span class="mod-status-tag mod-status-tag-${escapeHtml(tone)}">${escapeHtml(label)}</span>`;
+}
+
+function getLyricsFetchStatusTag(requestId) {
+  const key = String(requestId || "").trim();
+  const state = key ? lyricsFetchStateByRequestId.get(key) : null;
+
+  if (!key) {
     return {
-      allowed: false,
-      reason: "Could not find request data for override.",
-      blockedSignals: []
+      label: "Lyrics: Not Tracked",
+      tone: "neutral",
+      detail: "This row is not tied to a moderation request ID."
     };
   }
 
-  if (!request.spotify) {
+  if (!state || !state.state) {
     return {
-      allowed: false,
-      reason: "Cannot override: missing Spotify track metadata.",
-      blockedSignals: []
+      label: "Lyrics: Not Fetched",
+      tone: "neutral",
+      detail: "Lyrics have not been fetched for this request yet."
     };
   }
 
-  const blockedSignals = getBlockedSignalLabels(moderation);
-  if (!blockedSignals.length) {
+  if (state.state === "loading") {
     return {
-      allowed: false,
-      reason: "Safety override is only available when a request is blocked.",
-      blockedSignals: []
+      label: "Lyrics: Fetching",
+      tone: "info",
+      detail: "Lyrics request is currently in progress."
+    };
+  }
+
+  if (state.state === "success") {
+    return {
+      label: "Lyrics: Fetched",
+      tone: "ok",
+      detail: state.detail || "Live lyrics were fetched from the configured API."
+    };
+  }
+
+  if (state.state === "fallback") {
+    return {
+      label: "Lyrics: API Fallback",
+      tone: "warn",
+      detail: state.detail || "Lyrics API fallback was used."
     };
   }
 
   return {
-    allowed: true,
-    reason: "",
-    blockedSignals
+    label: "Lyrics: Fetch Failed",
+    tone: "danger",
+    detail: state.detail || "Lyrics request failed."
   };
 }
 
-function confirmSafetyOverrideFlow(request, moderation, blockedSignals) {
-  const trackName = request?.spotify?.name || "this track";
-  const trackIdSuffix = String(request?.spotify?.id || "").slice(-4).toUpperCase();
-  const signalSummary = (Array.isArray(blockedSignals) && blockedSignals.length
-    ? blockedSignals
-    : getBlockedSignalLabels(moderation)).join(", ");
+function setLyricsFetchStatus(requestId, state, detail = "") {
+  const key = String(requestId || "").trim();
+  if (!key) return;
 
-  const firstConfirm = window.confirm(
-    `This request is blocked by: ${signalSummary || "policy checks"}.\\n\\nDo you want to start a full safety override?`
-  );
-  if (!firstConfirm) return false;
-
-  const secondConfirm = window.confirm(
-    "This can bypass explicit, theme, and rating safety blocks.\\nOnly continue if you manually reviewed the song."
-  );
-  if (!secondConfirm) return false;
-
-  const typedPhrase = window.prompt('Type "OVERRIDE ALL BLOCKS" to continue.');
-  if (String(typedPhrase || "").trim().toUpperCase() !== "OVERRIDE ALL BLOCKS") return false;
-
-  if (trackIdSuffix) {
-    const typedTrackSuffix = window.prompt(
-      `Type the last 4 characters of the track ID (${trackIdSuffix}) to continue.`
-    );
-    if (String(typedTrackSuffix || "").trim().toUpperCase() !== trackIdSuffix) return false;
-  }
-
-  const thirdConfirm = window.confirm(
-    `Final confirmation: approve ${trackName} with full safety override?`
-  );
-  if (!thirdConfirm) return false;
-
-  const typedFinal = window.prompt('Type "APPROVE OVERRIDE" for the final step.');
-  return String(typedFinal || "").trim().toUpperCase() === "APPROVE OVERRIDE";
+  lyricsFetchStateByRequestId.set(key, {
+    state: String(state || "").trim() || "unknown",
+    detail: String(detail || "").trim(),
+    updatedAt: new Date().toISOString()
+  });
 }
 
-function applySafetyOverrideMetadata(request, moderation, blockedSignals) {
-  if (!request || !moderation || typeof moderation !== "object") return;
+function buildRequestStatusTags(request, moderation) {
+  const spotifyTag = request?.spotify
+    ? statusTagHtml("Spotify: Found", "ok")
+    : statusTagHtml("Spotify: Missing", "danger");
 
-  const effectiveSignals = Array.isArray(blockedSignals) ? blockedSignals : getBlockedSignalLabels(moderation);
+  const explicitTone = moderation?.explicitStatus === "explicit"
+    ? "danger"
+    : moderation?.explicitStatus === "clean"
+      ? "ok"
+      : "neutral";
 
-  moderation.manualSafetyOverride = true;
-  moderation.overrideBlockedSignals = effectiveSignals;
-  moderation.contentRatingOverride = moderation.contentRatingStatus === "blocked";
-  moderation.explicitOverride = moderation.explicitStatus === "explicit";
-  moderation.themeOverride = moderation.themeStatus === "blocked";
-  moderation.contentRatingOverrideAt = new Date().toISOString();
-  moderation.contentRatingOverrideBy = "moderator";
-  moderation.recommendation = "pass";
-  moderation.recommendationLabel = "Moderator Safety Override";
-  moderation.recommendationReason =
-    `Moderator approved after overriding blocked signals: ${effectiveSignals.join(", ") || "Policy Block"}.`;
-  moderation.compactReason =
-    `${moderation.explicitLabel || "Unknown"} Spotify | ${moderation.contentRatingLabel || "No Rating"} | ${moderation.themeLabel || "No Theme"} (Safety Override)`;
+  const explicitTag = statusTagHtml(`Explicit: ${moderation?.explicitLabel || "Unknown"}`, explicitTone);
+  const themeTag = statusTagHtml(`Theme: ${moderation?.themeLabel || "No Theme"}`, statusTagToneForTheme(moderation?.themeStatus));
+  const recTag = statusTagHtml(`Decision: ${moderation?.recommendationLabel || "Manual Review"}`, statusTagToneForRecommendation(moderation?.recommendation));
 
-  request.moderation = moderation;
-}
+  const lyricsStatus = getLyricsFetchStatusTag(request?.requestId);
+  const lyricsTag = statusTagHtml(lyricsStatus.label, lyricsStatus.tone);
 
-function approveRequestWithSafetyOverride(requestId) {
-  const request = currentRequests.find((item) => item.requestId === requestId);
-  if (!request) {
-    setStatus("Could not find request to apply safety override.");
-    return;
-  }
-
-  if (isApproved(requestId)) {
-    setStatus("This request is already approved.");
-    return;
-  }
-
-  const moderation = ensureModerationMetadata(request);
-  const eligibility = validateSafetyOverrideEligibility(request, moderation);
-
-  if (!eligibility.allowed) {
-    setStatus(eligibility.reason || "Safety override is not available for this request.");
-    return;
-  }
-
-  const confirmed = confirmSafetyOverrideFlow(request, moderation, eligibility.blockedSignals);
-  if (!confirmed) {
-    setStatus("Safety override canceled.");
-    return;
-  }
-
-  applySafetyOverrideMetadata(request, moderation, eligibility.blockedSignals);
-
-  const approved = approveRequest(request, {
-    silentStatus: true,
-    allowExplicit: true,
-    allowThemeBlocked: true,
-    allowBlockedContentRating: true,
-    selectAdded: true
-  });
-
-  if (!approved) {
-    setStatus("Safety override could not approve this request.");
-    return;
-  }
-
-  closeModerationReasonModal();
-  setStatus(`Moderator safety override approved: ${request.spotify.artist} - ${request.spotify.name}`);
-  logDebugWarn(DEBUG_SCOPE.moderation, "Moderator approved request via full safety override", {
-    requestId,
-    trackId: request.spotify?.id || null,
-    contentRating: moderation?.contentRating || null,
-    blockedSignals: eligibility.blockedSignals
-  });
+  return `${spotifyTag}${explicitTag}${themeTag}${recTag}${lyricsTag}`;
 }
 
 function moderationReasonHtml(request, moderation) {
@@ -3456,6 +2651,18 @@ function moderationReasonHtml(request, moderation) {
     : "None";
   const themePolicyHits = Array.isArray(moderation?.themePolicyHits) ? moderation.themePolicyHits : [];
   const policySummary = Array.isArray(moderation?.themePolicySummary) ? moderation.themePolicySummary : [];
+  const lyricsStatus = getLyricsFetchStatusTag(request?.requestId);
+  const spotifySummary = request?.spotify
+    ? "Spotify track lookup succeeded and metadata was found."
+    : "Spotify track lookup failed or the submitted link was invalid.";
+
+  const detailTags = [
+    statusTagHtml(`Recommendation: ${moderation?.recommendationLabel || "Manual Review"}`, statusTagToneForRecommendation(moderation?.recommendation)),
+    statusTagHtml(`Spotify: ${request?.spotify ? "Found" : "Missing"}`, request?.spotify ? "ok" : "danger"),
+    statusTagHtml(`Explicit: ${moderation?.explicitLabel || "Unknown"}`, moderation?.explicitStatus === "explicit" ? "danger" : moderation?.explicitStatus === "clean" ? "ok" : "neutral"),
+    statusTagHtml(`Theme: ${moderation?.themeLabel || "No Theme"}`, statusTagToneForTheme(moderation?.themeStatus)),
+    statusTagHtml(lyricsStatus.label, lyricsStatus.tone)
+  ].join("");
 
   const summaryRows = policySummary.length
     ? policySummary
@@ -3483,41 +2690,14 @@ function moderationReasonHtml(request, moderation) {
       .join("")
     : "<tr><td colspan=\"5\">No keyword or phrase matches.</td></tr>";
 
-  const requestId = String(request?.requestId || "");
-  const isPreviewRequest = requestId.startsWith("preview|");
-  const alreadyApproved = requestId ? isApproved(requestId) : false;
-  const overrideEligibility = validateSafetyOverrideEligibility(request, moderation);
-  const showSafetyOverrideAction =
-    !!requestId &&
-    !isPreviewRequest &&
-    !alreadyApproved &&
-    moderation?.recommendation === "block";
-
-  const safetyOverrideActions = showSafetyOverrideAction
-    ? `
-      <div class="moderation-reason-callout moderation-reason-override-callout">
-        <span class="badge badge-override">Safety Override</span>
-        <p>
-          This can override explicit, theme, and rating blocks. It requires multiple confirmations plus typed checks.
-        </p>
-        ${
-          overrideEligibility.allowed
-            ? `<div class="moderation-override-actions">
-                <button
-                  class="btn btn-small btn-primary moderation-safety-override-btn"
-                  type="button"
-                  data-request-id="${escapeHtml(requestId)}"
-                >
-                  Override All Blocks and Approve
-                </button>
-              </div>`
-            : `<p class="moderation-override-warning">${escapeHtml(overrideEligibility.reason)}</p>`
-        }
-      </div>
-    `
-    : "";
-
   return `
+    <div class="moderation-reason-section">
+      <h3>Status Tags</h3>
+      <div class="request-status-tags moderation-tags-wrap">
+        ${detailTags}
+      </div>
+    </div>
+
     <div class="moderation-reason-grid">
       <div class="moderation-reason-item">
         <div class="moderation-reason-label">Source</div>
@@ -3542,27 +2722,15 @@ function moderationReasonHtml(request, moderation) {
       <p>${escapeHtml(moderation?.recommendationReason || "Manual review recommended.")}</p>
     </div>
 
-    ${safetyOverrideActions}
-
     <div class="moderation-reason-section">
-      <h3>Explicit Classification</h3>
-      <p><strong>Verdict:</strong> ${escapeHtml(moderation?.explicitLabel || "Unknown")}</p>
-      <p><strong>Source:</strong> ${escapeHtml(moderation?.explicitSource || "Spotify metadata")}</p>
-      <p><strong>Reason:</strong> ${escapeHtml(moderation?.explicitReason || "No explicit reasoning available.")}</p>
-    </div>
-
-    <div class="moderation-reason-section">
-      <h3>Musixmatch Content Rating</h3>
-      <p><strong>Verdict:</strong> ${escapeHtml(moderation?.contentRatingLabel || "No Rating")}</p>
-      <p><strong>Source:</strong> ${escapeHtml(moderation?.contentRatingSource || "Musixmatch AI content rating")}</p>
-      <p><strong>Reason:</strong> ${escapeHtml(moderation?.contentRatingReason || "No rating reasoning available.")}</p>
-    </div>
-
-    <div class="moderation-reason-section">
-      <h3>Theme Classification</h3>
-      <p><strong>Verdict:</strong> ${escapeHtml(moderation?.themeLabel || "No Theme")}</p>
-      <p><strong>Matched Terms:</strong> ${escapeHtml(themeTerms)}</p>
-      <p><strong>Reason:</strong> ${escapeHtml(moderation?.themeReason || "No theme reasoning available.")}</p>
+      <h3>Decision Summary</h3>
+      <ul class="moderation-reason-list">
+        <li>${escapeHtml(spotifySummary)}</li>
+        <li>${escapeHtml(moderation?.explicitReason || "No explicit reasoning available.")}</li>
+        <li>${escapeHtml(moderation?.themeReason || "No theme reasoning available.")}</li>
+        <li>${escapeHtml(lyricsStatus.detail || "Lyrics have not been fetched for this request.")}</li>
+      </ul>
+      <p class="moderation-inline-note">Matched terms: ${escapeHtml(themeTerms)}</p>
     </div>
 
     <div class="moderation-reason-section">
@@ -3572,8 +2740,8 @@ function moderationReasonHtml(request, moderation) {
       </div>
     </div>
 
-    <div class="moderation-reason-section">
-      <h3>Detailed Keyword / Phrase Hits</h3>
+    <details class="moderation-reason-details">
+      <summary>Detailed Keyword / Phrase Hits (${themePolicyHits.length})</summary>
       <div class="moderation-reason-table-wrap">
         <table class="moderation-reason-table" aria-label="Moderation policy hit details">
           <thead>
@@ -3590,7 +2758,7 @@ function moderationReasonHtml(request, moderation) {
           </tbody>
         </table>
       </div>
-    </div>
+    </details>
 
     <div class="moderation-reason-footnote">
       Evaluated at ${escapeHtml(formatTimestamp(moderation?.evaluatedAt) || String(moderation?.evaluatedAt || "now"))}
@@ -3670,7 +2838,7 @@ function renderLyricsFallbackContent({ artist, song, fallbackUrl, reason }) {
       <p class="lyrics-fallback-copy">${escapeHtml(reason || "The API did not return lyrics.")}</p>
       <p class="lyrics-fallback-copy">
         GitHub Pages cannot run Python directly. To use live lyric scraping in-app,
-        set CONFIG.lyricsApiBaseUrl to your API endpoint.
+        host the Python endpoint separately and set CONFIG.lyricsApiBaseUrl.
       </p>
       <a class="btn btn-small btn-primary" href="${escapeHtml(fallbackUrl)}" target="_blank" rel="noopener noreferrer">
         Open Musixmatch Page
@@ -3685,32 +2853,19 @@ function renderLyricsLoading() {
   el.lyricsModalBody.innerHTML = '<div class="lyrics-loading">Loading lyrics...</div>';
 }
 
-function renderLyricsSuccess({ lyrics, selectorUsed, source, contentRating, ratingSelectorUsed }) {
+function renderLyricsSuccess({ lyrics, selectorUsed, source }) {
   if (!el.lyricsModalBody) return;
 
   el.lyricsModalBody.innerHTML = `
     <div class="lyrics-success-wrap">
       <pre class="lyrics-text-pre">${escapeHtml(lyrics)}</pre>
-      <p class="lyrics-fallback-copy">
-        Source: ${escapeHtml(source || "Lyrics API")}
-        ${selectorUsed ? ` • Selector: ${escapeHtml(selectorUsed)}` : ""}
-        ${contentRating ? ` • Rating: ${escapeHtml(contentRating)}` : ""}
-        ${ratingSelectorUsed ? ` • Rating Selector: ${escapeHtml(ratingSelectorUsed)}` : ""}
-      </p>
+      <p class="lyrics-fallback-copy">Source: ${escapeHtml(source || "Lyrics API")} ${selectorUsed ? `• Selector: ${escapeHtml(selectorUsed)}` : ""}</p>
     </div>
   `;
 }
 
-async function openLyricsModal({ artist, song, fallbackUrl }) {
-  const startedAt = logDebugStart(DEBUG_SCOPE.lyrics, "Open lyrics modal", {
-    artist,
-    song,
-    fallbackUrl
-  });
+async function openLyricsModal({ artist, song, fallbackUrl, requestId = "" }) {
   if (!el.lyricsModal || !el.lyricsBackdrop || !el.lyricsModalTitle || !el.lyricsModalMeta) {
-    logDebugWarn(DEBUG_SCOPE.lyrics, "Lyrics modal DOM missing. Opening fallback URL directly.", {
-      fallbackUrl
-    });
     window.open(fallbackUrl, "_blank", "noopener,noreferrer");
     return;
   }
@@ -3718,6 +2873,13 @@ async function openLyricsModal({ artist, song, fallbackUrl }) {
   const safeArtist = String(artist || "Unknown Artist").trim() || "Unknown Artist";
   const safeSong = String(song || "Unknown Song").trim() || "Unknown Song";
   const safeFallbackUrl = String(fallbackUrl || buildLyricsUrl(safeArtist, safeSong));
+  const safeRequestId = String(requestId || "").trim();
+
+  if (safeRequestId) {
+    setLyricsFetchStatus(safeRequestId, "loading");
+    renderRequests(currentRequests);
+    renderApprovedQueue();
+  }
 
   el.lyricsModalTitle.textContent = safeSong;
   el.lyricsModalMeta.textContent = safeArtist;
@@ -3731,31 +2893,37 @@ async function openLyricsModal({ artist, song, fallbackUrl }) {
 
   const result = await fetchLyricsFromApi(safeArtist, safeSong);
   if (!result.ok) {
+    if (safeRequestId) {
+      const fallbackState = result.status === "api-error" || result.status === "empty" || result.status === "not-configured"
+        ? "fallback"
+        : "error";
+      setLyricsFetchStatus(safeRequestId, fallbackState, result.reason || "Lyrics API did not return live lyrics.");
+      renderRequests(currentRequests);
+      renderApprovedQueue();
+      if (moderationDetailContext?.requestId === safeRequestId) {
+        openModerationReasonModal(moderationDetailContext);
+      }
+    }
+
     renderLyricsFallbackContent({
       artist: safeArtist,
       song: safeSong,
       fallbackUrl: safeFallbackUrl,
       reason: result.reason
     });
-    logDebugWarn(DEBUG_SCOPE.lyrics, "Lyrics modal fallback rendered", {
-      artist: safeArtist,
-      song: safeSong,
-      reason: result.reason,
-      status: result.status
-    });
     return;
   }
 
+  if (safeRequestId) {
+    setLyricsFetchStatus(safeRequestId, "success", `Live lyrics fetched from ${result.source || "Lyrics API"}.`);
+    renderRequests(currentRequests);
+    renderApprovedQueue();
+    if (moderationDetailContext?.requestId === safeRequestId) {
+      openModerationReasonModal(moderationDetailContext);
+    }
+  }
+
   renderLyricsSuccess(result);
-  logDebugEnd(DEBUG_SCOPE.lyrics, "Open lyrics modal", startedAt, {
-    artist: safeArtist,
-    song: safeSong,
-    source: result.source,
-    contentRating: result.contentRating || "(none)",
-    selectorUsed: result.selectorUsed || "(none)",
-    ratingSelectorUsed: result.ratingSelectorUsed || "(none)",
-    lyricsLength: result.lyrics.length
-  });
 }
 
 async function runManualTrackSearch() {
@@ -3776,17 +2944,10 @@ async function runManualTrackSearch() {
 
   if (!tracks.length) {
     setStatus("No Spotify tracks matched that search.");
-    logDebug(DEBUG_SCOPE.spotify, "Manual track search returned zero results", {
-      query
-    });
     return;
   }
 
   setStatus(`Found ${tracks.length} Spotify track(s). Review the exact result before adding.`);
-  logDebug(DEBUG_SCOPE.spotify, "Manual track search completed", {
-    query,
-    resultCount: tracks.length
-  });
 }
 
 async function addManualSearchResultToQueue(trackId) {
@@ -3823,18 +2984,12 @@ async function addManualSearchResultToQueue(trackId) {
 
   renderManualSearchResults();
   setStatus(`Moderator override added: ${request.spotify.artist} — ${request.spotify.name}`);
-  logDebug(DEBUG_SCOPE.moderation, "Manual search track added to moderator queue", {
-    requestId: request.requestId,
-    trackId: request.spotify?.id || null,
-    trackName: request.spotify?.name || null
-  });
 }
 
 // ======================================================
 // LOAD REQUESTS
 // ======================================================
 async function loadRequests() {
-  const startedAt = logDebugStart(DEBUG_SCOPE.requests, "Load requests");
   setStatus("Loading request rows from Google Sheet and DJ local storage...");
 
   let sheetRows = [];
@@ -3844,19 +2999,11 @@ async function loadRequests() {
     sheetRows = await fetchStudentRequestRows();
   } catch (error) {
     sheetError = error;
-    logDebugWarn(DEBUG_SCOPE.requests, "Sheet request load failed. Continuing with DJ local requests.", {
-      error: error?.message || "unknown"
-    });
+    console.warn("Sheet request load failed:", error);
   }
 
   const djRows = getDjAssistedRequests();
   const rawRows = [...djRows, ...sheetRows];
-
-  logDebug(DEBUG_SCOPE.requests, "Collected raw request inputs", {
-    sheetRows: sheetRows.length,
-    djRows: djRows.length,
-    totalRawRows: rawRows.length
-  });
 
   if (!rawRows.length && sheetError) {
     throw sheetError;
@@ -3873,32 +3020,22 @@ async function loadRequests() {
 
   if (sheetError) {
     setStatus(`Loaded ${enriched.length} request(s). Google Sheet was unavailable, DJ local requests are still active.`);
-    logDebugEnd(DEBUG_SCOPE.requests, "Load requests", startedAt, {
-      totalLoaded: enriched.length,
-      sheetAvailable: false
-    });
     return;
   }
 
   setStatus(`Finished loading ${enriched.length} request(s).`);
-  logDebugEnd(DEBUG_SCOPE.requests, "Load requests", startedAt, {
-    totalLoaded: enriched.length,
-    sheetAvailable: true
-  });
 }
 
 // ======================================================
 // MODERATION PANEL
 // ======================================================
 function openModerationPanel() {
-  logDebug(DEBUG_SCOPE.app, "Opened moderation panel");
   document.getElementById("modOverlay")?.classList.add("mod-is-open");
   document.getElementById("modBackdrop")?.classList.add("mod-is-open");
   document.body.classList.add("mod-panel-open");
 }
 
 function closeModerationPanel() {
-  logDebug(DEBUG_SCOPE.app, "Closed moderation panel");
   document.getElementById("modOverlay")?.classList.remove("mod-is-open");
   document.getElementById("modBackdrop")?.classList.remove("mod-is-open");
   document.body.classList.remove("mod-panel-open");
@@ -3926,9 +3063,7 @@ function wireStaticEvents() {
     try {
       await loadRequests();
     } catch (error) {
-      logDebugWarn(DEBUG_SCOPE.requests, "Load requests button action failed", {
-        error: error?.message || "unknown"
-      });
+      console.error(error);
       setStatus(error?.message || "Failed to load requests.");
     }
   });
@@ -3948,9 +3083,7 @@ function wireStaticEvents() {
       setStatus("Main playlist started.");
       await refreshPlayback();
     } catch (error) {
-      logDebugWarn(DEBUG_SCOPE.spotify, "Start main playlist action failed", {
-        error: error?.message || "unknown"
-      });
+      console.error(error);
       setStatus(error?.message || "Could not start main playlist.");
     }
   });
@@ -3961,9 +3094,7 @@ function wireStaticEvents() {
       setStatus("Slow playlist started.");
       await refreshPlayback();
     } catch (error) {
-      logDebugWarn(DEBUG_SCOPE.spotify, "Start slow playlist action failed", {
-        error: error?.message || "unknown"
-      });
+      console.error(error);
       setStatus(error?.message || "Could not start slow playlist.");
     }
   });
@@ -3974,9 +3105,7 @@ function wireStaticEvents() {
       setStatus("Fun playlist started.");
       await refreshPlayback();
     } catch (error) {
-      logDebugWarn(DEBUG_SCOPE.spotify, "Start fun playlist action failed", {
-        error: error?.message || "unknown"
-      });
+      console.error(error);
       setStatus(error?.message || "Could not start fun playlist.");
     }
   });
@@ -3988,9 +3117,7 @@ function wireStaticEvents() {
         `Added to queue: ${item?.spotify?.artist || "Unknown Artist"} — ${item?.spotify?.name || "Unknown Song"}`
       );
     } catch (error) {
-      logDebugWarn(DEBUG_SCOPE.queue, "Add approved song to playback queue action failed", {
-        error: error?.message || "unknown"
-      });
+      console.error(error);
       setStatus(error?.message || "Could not add approved song to queue.");
     }
   });
@@ -4019,9 +3146,7 @@ function wireStaticEvents() {
     try {
       await runManualTrackSearch();
     } catch (error) {
-      logDebugWarn(DEBUG_SCOPE.spotify, "Manual Spotify search action failed", {
-        error: error?.message || "unknown"
-      });
+      console.error(error);
       setStatus(error?.message || "Spotify search failed.");
     }
   });
@@ -4030,9 +3155,7 @@ function wireStaticEvents() {
     try {
       await addDjAssistedRequestFromForm();
     } catch (error) {
-      logDebugWarn(DEBUG_SCOPE.requests, "DJ-assisted add action failed", {
-        error: error?.message || "unknown"
-      });
+      console.error(error);
       setStatus(error?.message || "Could not add DJ-assisted request.");
     }
   });
@@ -4044,9 +3167,7 @@ function wireStaticEvents() {
     try {
       await addDjAssistedRequestFromForm();
     } catch (error) {
-      logDebugWarn(DEBUG_SCOPE.requests, "DJ-assisted add via Enter key failed", {
-        error: error?.message || "unknown"
-      });
+      console.error(error);
       setStatus(error?.message || "Could not add DJ-assisted request.");
     }
   });
@@ -4058,9 +3179,7 @@ function wireStaticEvents() {
     try {
       await runManualTrackSearch();
     } catch (error) {
-      logDebugWarn(DEBUG_SCOPE.spotify, "Manual Spotify search via Enter key failed", {
-        error: error?.message || "unknown"
-      });
+      console.error(error);
       setStatus(error?.message || "Spotify search failed.");
     }
   });
@@ -4170,9 +3289,7 @@ function wireStaticEvents() {
     try {
       await addManualSearchResultToQueue(addButton.dataset.trackId || "");
     } catch (error) {
-      logDebugWarn(DEBUG_SCOPE.moderation, "Add manual search result to queue failed", {
-        error: error?.message || "unknown"
-      });
+      console.error(error);
       setStatus(error?.message || "Moderator add failed.");
     }
   });
@@ -4189,9 +3306,7 @@ function wireStaticEvents() {
       const item = await addSelectedApprovedToPlaylist(CONFIG.defaultPlaylistId);
       setStatus(`Added to Main playlist: ${item?.spotify?.artist || "Unknown Artist"} - ${item?.spotify?.name || "Unknown Song"}`);
     } catch (error) {
-      logDebugWarn(DEBUG_SCOPE.queue, "Add selected approved song to Main playlist failed", {
-        error: error?.message || "unknown"
-      });
+      console.error(error);
       setStatus(error?.message || "Could not add selected song to Main playlist.");
     }
   });
@@ -4201,9 +3316,7 @@ function wireStaticEvents() {
       const item = await addSelectedApprovedToPlaylist(CONFIG.slowPlaylistId);
       setStatus(`Added to Slow playlist: ${item?.spotify?.artist || "Unknown Artist"} - ${item?.spotify?.name || "Unknown Song"}`);
     } catch (error) {
-      logDebugWarn(DEBUG_SCOPE.queue, "Add selected approved song to Slow playlist failed", {
-        error: error?.message || "unknown"
-      });
+      console.error(error);
       setStatus(error?.message || "Could not add selected song to Slow playlist.");
     }
   });
@@ -4213,9 +3326,7 @@ function wireStaticEvents() {
       const item = await addSelectedApprovedToPlaylist(CONFIG.funPlaylistId);
       setStatus(`Added to Fun playlist: ${item?.spotify?.artist || "Unknown Artist"} - ${item?.spotify?.name || "Unknown Song"}`);
     } catch (error) {
-      logDebugWarn(DEBUG_SCOPE.queue, "Add selected approved song to Fun playlist failed", {
-        error: error?.message || "unknown"
-      });
+      console.error(error);
       setStatus(error?.message || "Could not add selected song to Fun playlist.");
     }
   });
@@ -4225,12 +3336,6 @@ function wireStaticEvents() {
   document.getElementById("modBackdrop")?.addEventListener("click", () => closeModerationPanel());
   el.btnCloseModerationReason?.addEventListener("click", () => closeModerationReasonModal());
   el.moderationReasonBackdrop?.addEventListener("click", () => closeModerationReasonModal());
-  el.moderationReasonBody?.addEventListener("click", (event) => {
-    const safetyOverrideButton = event.target.closest(".moderation-safety-override-btn");
-    if (!safetyOverrideButton) return;
-
-    approveRequestWithSafetyOverride(safetyOverrideButton.dataset.requestId || "");
-  });
   el.btnCloseLyricsModal?.addEventListener("click", () => closeLyricsModal());
   el.lyricsBackdrop?.addEventListener("click", () => closeLyricsModal());
 
@@ -4244,9 +3349,7 @@ function wireStaticEvents() {
     const title = currentNowPlayingTrack.name || "Unknown Song";
     const url = buildLyricsUrl(artist, title);
     openLyricsModal({ artist, song: title, fallbackUrl: url }).catch((error) => {
-      logDebugWarn(DEBUG_SCOPE.lyrics, "Now playing lyrics modal failed; opening fallback URL", {
-        error: error?.message || "unknown"
-      });
+      console.error(error);
       window.open(url, "_blank", "noopener,noreferrer");
     });
   });
@@ -4258,11 +3361,10 @@ function wireStaticEvents() {
     const artist = String(lyricsButton.dataset.lyricsArtist || "");
     const song = String(lyricsButton.dataset.lyricsSong || "");
     const fallbackUrl = String(lyricsButton.dataset.lyricsUrl || buildLyricsUrl(artist, song));
+    const requestId = String(lyricsButton.dataset.lyricsRequestId || "");
 
-    openLyricsModal({ artist, song, fallbackUrl }).catch((error) => {
-      logDebugWarn(DEBUG_SCOPE.lyrics, "Row lyrics modal failed; opening fallback URL", {
-        error: error?.message || "unknown"
-      });
+    openLyricsModal({ artist, song, fallbackUrl, requestId }).catch((error) => {
+      console.error(error);
       window.open(fallbackUrl, "_blank", "noopener,noreferrer");
     });
   });
@@ -4275,9 +3377,7 @@ function wireStaticEvents() {
       await wait(500);
       await refreshPlayback();
     } catch (error) {
-      logDebugWarn(DEBUG_SCOPE.playback, "Skip to previous track action failed", {
-        error: error?.message || "unknown"
-      });
+      console.error(error);
       setStatus(error?.message || "Could not go to previous track.");
     } finally {
       setTransportBusy(false);
@@ -4292,9 +3392,7 @@ function wireStaticEvents() {
       await refreshPlayback();
       setStatus(isPlaybackActive ? "Playback resumed." : "Playback paused.");
     } catch (error) {
-      logDebugWarn(DEBUG_SCOPE.playback, "Toggle play/pause action failed", {
-        error: error?.message || "unknown"
-      });
+      console.error(error);
       setStatus(error?.message || "Could not toggle playback.");
     } finally {
       setTransportBusy(false);
@@ -4309,9 +3407,7 @@ function wireStaticEvents() {
       await wait(500);
       await refreshPlayback();
     } catch (error) {
-      logDebugWarn(DEBUG_SCOPE.playback, "Skip to next track action failed", {
-        error: error?.message || "unknown"
-      });
+      console.error(error);
       setStatus(error?.message || "Could not go to next track.");
     } finally {
       setTransportBusy(false);
@@ -4332,9 +3428,7 @@ function wireStaticEvents() {
       currentPlaybackProgressMs = nextProgressMs;
       setStatus(`Seeked to ${msToMinSec(nextProgressMs)}.`);
     } catch (error) {
-      logDebugWarn(DEBUG_SCOPE.playback, "Seek action failed", {
-        error: error?.message || "unknown"
-      });
+      console.error(error);
       setStatus(error?.message || "Could not seek playback.");
       await refreshPlayback();
     }
@@ -4350,9 +3444,7 @@ function wireStaticEvents() {
       await setPlaybackVolume(percent);
       setStatus(`Volume set to ${Math.round(percent)}%.`);
     } catch (error) {
-      logDebugWarn(DEBUG_SCOPE.playback, "Volume change action failed", {
-        error: error?.message || "unknown"
-      });
+      console.error(error);
       setStatus(error?.message || "Could not change playback volume.");
       await refreshPlayback();
     }
@@ -4379,17 +3471,11 @@ function wireStaticEvents() {
 function startPlaybackPolling() {
   stopPlaybackPolling();
 
-  logDebug(DEBUG_SCOPE.playback, "Starting playback polling", {
-    intervalMs: CONFIG.playbackPollMs
-  });
-
   playbackTimer = window.setInterval(async () => {
     try {
       await refreshPlayback();
     } catch (error) {
-      logDebugWarn(DEBUG_SCOPE.playback, "Playback poll failed", {
-        error: error?.message || "unknown"
-      });
+      console.warn("Playback poll failed:", error);
     }
   }, CONFIG.playbackPollMs);
 }
@@ -4398,7 +3484,6 @@ function stopPlaybackPolling() {
   if (playbackTimer) {
     window.clearInterval(playbackTimer);
     playbackTimer = null;
-    logDebug(DEBUG_SCOPE.playback, "Stopped playback polling");
   }
 }
 
@@ -4406,11 +3491,8 @@ function stopPlaybackPolling() {
 // INIT
 // ======================================================
 async function init() {
-  const startedAt = logDebugStart(DEBUG_SCOPE.app, "App init");
   clearLegacyAuthStorage();
   ensureStorageDefaults();
-  exposeDebugControls();
-  logDebug(DEBUG_SCOPE.app, "Debug controls available on window.ALA_DEBUG", window.ALA_DEBUG.state());
   wireStaticEvents();
   renderApprovedQueue();
   renderApprovedPreview();
@@ -4438,27 +3520,17 @@ async function init() {
   try {
     await refreshPlayback();
   } catch (error) {
-    logDebugWarn(DEBUG_SCOPE.playback, "Initial playback refresh failed", {
-      error: error?.message || "unknown"
-    });
+    console.warn("Initial playback refresh failed:", error);
   }
 
   if (hasActiveSpotifyLogin || !!authGet(LS.accessToken)) {
     startPlaybackPolling();
   }
-
-  logDebugEnd(DEBUG_SCOPE.app, "App init", startedAt, {
-    hasActiveSpotifyLogin,
-    hasStoredToken: !!authGet(LS.accessToken),
-    playbackPolling: hasActiveSpotifyLogin || !!authGet(LS.accessToken)
-  });
 }
 
 window.addEventListener("DOMContentLoaded", () => {
   init().catch((error) => {
-    logDebugError(DEBUG_SCOPE.app, "App init failed", {
-      error: error?.message || "unknown"
-    });
+    console.error(error);
     setStatus(error?.message || "App failed to initialize.");
   });
 });
