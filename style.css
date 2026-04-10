@@ -1209,6 +1209,21 @@ body.mod-panel-open {
   align-content: flex-start;
 }
 
+.lyrics-cache-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(70, 184, 255, 0.35);
+  background: rgba(70, 184, 255, 0.12);
+  color: #d8efff;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
 .mod-overlay-body {
   flex: 1;
   overflow: hidden;
@@ -1519,6 +1534,11 @@ body.mod-panel-open {
   .mod-header-actions {
     width: 100%;
     justify-content: flex-start;
+  }
+
+  .lyrics-cache-pill {
+    width: 100%;
+    justify-content: center;
   }
 
   .mod-right-stack .approved-card,

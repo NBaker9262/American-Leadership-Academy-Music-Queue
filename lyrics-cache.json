@@ -1,0 +1,18 @@
+{
+  "generated_at": "",
+  "next_refresh_at": "",
+  "refresh_interval_minutes": 5,
+  "source": {
+    "requests_csv_url": "",
+    "notes": "Initial placeholder cache. GitHub Actions updates this file."
+  },
+  "stats": {
+    "request_rows": 0,
+    "tracks_considered": 0,
+    "spotify_meta_resolved": 0,
+    "lyrics_success": 0,
+    "lyrics_fallback": 0
+  },
+  "by_track_id": {},
+  "by_song_key": {}
+}

@@ -39,6 +39,13 @@ const CONFIG = {
   manualSearchLimit: 8,
   lyricsApiBaseUrl: "http://127.0.0.1:8787",
   lyricsApiTimeoutMs: 12000,
+  lyricsCacheUseOnLoad: true,
+  lyricsCacheUrl: "lyrics-cache.json",
+  lyricsCacheRefreshMinutes: 5,
+  lyricsPrefetchOnLoad: false,
+  lyricsPrefetchConcurrency: 2,
+  lyricsPrefetchMaxSongsPerLoad: 80,
+  lyricsPrefetchDelayMs: 220,
   themeHardBlockTerms: [
     "sex",
     "sexy",
@@ -229,7 +236,8 @@ const el = {
   lyricsModalTitle: document.getElementById("lyricsModalTitle"),
   lyricsModalMeta: document.getElementById("lyricsModalMeta"),
   lyricsModalBody: document.getElementById("lyricsModalBody"),
-  lyricsModalExternalLink: document.getElementById("lyricsModalExternalLink")
+  lyricsModalExternalLink: document.getElementById("lyricsModalExternalLink"),
+  lyricsCacheCountdown: document.getElementById("lyricsCacheCountdown")
 };
 
 // --------------------
@@ -255,6 +263,9 @@ const moderationOverrideByRequestId = new Map();
 let localProgressLastTickAt = 0;
 let refreshPlaybackRequestSeq = 0;
 let refreshPlaybackAppliedSeq = 0;
+let lyricsCacheSnapshot = null;
+let lyricsCacheCountdownTimer = null;
+let lyricsCacheNextRefreshAtMs = 0;
 
 // ======================================================
 // BASIC HELPERS
@@ -2870,6 +2881,355 @@ function setLyricsFetchStatus(requestId, state, detail = "") {
   });
 }
 
+function normalizeLyricsCacheKey(artist, song) {
+  const safeArtist = String(artist || "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, " ");
+  const safeSong = String(song || "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, " ");
+
+  if (!safeArtist || !safeSong) return "";
+  return `${safeArtist}|${safeSong}`;
+}
+
+function formatCountdownMmSs(milliseconds) {
+  const totalSeconds = Math.max(0, Math.ceil(Number(milliseconds || 0) / 1000));
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
+
+function setLyricsCacheCountdownLabel(message) {
+  if (!el.lyricsCacheCountdown) return;
+  el.lyricsCacheCountdown.textContent = message;
+}
+
+function updateLyricsCacheCountdownLabel() {
+  if (!el.lyricsCacheCountdown) return;
+
+  if (!lyricsCacheNextRefreshAtMs) {
+    setLyricsCacheCountdownLabel("Lyrics cache timer unavailable");
+    return;
+  }
+
+  const remainingMs = lyricsCacheNextRefreshAtMs - Date.now();
+  if (remainingMs <= 0) {
+    setLyricsCacheCountdownLabel("Lyrics cache refresh due now");
+    return;
+  }
+
+  setLyricsCacheCountdownLabel(`Next lyrics cache in ${formatCountdownMmSs(remainingMs)}`);
+}
+
+function stopLyricsCacheCountdown() {
+  if (lyricsCacheCountdownTimer) {
+    window.clearInterval(lyricsCacheCountdownTimer);
+    lyricsCacheCountdownTimer = null;
+  }
+}
+
+function startLyricsCacheCountdown(cacheData) {
+  stopLyricsCacheCountdown();
+
+  const generatedAtMs = Date.parse(String(cacheData?.generated_at || ""));
+  const refreshMinutes = Math.max(
+    1,
+    Number(cacheData?.refresh_interval_minutes || CONFIG.lyricsCacheRefreshMinutes || 5)
+  );
+
+  if (!Number.isFinite(generatedAtMs)) {
+    lyricsCacheNextRefreshAtMs = 0;
+    setLyricsCacheCountdownLabel("Lyrics cache timer unavailable");
+    return;
+  }
+
+  lyricsCacheNextRefreshAtMs = generatedAtMs + refreshMinutes * 60 * 1000;
+  updateLyricsCacheCountdownLabel();
+  lyricsCacheCountdownTimer = window.setInterval(updateLyricsCacheCountdownLabel, 1000);
+}
+
+async function fetchLyricsCacheSnapshot() {
+  if (!CONFIG.lyricsCacheUseOnLoad) {
+    return {
+      ok: false,
+      reason: "disabled"
+    };
+  }
+
+  const cacheUrl = String(CONFIG.lyricsCacheUrl || "").trim();
+  if (!cacheUrl) {
+    return {
+      ok: false,
+      reason: "missing-url"
+    };
+  }
+
+  try {
+    const response = await fetch(`${cacheUrl}${cacheUrl.includes("?") ? "&" : "?"}t=${Date.now()}`, {
+      method: "GET",
+      cache: "no-store",
+      headers: {
+        Accept: "application/json"
+      }
+    });
+
+    if (!response.ok) {
+      return {
+        ok: false,
+        reason: `HTTP ${response.status}`
+      };
+    }
+
+    const json = await response.json();
+    lyricsCacheSnapshot = json;
+    startLyricsCacheCountdown(json);
+
+    return {
+      ok: true,
+      cache: json
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      reason: error?.message || "Failed to load lyrics cache"
+    };
+  }
+}
+
+function getLyricsCacheEntryForRequest(request, cacheData) {
+  if (!request || !cacheData) return null;
+
+  const byTrackId = cacheData?.by_track_id && typeof cacheData.by_track_id === "object"
+    ? cacheData.by_track_id
+    : {};
+  const bySongKey = cacheData?.by_song_key && typeof cacheData.by_song_key === "object"
+    ? cacheData.by_song_key
+    : {};
+
+  const trackId = String(request?.spotify?.id || request?.trackId || "").trim();
+  if (trackId && byTrackId[trackId]) {
+    return byTrackId[trackId];
+  }
+
+  const songKey = normalizeLyricsCacheKey(request?.spotify?.artist, request?.spotify?.name);
+  if (songKey && bySongKey[songKey]) {
+    return bySongKey[songKey];
+  }
+
+  return null;
+}
+
+async function applyLyricsCacheForLoadedRequests(requests) {
+  if (!Array.isArray(requests) || !requests.length || !CONFIG.lyricsCacheUseOnLoad) {
+    return {
+      started: false,
+      reason: "disabled-or-empty"
+    };
+  }
+
+  const cacheResult = await fetchLyricsCacheSnapshot();
+  if (!cacheResult.ok) {
+    setLyricsCacheCountdownLabel(`Lyrics cache unavailable (${cacheResult.reason})`);
+    return {
+      started: false,
+      reason: cacheResult.reason
+    };
+  }
+
+  const cacheData = cacheResult.cache || {};
+  let matched = 0;
+  let success = 0;
+  let fallback = 0;
+
+  for (const request of requests) {
+    const requestId = String(request?.requestId || "").trim();
+    if (!requestId || !request?.spotify) continue;
+
+    const entry = getLyricsCacheEntryForRequest(request, cacheData);
+    if (!entry) continue;
+
+    matched += 1;
+
+    const hasLyrics = String(entry?.lyrics || "").trim().length > 0;
+    if (hasLyrics && String(entry?.status || "").toLowerCase() === "success") {
+      success += 1;
+      const cachedAt = formatTimestamp(entry?.updated_at || cacheData?.generated_at || "") || "latest cache run";
+      setLyricsFetchStatus(requestId, "success", `Cached lyrics from ${cachedAt}.`);
+      continue;
+    }
+
+    fallback += 1;
+    setLyricsFetchStatus(
+      requestId,
+      "fallback",
+      String(entry?.error || "Lyrics not found in current cache for this song.")
+    );
+  }
+
+  renderRequests(currentRequests);
+  renderApprovedQueue();
+  if (moderationDetailContext?.requestId) {
+    const updated = getRequestById(moderationDetailContext.requestId) || moderationDetailContext;
+    openModerationReasonModal(updated);
+  }
+
+  return {
+    started: true,
+    matched,
+    success,
+    fallback,
+    generatedAt: cacheData?.generated_at || "",
+    refreshMinutes: Number(cacheData?.refresh_interval_minutes || CONFIG.lyricsCacheRefreshMinutes || 5)
+  };
+}
+
+function buildLyricsPrefetchGroups(requests) {
+  const groups = new Map();
+
+  for (const request of requests) {
+    const requestId = String(request?.requestId || "").trim();
+    const artist = String(request?.spotify?.artist || "").trim();
+    const song = String(request?.spotify?.name || "").trim();
+
+    if (!requestId || !artist || !song) continue;
+
+    const existingState = lyricsFetchStateByRequestId.get(requestId);
+    if (existingState?.state === "success" || existingState?.state === "loading") continue;
+
+    const key = `${artist.toLowerCase()}|${song.toLowerCase()}`;
+    if (!groups.has(key)) {
+      groups.set(key, {
+        artist,
+        song,
+        requests: []
+      });
+    }
+
+    groups.get(key).requests.push(request);
+  }
+
+  const maxGroups = Math.max(1, Number(CONFIG.lyricsPrefetchMaxSongsPerLoad) || 1);
+  return [...groups.values()].slice(0, maxGroups);
+}
+
+async function prefetchLyricsForLoadedRequests(requests) {
+  if (!Array.isArray(requests) || !requests.length || !CONFIG.lyricsPrefetchOnLoad) {
+    return {
+      started: false,
+      reason: "disabled-or-empty"
+    };
+  }
+
+  if (!getLyricsApiBaseUrl()) {
+    return {
+      started: false,
+      reason: "not-configured"
+    };
+  }
+
+  const groups = buildLyricsPrefetchGroups(requests);
+  if (!groups.length) {
+    return {
+      started: false,
+      reason: "no-candidates"
+    };
+  }
+
+  const stats = {
+    started: true,
+    attempted: groups.length,
+    success: 0,
+    fallback: 0,
+    failed: 0
+  };
+
+  let cursor = 0;
+  let processed = 0;
+
+  const applyStateToGroup = (group, state, detail) => {
+    for (const request of group.requests) {
+      setLyricsFetchStatus(request.requestId, state, detail);
+    }
+  };
+
+  // Show loading tags before requests start so the moderator sees progress quickly.
+  for (const group of groups) {
+    applyStateToGroup(group, "loading", "Bulk lyrics fetch in progress from Load Requests.");
+  }
+
+  renderRequests(currentRequests);
+  renderApprovedQueue();
+  if (moderationDetailContext?.requestId) {
+    const updated = getRequestById(moderationDetailContext.requestId) || moderationDetailContext;
+    openModerationReasonModal(updated);
+  }
+
+  setStatus(`Starting lyrics prefetch for ${groups.length} unique song(s)...`);
+
+  async function worker() {
+    while (true) {
+      const index = cursor;
+      cursor += 1;
+
+      if (index >= groups.length) return;
+
+      const group = groups[index];
+      const result = await fetchLyricsFromApi(group.artist, group.song);
+
+      if (result.ok) {
+        stats.success += 1;
+        applyStateToGroup(group, "success", `Live lyrics fetched from ${result.source || "Lyrics API"}.`);
+      } else {
+        const fallbackState =
+          result.status === "api-error" || result.status === "empty" || result.status === "not-configured"
+            ? "fallback"
+            : "error";
+
+        if (fallbackState === "fallback") {
+          stats.fallback += 1;
+        } else {
+          stats.failed += 1;
+        }
+
+        applyStateToGroup(group, fallbackState, result.reason || "Lyrics API did not return live lyrics.");
+      }
+
+      processed += 1;
+
+      if (processed % 4 === 0 || processed === groups.length) {
+        renderRequests(currentRequests);
+        renderApprovedQueue();
+        if (moderationDetailContext?.requestId) {
+          const updated = getRequestById(moderationDetailContext.requestId) || moderationDetailContext;
+          openModerationReasonModal(updated);
+        }
+      }
+
+      setStatus(
+        `Lyrics prefetch ${processed}/${groups.length} • Fetched: ${stats.success} • Fallback: ${stats.fallback} • Failed: ${stats.failed}`
+      );
+
+      await wait(Math.max(0, Number(CONFIG.lyricsPrefetchDelayMs) || 0));
+    }
+  }
+
+  const workerCount = Math.max(1, Math.min(Number(CONFIG.lyricsPrefetchConcurrency) || 1, groups.length));
+  const workers = Array.from({ length: workerCount }, () => worker());
+  await Promise.all(workers);
+
+  renderRequests(currentRequests);
+  renderApprovedQueue();
+  if (moderationDetailContext?.requestId) {
+    const updated = getRequestById(moderationDetailContext.requestId) || moderationDetailContext;
+    openModerationReasonModal(updated);
+  }
+
+  return stats;
+}
+
 function buildRequestStatusTags(request, moderation) {
   const spotifyTag = request?.spotify
     ? statusTagHtml("Spotify: Found", "ok")
@@ -3283,12 +3643,27 @@ async function loadRequests() {
   renderRequests(enriched);
   renderApprovedQueue();
 
+  const lyricsCacheResult = await applyLyricsCacheForLoadedRequests(enriched);
+  const lyricsCacheSummary = lyricsCacheResult?.started
+    ? ` Lyrics cache: ${lyricsCacheResult.success}/${lyricsCacheResult.matched} hits, ${lyricsCacheResult.fallback} fallback.`
+    : "";
+
+  const shouldRunLivePrefetch = !!getLyricsApiBaseUrl() && !!CONFIG.lyricsPrefetchOnLoad;
+  const lyricsPrefetch = shouldRunLivePrefetch
+    ? await prefetchLyricsForLoadedRequests(enriched)
+    : { started: false };
+  const lyricsSummary = lyricsPrefetch?.started
+    ? ` Lyrics prefetch: ${lyricsPrefetch.success}/${lyricsPrefetch.attempted} fetched, ${lyricsPrefetch.fallback} fallback, ${lyricsPrefetch.failed} failed.`
+    : "";
+
   if (sheetError) {
-    setStatus(`Loaded ${enriched.length} request(s). Google Sheet was unavailable, DJ local requests are still active.`);
+    setStatus(
+      `Loaded ${enriched.length} request(s). Google Sheet was unavailable, DJ local requests are still active.${lyricsCacheSummary}${lyricsSummary}`
+    );
     return;
   }
 
-  setStatus(`Finished loading ${enriched.length} request(s).`);
+  setStatus(`Finished loading ${enriched.length} request(s).${lyricsCacheSummary}${lyricsSummary}`);
 }
 
 // ======================================================
@@ -3839,6 +4214,12 @@ async function init() {
     await refreshPlayback();
   } catch (error) {
     console.warn("Initial playback refresh failed:", error);
+  }
+
+  try {
+    await fetchLyricsCacheSnapshot();
+  } catch (error) {
+    console.warn("Initial lyrics cache fetch failed:", error);
   }
 
   if (hasActiveSpotifyLogin || !!authGet(LS.accessToken)) {
