@@ -5,13 +5,11 @@ name: Python Worker Checks
   push:
     paths:
       - lyrics_api_server.py
-      - musixmatch_lyrics_scraper.py
       - requirements.txt
       - .github/workflows/python-worker-checks.yml
   pull_request:
     paths:
       - lyrics_api_server.py
-      - musixmatch_lyrics_scraper.py
       - requirements.txt
       - .github/workflows/python-worker-checks.yml
 
@@ -36,11 +34,10 @@ jobs:
       - name: Compile Python files
         run: |
           python -m py_compile lyrics_api_server.py
-          python -m py_compile musixmatch_lyrics_scraper.py
 
       - name: Start server and run health check
         run: |
-          python lyrics_api_server.py serve --port 8787 &
+          python lyrics_api_server.py &
           SERVER_PID=$!
 
           cleanup() {

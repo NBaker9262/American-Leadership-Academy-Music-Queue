@@ -30,13 +30,14 @@ const CONFIG = {
     "playlist-modify-public",
     "playlist-modify-private"
   ],
-  playbackPollMs: 15000,
-  localProgressTickMs: 1000,
+  playbackPollMs: 2500,
+  localProgressTickMs: 250,
+  transportSyncDelaysMs: [120, 420, 950],
   trackLookupConcurrency: 5,
   trackLookupRetryCount: 2,
   trackLookupRetryDelayMs: 500,
   manualSearchLimit: 8,
-  lyricsApiBaseUrl: "",
+  lyricsApiBaseUrl: "http://127.0.0.1:8787",
   lyricsApiTimeoutMs: 12000,
   themeHardBlockTerms: [
     "sex",
@@ -250,6 +251,10 @@ let currentVolumePercent = 0;
 let moderationDetailContext = null;
 let draggingApprovedRequestId = null;
 const lyricsFetchStateByRequestId = new Map();
+const moderationOverrideByRequestId = new Map();
+let localProgressLastTickAt = 0;
+let refreshPlaybackRequestSeq = 0;
+let refreshPlaybackAppliedSeq = 0;
 
 // ======================================================
 // BASIC HELPERS
@@ -563,11 +568,103 @@ function buildModerationMetadata(request) {
   };
 }
 
+function refreshModerationRecommendation(moderation) {
+  if (!moderation || typeof moderation !== "object") return moderation;
+
+  let recommendation = "pass";
+  let recommendationLabel = "Auto-Approve Eligible";
+  let recommendationReason = "No explicit or blocked theme signals were detected.";
+
+  if (moderation.explicitStatus === "explicit" || moderation.themeStatus === "blocked") {
+    recommendation = "block";
+    recommendationLabel = "Block";
+    recommendationReason =
+      moderation.explicitStatus === "explicit"
+        ? "Track is marked explicit by Spotify metadata."
+        : "Theme status is blocked. Manual override is required to approve.";
+  } else if (moderation.themeStatus === "flagged") {
+    recommendation = "review";
+    recommendationLabel = "Manual Review";
+    recommendationReason = "Theme status is flagged and needs manual review.";
+  }
+
+  const policyHits = Array.isArray(moderation.themePolicyHits) ? moderation.themePolicyHits : [];
+  const hardHitCount = policyHits.filter((hit) => hit.severity === "block").length;
+  const reviewHitCount = policyHits.filter((hit) => hit.severity === "review").length;
+
+  moderation.recommendation = recommendation;
+  moderation.recommendationLabel = recommendationLabel;
+  moderation.recommendationReason = recommendationReason;
+  moderation.compactReason = `${moderation.explicitLabel || "Unknown"} by Spotify metadata | ${moderation.themeLabel || "No Theme"} (${hardHitCount} hard, ${reviewHitCount} review hits)`;
+
+  return moderation;
+}
+
+function getModerationOverride(requestId) {
+  const key = String(requestId || "").trim();
+  if (!key) return null;
+  return moderationOverrideByRequestId.get(key) || null;
+}
+
+function setModerationOverride(requestId, patch) {
+  const key = String(requestId || "").trim();
+  if (!key || !patch || typeof patch !== "object") return null;
+
+  const existing = getModerationOverride(key) || {};
+  const merged = {
+    ...existing,
+    ...patch,
+    updatedAt: new Date().toISOString()
+  };
+
+  moderationOverrideByRequestId.set(key, merged);
+  return merged;
+}
+
+function applyModerationOverrides(request, moderation) {
+  if (!request || !moderation) return moderation;
+
+  const override = getModerationOverride(request.requestId);
+  if (!override) return moderation;
+
+  if (override.explicitStatus && request.spotify) {
+    if (override.explicitStatus === "explicit") {
+      request.spotify.explicit = true;
+    } else if (override.explicitStatus === "clean") {
+      request.spotify.explicit = false;
+    }
+
+    moderation.explicitStatus = override.explicitStatus;
+    moderation.explicitLabel = override.explicitStatus === "explicit" ? "Explicit" : "Clean";
+    moderation.explicitReason = "Moderator override after friction puzzle.";
+  }
+
+  if (override.themeStatus) {
+    moderation.themeStatus = override.themeStatus;
+
+    if (override.themeStatus === "blocked") {
+      moderation.themeLabel = "Theme Blocked";
+      moderation.themeReason = "Moderator manually set theme status to blocked after friction puzzle.";
+    } else if (override.themeStatus === "flagged") {
+      moderation.themeLabel = "Theme Review";
+      moderation.themeReason = "Moderator manually set theme status to flagged after friction puzzle.";
+    } else {
+      moderation.themeLabel = "Theme Clear";
+      moderation.themeReason = "Moderator manually set theme status to clear after friction puzzle.";
+    }
+  }
+
+  moderation.manualOverride = true;
+  moderation.manualOverrideUpdatedAt = override.updatedAt || new Date().toISOString();
+
+  return refreshModerationRecommendation(moderation);
+}
+
 function ensureModerationMetadata(request) {
   if (!request) return null;
-  if (!request.moderation || typeof request.moderation !== "object") {
-    request.moderation = buildModerationMetadata(request);
-  }
+
+  const baseline = buildModerationMetadata(request);
+  request.moderation = applyModerationOverrides(request, baseline);
   return request.moderation;
 }
 
@@ -667,15 +764,33 @@ function setTransportBusy(isBusy) {
   }
 }
 
+function scheduleFastPlaybackSync(delays = CONFIG.transportSyncDelaysMs) {
+  const safeDelays = Array.isArray(delays) ? delays : [120, 420, 950];
+
+  for (const delayMs of safeDelays) {
+    const waitMs = Math.max(0, Number(delayMs) || 0);
+    window.setTimeout(() => {
+      refreshPlayback().catch((error) => {
+        console.warn("Scheduled playback sync failed:", error);
+      });
+    }, waitMs);
+  }
+}
+
 function startLocalProgressTimer() {
   stopLocalProgressTimer();
+  localProgressLastTickAt = performance.now();
 
   localProgressTimer = window.setInterval(() => {
     if (!currentNowPlayingTrack || !isPlaybackActive) return;
 
+    const now = performance.now();
+    const elapsedMs = Math.max(0, now - localProgressLastTickAt);
+    localProgressLastTickAt = now;
+
     currentPlaybackProgressMs = Math.min(
       currentPlaybackDurationMs,
-      currentPlaybackProgressMs + CONFIG.localProgressTickMs
+      currentPlaybackProgressMs + elapsedMs
     );
 
     updatePlaybackProgressUI(currentPlaybackProgressMs, currentPlaybackDurationMs);
@@ -687,6 +802,7 @@ function stopLocalProgressTimer() {
     window.clearInterval(localProgressTimer);
     localProgressTimer = null;
   }
+  localProgressLastTickAt = 0;
 }
 
 // ======================================================
@@ -902,7 +1018,15 @@ function buildLyricsUrl(artist, song) {
 }
 
 function getLyricsApiBaseUrl() {
-  return String(CONFIG.lyricsApiBaseUrl || "").trim().replace(/\/+$/, "");
+  const configured = String(CONFIG.lyricsApiBaseUrl || "").trim().replace(/\/+$/, "");
+  if (configured) return configured;
+
+  const host = String(window?.location?.hostname || "").toLowerCase();
+  if (host === "localhost" || host === "127.0.0.1") {
+    return "http://127.0.0.1:8787";
+  }
+
+  return "";
 }
 
 function buildLyricsApiUrl(artist, song) {
@@ -2329,11 +2453,18 @@ function resetNowPlayingUI() {
 async function refreshPlayback() {
   if (!el.nowPlaying || !el.nowPlayingMeta) return;
 
+  const requestSeq = ++refreshPlaybackRequestSeq;
+
   try {
     const [playbackData, queueData] = await Promise.all([
       getCurrentlyPlaying(),
       getSpotifyQueue().catch(() => null)
     ]);
+
+    if (requestSeq < refreshPlaybackAppliedSeq) {
+      return;
+    }
+    refreshPlaybackAppliedSeq = requestSeq;
 
     currentNowPlayingTrack = playbackData?.item || null;
     currentSpotifyQueueTracks = Array.isArray(queueData?.queue) ? queueData.queue : [];
@@ -2381,11 +2512,17 @@ async function refreshPlayback() {
     renderSpotifyQueue(queueData);
 
     if (isPlaybackActive) {
+      localProgressLastTickAt = performance.now();
       startLocalProgressTimer();
     } else {
       stopLocalProgressTimer();
     }
   } catch (error) {
+    if (requestSeq < refreshPlaybackAppliedSeq) {
+      return;
+    }
+    refreshPlaybackAppliedSeq = requestSeq;
+
     currentNowPlayingTrack = null;
     currentSpotifyQueueTracks = [];
     currentPlaybackProgressMs = 0;
@@ -2556,8 +2693,119 @@ function statusTagToneForRecommendation(recommendation) {
   return "ok";
 }
 
-function statusTagHtml(label, tone = "neutral") {
+function statusTagHtml(label, tone = "neutral", options = {}) {
+  const requestId = String(options.requestId || "").trim();
+  const editField = String(options.editField || "").trim();
+
+  if (requestId && editField) {
+    return `
+      <button
+        type="button"
+        class="mod-status-tag mod-status-tag-${escapeHtml(tone)} mod-status-edit-btn"
+        data-request-id="${escapeHtml(requestId)}"
+        data-edit-field="${escapeHtml(editField)}"
+        title="Edit ${escapeHtml(label)} after puzzle verification"
+      >
+        ${escapeHtml(label)}
+      </button>
+    `;
+  }
+
   return `<span class="mod-status-tag mod-status-tag-${escapeHtml(tone)}">${escapeHtml(label)}</span>`;
+}
+
+function getRequestById(requestId) {
+  const key = String(requestId || "").trim();
+  if (!key) return null;
+
+  return (
+    currentRequests.find((item) => item.requestId === key) ||
+    getApprovedQueue().find((item) => item.requestId === key) ||
+    null
+  );
+}
+
+function getNextThemeOverride(currentThemeStatus) {
+  if (currentThemeStatus === "flagged") return "blocked";
+  if (currentThemeStatus === "blocked") return "clear";
+  return "flagged";
+}
+
+function runModerationEditPuzzle(editFieldLabel) {
+  const rounds = 5;
+
+  for (let i = 0; i < rounds; i++) {
+    const a = Math.floor(Math.random() * 70) + 15;
+    const b = Math.floor(Math.random() * 40) + 6;
+    const op = Math.random() > 0.5 ? "+" : "-";
+    const actual = op === "+" ? a + b : a - b;
+
+    const shouldBeCorrect = Math.random() > 0.5;
+    const displayed = shouldBeCorrect ? actual : actual + (Math.random() > 0.5 ? 1 : -1) * (Math.floor(Math.random() * 4) + 1);
+
+    const userSaysTrue = window.confirm(
+      `Safety puzzle ${i + 1}/${rounds} to edit ${editFieldLabel}.\n\nPress OK if this is TRUE, Cancel if FALSE:\n${a} ${op} ${b} = ${displayed}`
+    );
+
+    if (userSaysTrue !== shouldBeCorrect) {
+      window.alert("Incorrect puzzle answer. Edit canceled.");
+      return false;
+    }
+  }
+
+  return window.confirm("Final confirmation: apply this moderation status edit?");
+}
+
+function applyStatusTagEdit(requestId, editField) {
+  const key = String(requestId || "").trim();
+  const field = String(editField || "").trim();
+  if (!key || !field) return;
+
+  const request = getRequestById(key);
+  if (!request) {
+    setStatus("Could not find request to edit moderation status.");
+    return;
+  }
+
+  const moderation = ensureModerationMetadata(request);
+
+  if (field === "explicit") {
+    if (!request.spotify) {
+      setStatus("Cannot edit explicit status without a valid Spotify track.");
+      return;
+    }
+
+    const confirmed = runModerationEditPuzzle("Explicit/Clean");
+    if (!confirmed) {
+      setStatus("Explicit status edit canceled.");
+      return;
+    }
+
+    const nextExplicit = moderation?.explicitStatus === "explicit" ? "clean" : "explicit";
+    setModerationOverride(key, { explicitStatus: nextExplicit });
+    setStatus(`Explicit status override set to ${nextExplicit}.`);
+  }
+
+  if (field === "theme") {
+    const confirmed = runModerationEditPuzzle("Theme Status");
+    if (!confirmed) {
+      setStatus("Theme status edit canceled.");
+      return;
+    }
+
+    const nextTheme = getNextThemeOverride(moderation?.themeStatus);
+    setModerationOverride(key, { themeStatus: nextTheme });
+    setStatus(`Theme status override set to ${nextTheme}.`);
+  }
+
+  renderRequests(currentRequests);
+  renderApprovedQueue();
+  renderApprovedPreview();
+
+  if (moderationDetailContext?.requestId === key) {
+    const updated = getRequestById(key) || moderationDetailContext;
+    openModerationReasonModal(updated);
+  }
 }
 
 function getLyricsFetchStatusTag(requestId) {
@@ -2633,14 +2881,21 @@ function buildRequestStatusTags(request, moderation) {
       ? "ok"
       : "neutral";
 
-  const explicitTag = statusTagHtml(`Explicit: ${moderation?.explicitLabel || "Unknown"}`, explicitTone);
-  const themeTag = statusTagHtml(`Theme: ${moderation?.themeLabel || "No Theme"}`, statusTagToneForTheme(moderation?.themeStatus));
-  const recTag = statusTagHtml(`Decision: ${moderation?.recommendationLabel || "Manual Review"}`, statusTagToneForRecommendation(moderation?.recommendation));
+  const explicitTag = statusTagHtml(
+    `Explicit: ${moderation?.explicitLabel || "Unknown"}`,
+    explicitTone,
+    { requestId: request?.requestId, editField: "explicit" }
+  );
+  const themeTag = statusTagHtml(
+    `Theme: ${moderation?.themeLabel || "No Theme"}`,
+    statusTagToneForTheme(moderation?.themeStatus),
+    { requestId: request?.requestId, editField: "theme" }
+  );
 
   const lyricsStatus = getLyricsFetchStatusTag(request?.requestId);
   const lyricsTag = statusTagHtml(lyricsStatus.label, lyricsStatus.tone);
 
-  return `${spotifyTag}${explicitTag}${themeTag}${recTag}${lyricsTag}`;
+  return `${spotifyTag}${explicitTag}${themeTag}${lyricsTag}`;
 }
 
 function moderationReasonHtml(request, moderation) {
@@ -2659,8 +2914,16 @@ function moderationReasonHtml(request, moderation) {
   const detailTags = [
     statusTagHtml(`Recommendation: ${moderation?.recommendationLabel || "Manual Review"}`, statusTagToneForRecommendation(moderation?.recommendation)),
     statusTagHtml(`Spotify: ${request?.spotify ? "Found" : "Missing"}`, request?.spotify ? "ok" : "danger"),
-    statusTagHtml(`Explicit: ${moderation?.explicitLabel || "Unknown"}`, moderation?.explicitStatus === "explicit" ? "danger" : moderation?.explicitStatus === "clean" ? "ok" : "neutral"),
-    statusTagHtml(`Theme: ${moderation?.themeLabel || "No Theme"}`, statusTagToneForTheme(moderation?.themeStatus)),
+    statusTagHtml(
+      `Explicit: ${moderation?.explicitLabel || "Unknown"}`,
+      moderation?.explicitStatus === "explicit" ? "danger" : moderation?.explicitStatus === "clean" ? "ok" : "neutral",
+      { requestId: request?.requestId, editField: "explicit" }
+    ),
+    statusTagHtml(
+      `Theme: ${moderation?.themeLabel || "No Theme"}`,
+      statusTagToneForTheme(moderation?.themeStatus),
+      { requestId: request?.requestId, editField: "theme" }
+    ),
     statusTagHtml(lyricsStatus.label, lyricsStatus.tone)
   ].join("");
 
@@ -2696,6 +2959,7 @@ function moderationReasonHtml(request, moderation) {
       <div class="request-status-tags moderation-tags-wrap">
         ${detailTags}
       </div>
+      <p class="moderation-inline-note">Click Explicit or Theme tags to run the override puzzle and change status.</p>
     </div>
 
     <div class="moderation-reason-grid">
@@ -2832,16 +3096,17 @@ function renderLyricsFallbackContent({ artist, song, fallbackUrl, reason }) {
   if (!el.lyricsModalBody || !el.lyricsModalExternalLink) return;
 
   el.lyricsModalExternalLink.href = fallbackUrl;
+  const apiBase = getLyricsApiBaseUrl() || "http://127.0.0.1:8787";
   el.lyricsModalBody.innerHTML = `
     <div class="lyrics-fallback">
-      <p class="lyrics-fallback-title">Live lyrics unavailable from API.</p>
+      <p class="lyrics-fallback-title">Lyrics scrape failed.</p>
       <p class="lyrics-fallback-copy">${escapeHtml(reason || "The API did not return lyrics.")}</p>
       <p class="lyrics-fallback-copy">
-        GitHub Pages cannot run Python directly. To use live lyric scraping in-app,
-        host the Python endpoint separately and set CONFIG.lyricsApiBaseUrl.
+        Expected scraper API base: ${escapeHtml(apiBase)}
       </p>
+      <p class="lyrics-fallback-copy">Run this check in a terminal: <strong>curl ${escapeHtml(apiBase)}/health</strong></p>
       <a class="btn btn-small btn-primary" href="${escapeHtml(fallbackUrl)}" target="_blank" rel="noopener noreferrer">
-        Open Musixmatch Page
+        Open Musixmatch Source Page
       </a>
       <p class="lyrics-fallback-copy">Track: ${escapeHtml(artist)} - ${escapeHtml(song)}</p>
     </div>
@@ -3189,9 +3454,18 @@ function wireStaticEvents() {
   });
 
   el.requestTableBody?.addEventListener("click", async (event) => {
+    const statusEditButton = event.target.closest(".mod-status-edit-btn");
     const approveButton = event.target.closest(".approve-btn");
     const rejectButton = event.target.closest(".reject-btn");
     const moderationDetailsButton = event.target.closest(".moderation-details-btn");
+
+    if (statusEditButton) {
+      applyStatusTagEdit(
+        statusEditButton.dataset.requestId || "",
+        statusEditButton.dataset.editField || ""
+      );
+      return;
+    }
 
     if (moderationDetailsButton) {
       openModerationDetailsByRequestId(moderationDetailsButton.dataset.requestId || "");
@@ -3213,8 +3487,17 @@ function wireStaticEvents() {
   });
 
   el.approvedQueueList?.addEventListener("click", async (event) => {
+    const statusEditButton = event.target.closest(".mod-status-edit-btn");
     const removeButton = event.target.closest(".remove-approved-btn");
     const queueItem = event.target.closest(".queue-item[data-queue-index]");
+
+    if (statusEditButton) {
+      applyStatusTagEdit(
+        statusEditButton.dataset.requestId || "",
+        statusEditButton.dataset.editField || ""
+      );
+      return;
+    }
 
     if (removeButton) {
       removeApproved(removeButton.dataset.requestId);
@@ -3295,7 +3578,17 @@ function wireStaticEvents() {
   });
 
   el.approvedPreviewTable?.addEventListener("click", (event) => {
+    const statusEditButton = event.target.closest(".mod-status-edit-btn");
     const detailButton = event.target.closest(".approved-moderation-details-btn");
+
+    if (statusEditButton) {
+      applyStatusTagEdit(
+        statusEditButton.dataset.requestId || "",
+        statusEditButton.dataset.editField || ""
+      );
+      return;
+    }
+
     if (!detailButton) return;
 
     openModerationDetailsByRequestId(detailButton.dataset.requestId || "");
@@ -3336,6 +3629,15 @@ function wireStaticEvents() {
   document.getElementById("modBackdrop")?.addEventListener("click", () => closeModerationPanel());
   el.btnCloseModerationReason?.addEventListener("click", () => closeModerationReasonModal());
   el.moderationReasonBackdrop?.addEventListener("click", () => closeModerationReasonModal());
+  el.moderationReasonBody?.addEventListener("click", (event) => {
+    const statusEditButton = event.target.closest(".mod-status-edit-btn");
+    if (!statusEditButton) return;
+
+    applyStatusTagEdit(
+      statusEditButton.dataset.requestId || "",
+      statusEditButton.dataset.editField || ""
+    );
+  });
   el.btnCloseLyricsModal?.addEventListener("click", () => closeLyricsModal());
   el.lyricsBackdrop?.addEventListener("click", () => closeLyricsModal());
 
@@ -3374,8 +3676,8 @@ function wireStaticEvents() {
       setTransportBusy(true);
       await skipToPreviousTrack();
       setStatus("Skipped to previous track.");
-      await wait(500);
       await refreshPlayback();
+      scheduleFastPlaybackSync();
     } catch (error) {
       console.error(error);
       setStatus(error?.message || "Could not go to previous track.");
@@ -3387,13 +3689,26 @@ function wireStaticEvents() {
   el.btnPlayPause?.addEventListener("click", async () => {
     try {
       setTransportBusy(true);
+
+      // Optimistic UI response to keep controls feeling instant.
+      const nextPlaybackState = !isPlaybackActive;
+      isPlaybackActive = nextPlaybackState;
+      updatePlaybackStateLabel();
+      if (nextPlaybackState) {
+        localProgressLastTickAt = performance.now();
+        startLocalProgressTimer();
+      } else {
+        stopLocalProgressTimer();
+      }
+
       await togglePlayPause();
-      await wait(350);
       await refreshPlayback();
+      scheduleFastPlaybackSync();
       setStatus(isPlaybackActive ? "Playback resumed." : "Playback paused.");
     } catch (error) {
       console.error(error);
       setStatus(error?.message || "Could not toggle playback.");
+      await refreshPlayback();
     } finally {
       setTransportBusy(false);
     }
@@ -3404,8 +3719,8 @@ function wireStaticEvents() {
       setTransportBusy(true);
       await skipToNextTrack();
       setStatus("Skipped to next track.");
-      await wait(500);
       await refreshPlayback();
+      scheduleFastPlaybackSync();
     } catch (error) {
       console.error(error);
       setStatus(error?.message || "Could not go to next track.");
@@ -3426,7 +3741,9 @@ function wireStaticEvents() {
       updatePlaybackProgressUI(nextProgressMs, currentPlaybackDurationMs);
       await seekPlayback(nextProgressMs);
       currentPlaybackProgressMs = nextProgressMs;
+      localProgressLastTickAt = performance.now();
       setStatus(`Seeked to ${msToMinSec(nextProgressMs)}.`);
+      scheduleFastPlaybackSync([160, 520]);
     } catch (error) {
       console.error(error);
       setStatus(error?.message || "Could not seek playback.");
@@ -3443,6 +3760,7 @@ function wireStaticEvents() {
       updateVolumeUI(percent);
       await setPlaybackVolume(percent);
       setStatus(`Volume set to ${Math.round(percent)}%.`);
+      scheduleFastPlaybackSync([220, 700]);
     } catch (error) {
       console.error(error);
       setStatus(error?.message || "Could not change playback volume.");

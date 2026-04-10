@@ -1,8 +1,6 @@
-# Lyrics API Setup (GitHub Pages Compatible)
+# Lyrics API Setup (BeautifulSoup Single File)
 
-GitHub Pages serves static files only, so it cannot execute Python directly.
-
-This project now supports an optional external lyrics API.
+This project uses one Python file (`lyrics_api_server.py`) with `requests` + `beautifulsoup4` for scraping.
 
 ## 1) Run API locally
 
@@ -24,16 +22,28 @@ Lyrics check:
 curl "http://localhost:8787/lyrics?artist=Taron%20Egerton&song=I'm%20Still%20Standing%20From%20Sing%20Original%20Motion%20Picture%20Soundtrack"
 ```
 
-## 2) Deploy free/basic host
+Expected response fields: `ok`, `url`, `selector_used`, `lyrics`, `source`.
 
-You can deploy `lyrics_api_server.py` to a free Python host (Render, Railway, Fly free tier, etc.).
+## 2) Install dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+`requirements.txt` should include both:
+- `beautifulsoup4`
+- `requests`
 
 ## 3) Point frontend to API
 
-In `app.js`, set:
+In [app.js](app.js), `CONFIG.lyricsApiBaseUrl` should point to your running Python API.
 
 ```js
-lyricsApiBaseUrl: "https://your-lyrics-api-host.example.com",
+lyricsApiBaseUrl: "http://127.0.0.1:8787",
 ```
 
-If this value is blank, the UI falls back to opening Musixmatch directly.
+If lyrics fail in UI, run:
+
+```bash
+curl "http://127.0.0.1:8787/health"
+```

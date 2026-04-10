@@ -2493,7 +2493,7 @@ body.mod-panel-open {
 .mod-overlay {
   right: 12px;
   bottom: 12px;
-  width: min(1480px, calc(100vw - 24px));
+  width: min(1640px, calc(100vw - 16px));
   max-height: calc(100dvh - 24px);
   height: auto;
 }
@@ -2516,14 +2516,14 @@ body.mod-panel-open {
 .mod-overlay-body {
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 16px 22px 22px;
+  padding: 18px 24px 24px;
   scrollbar-gutter: stable;
-  gap: 18px;
+  gap: 20px;
 }
 
 .mod-grid {
-  grid-template-columns: minmax(0, 1.45fr) minmax(420px, 1fr);
-  gap: 18px;
+  grid-template-columns: minmax(0, 1.35fr) minmax(500px, 1fr);
+  gap: 20px;
   align-content: start;
 }
 
@@ -2872,6 +2872,8 @@ body.mod-panel-open {
 .mod-overlay .request-item,
 .mod-overlay .queue-item {
   grid-template-columns: 72px minmax(0, 1fr);
+  gap: 16px;
+  padding: 16px;
   align-items: start;
 }
 
@@ -2890,13 +2892,22 @@ body.mod-panel-open {
   grid-column: 2;
   justify-content: flex-start;
   flex-wrap: wrap;
-  margin-top: 8px;
+  margin-top: 12px;
+}
+
+.mod-overlay .request-actions .btn,
+.mod-overlay .request-actions .ghost-btn,
+.mod-overlay .queue-item-actions .btn,
+.mod-overlay .queue-item-actions .ghost-btn {
+  min-height: 34px;
+  padding: 7px 11px;
+  font-size: 0.84rem;
 }
 
 .request-status-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 8px;
   margin-top: 8px;
 }
 
@@ -2910,6 +2921,57 @@ body.mod-panel-open {
   letter-spacing: 0.02em;
   border: 1px solid transparent;
   line-height: 1.2;
+}
+
+.mod-status-edit-btn {
+  cursor: pointer;
+  transition: transform 120ms ease, filter 120ms ease, box-shadow 120ms ease;
+}
+
+.mod-status-edit-btn:hover {
+  transform: translateY(-1px);
+  filter: saturate(1.08);
+  box-shadow: none;
+}
+
+.mod-status-edit-btn:focus-visible {
+  outline: 2px solid var(--md-primary);
+  outline-offset: 2px;
+}
+
+.mod-status-edit-btn.mod-status-tag-ok:hover,
+.mod-status-edit-btn.mod-status-tag-ok:active {
+  background: #d7f4e6;
+  color: #114f34;
+  border-color: #b4ddc5;
+}
+
+.mod-status-edit-btn.mod-status-tag-info:hover,
+.mod-status-edit-btn.mod-status-tag-info:active {
+  background: #e0ebff;
+  color: #183768;
+  border-color: #c2d4f7;
+}
+
+.mod-status-edit-btn.mod-status-tag-warn:hover,
+.mod-status-edit-btn.mod-status-tag-warn:active {
+  background: #fff1d8;
+  color: #6c4b00;
+  border-color: #ebd1a0;
+}
+
+.mod-status-edit-btn.mod-status-tag-danger:hover,
+.mod-status-edit-btn.mod-status-tag-danger:active {
+  background: #ffe3e7;
+  color: #7b1228;
+  border-color: #efbecc;
+}
+
+.mod-status-edit-btn.mod-status-tag-neutral:hover,
+.mod-status-edit-btn.mod-status-tag-neutral:active {
+  background: var(--md-surface-container);
+  color: var(--md-on-surface-variant);
+  border-color: var(--md-outline);
 }
 
 .mod-status-tag-ok {
