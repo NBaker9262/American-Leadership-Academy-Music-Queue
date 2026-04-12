@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-04-12T22:04:18.687658Z",
-  "next_refresh_at": "2026-04-12T22:09:18.687672Z",
+  "generated_at": "2026-04-12T22:49:13.045883Z",
+  "next_refresh_at": "2026-04-12T22:54:13.045892Z",
   "refresh_interval_minutes": 5,
   "source": {
     "requests_csv_url": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQyc3RRDmjc-nN-XgMMDocbnn1tlxue5ynNoNnYSxnRKxgp2LRGNmYZXnVgAFLH7IViwTAtmIAkvDsK/pub?output=csv",
@@ -20,7 +20,7 @@
       "status": "fallback",
       "lyrics": "",
       "error": "Spotify metadata lookup failed: Spotify metadata lookup failed: 404 Client Error: Not Found for url: https://open.spotify.com/oembed?url=https%3A%2F%2Fopen.spotify.com%2Ftrack%2F0E7s6qk8zR2G6N3v9pR6Jh",
-      "updated_at": "2026-04-12T22:03:59.950734Z",
+      "updated_at": "2026-04-12T22:48:52.201609Z",
       "request_ids": [
         "||https://open.spotify.com/track/0E7s6qk8zR2G6N3v9pR6Jh"
       ]
@@ -36,8 +36,8 @@
       "lyrics": "",
       "selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-12T22:04:00.654967Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-12T22:48:52.589075Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/Blinding-Lights",
       "request_ids": [
         "||https://open.spotify.com/track/0VjIjW4GlUZAMYd2vXMi3b"
       ]
@@ -53,8 +53,8 @@
       "lyrics": "",
       "selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-12T22:04:01.511185Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-12T22:48:53.733241Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/rockstar-feat-21-Savage",
       "request_ids": [
         "||https://open.spotify.com/track/0e7ipj03S05BNilyu5bRzt"
       ]
@@ -70,8 +70,8 @@
       "lyrics": "",
       "selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-12T22:04:02.254906Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-12T22:48:54.603434Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/Cruel-Summer",
       "request_ids": [
         "||https://open.spotify.com/track/1BxfuPKGuaTgP7aM0Bbdwr"
       ]
@@ -87,8 +87,8 @@
       "lyrics": "",
       "selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-12T22:04:02.991255Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-12T22:48:55.375881Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/Brain-Stew",
       "request_ids": [
         "4/8/2026 8:27:14|mjrivera007@gmail.com|https://open.spotify.com/track/1nLnpLXvl68RZCSjfkyiaa?si=S-pT1LUdQvubX7bE0F2gHw&nd=1&utm_medium=organic&_branch_referrer=H4sIAAAAAAAAA7WNUQuCMBzEP818S1PDIhgRlfTgS1kQvcTUTZdzG%2F9tSS999lbQRwgODu7H3XXWarOMIqOV5ewZEq1DwWUfrTSoxtUWK01lgJIZc0LcHAjcfSooXaMk9%2Frg8Neu1eAjC6TuvceykLq4PES2OF435Z31T04ISnPDUbotJ%2FoUF%2Bfm8HDVZV7tpnnS7sfvExGi8hP%2Ff0NJJhtP44BRYh1QrKAlktfBCyijAFy2twrUaCjgTQdqoG%2BUONfeMQEAAA%3D%3D&product=open&%24full_url=https%3A%2F%2Fopen.spotify.com%2Ftrack%2F1nLnpLXvl68RZCSjfkyiaa%3Fsi%3DS-pT1LUdQvubX7bE0F2gHw&feature=organic&_branch_match_id=1484302801022976536"
       ]
@@ -104,8 +104,8 @@
       "lyrics": "",
       "selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-12T22:04:03.696755Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-12T22:48:56.390445Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/One-Dance",
       "request_ids": [
         "||https://open.spotify.com/track/1xznGGDReH1oQq0xzbwXa3"
       ]
@@ -121,8 +121,8 @@
       "lyrics": "",
       "selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-12T22:04:04.552722Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-12T22:48:57.116045Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/One-Dance",
       "request_ids": [
         "||https://open.spotify.com/track/1zi7xx7UVEFkmKfv06H8x0"
       ]
@@ -138,8 +138,8 @@
       "lyrics": "",
       "selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-12T22:04:05.587987Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-12T22:48:58.013895Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/bad-guy",
       "request_ids": [
         "||https://open.spotify.com/track/2Fxmhks0bxGSBdJ92vM42m"
       ]
@@ -155,8 +155,8 @@
       "lyrics": "",
       "selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-12T22:04:06.481919Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-12T22:49:00.223486Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/The-Real-Slim-Shady",
       "request_ids": [
         "4/8/2026 8:33:11|mjrivera007@gmail.com|https://open.spotify.com/track/2WXUcFnJPPATncUkPYC54v?si=OO8kihmbQWaIViGf9KRALA"
       ]
@@ -172,8 +172,8 @@
       "lyrics": "",
       "selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-12T22:04:07.186664Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-12T22:49:01.172007Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/Dance-Monkey",
       "request_ids": [
         "||https://open.spotify.com/track/2XU0oxnq2qxCpomAAuJY8K"
       ]
@@ -189,8 +189,8 @@
       "lyrics": "",
       "selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-12T22:04:08.050885Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-12T22:49:02.275853Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/Time-is-Running-Out",
       "request_ids": [
         "||https://open.spotify.com/track/2takcwOaAZWiXQijPHIx7B"
       ]
@@ -206,8 +206,8 @@
       "lyrics": "",
       "selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-12T22:04:08.866842Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-12T22:49:03.109688Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/Don-t-Start-Now",
       "request_ids": [
         "||https://open.spotify.com/track/3PfIrDoz19wz7qK7tYeu62"
       ]
@@ -223,8 +223,8 @@
       "lyrics": "",
       "selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-12T22:04:09.569739Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-12T22:49:03.900932Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/WAP-feat-Megan-Thee-Stallion",
       "request_ids": [
         "||https://open.spotify.com/track/4Oun2ylbjFKMPTiaSbbCih"
       ]
@@ -240,8 +240,8 @@
       "lyrics": "",
       "selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-12T22:04:10.599138Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-12T22:49:04.796616Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/Happier-Than-Ever",
       "request_ids": [
         "||https://open.spotify.com/track/4RVwu0g32PAqgUiJoXsdF8"
       ]
@@ -257,8 +257,8 @@
       "lyrics": "",
       "selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-12T22:04:11.437276Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-12T22:49:05.503434Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/Prelude-for-Piano-No-11-in-F-Sharp-Minor",
       "request_ids": [
         "||https://open.spotify.com/track/4iV5W9uYEdYUVa79Axb7Rh"
       ]
@@ -274,8 +274,8 @@
       "lyrics": "",
       "selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-12T22:04:12.188540Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-12T22:49:06.230589Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/God-s-Plan",
       "request_ids": [
         "||https://open.spotify.com/track/6DCZcSspjsKoFjzjrWoCdn"
       ]
@@ -291,8 +291,8 @@
       "lyrics": "",
       "selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-12T22:04:12.936051Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-12T22:49:07.187565Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/Watermelon-Sugar",
       "request_ids": [
         "||https://open.spotify.com/track/6UelLqGlWMcVH1E5c4H7lY"
       ]
@@ -308,8 +308,8 @@
       "lyrics": "",
       "selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-12T22:04:14.383386Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-12T22:49:09.033596Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/24K-Magic",
       "request_ids": [
         "|nb72258@stu.alaschools.org|https://open.spotify.com/track/6b8Be6ljOzmkOmFslEb23P?si=4674576dc0f44430"
       ]
@@ -325,8 +325,8 @@
       "lyrics": "",
       "selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-12T22:04:15.158880Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-12T22:49:09.885119Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/Despacito",
       "request_ids": [
         "||https://open.spotify.com/track/6habFhsOp2NvshLv26DqMb"
       ]
@@ -342,8 +342,8 @@
       "lyrics": "",
       "selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-12T22:04:15.817958Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-12T22:49:10.582599Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/XO-Tour-Llif3",
       "request_ids": [
         "||https://open.spotify.com/track/7GX5flRQZVHRAGd6B4TmDO"
       ]
@@ -359,8 +359,8 @@
       "lyrics": "",
       "selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-12T22:04:16.727403Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-12T22:49:11.253170Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/HUMBLE",
       "request_ids": [
         "||https://open.spotify.com/track/7KXjTSCq5nL1LoYtL7XAwS"
       ]
@@ -376,8 +376,8 @@
       "lyrics": "",
       "selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-12T22:04:17.423644Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-12T22:49:12.067200Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/Shape-of-You",
       "request_ids": [
         "||https://open.spotify.com/track/7qiZfU4dY1lWllzX7mPBI3"
       ]
@@ -393,8 +393,8 @@
       "lyrics": "",
       "selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-12T22:04:18.501728Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-12T22:49:12.905718Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/When-I-Look-At-You",
       "request_ids": [
         "4/6/2026 15:08:22|noahmathmaster@gmail.com|https://open.spotify.com/track/7ywzEdEuVG1lsjsRCGJfLy?si=75ae6370785b4fe7"
       ]
@@ -412,8 +412,8 @@
       "lyrics": "",
       "selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-12T22:04:00.654967Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-12T22:48:52.589075Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/Blinding-Lights",
       "request_ids": [
         "||https://open.spotify.com/track/0VjIjW4GlUZAMYd2vXMi3b"
       ]
@@ -429,8 +429,8 @@
       "lyrics": "",
       "selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-12T22:04:01.511185Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-12T22:48:53.733241Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/rockstar-feat-21-Savage",
       "request_ids": [
         "||https://open.spotify.com/track/0e7ipj03S05BNilyu5bRzt"
       ]
@@ -446,8 +446,8 @@
       "lyrics": "",
       "selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-12T22:04:02.254906Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-12T22:48:54.603434Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/Cruel-Summer",
       "request_ids": [
         "||https://open.spotify.com/track/1BxfuPKGuaTgP7aM0Bbdwr"
       ]
@@ -463,8 +463,8 @@
       "lyrics": "",
       "selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-12T22:04:02.991255Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-12T22:48:55.375881Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/Brain-Stew",
       "request_ids": [
         "4/8/2026 8:27:14|mjrivera007@gmail.com|https://open.spotify.com/track/1nLnpLXvl68RZCSjfkyiaa?si=S-pT1LUdQvubX7bE0F2gHw&nd=1&utm_medium=organic&_branch_referrer=H4sIAAAAAAAAA7WNUQuCMBzEP818S1PDIhgRlfTgS1kQvcTUTZdzG%2F9tSS999lbQRwgODu7H3XXWarOMIqOV5ewZEq1DwWUfrTSoxtUWK01lgJIZc0LcHAjcfSooXaMk9%2Frg8Neu1eAjC6TuvceykLq4PES2OF435Z31T04ISnPDUbotJ%2FoUF%2Bfm8HDVZV7tpnnS7sfvExGi8hP%2Ff0NJJhtP44BRYh1QrKAlktfBCyijAFy2twrUaCjgTQdqoG%2BUONfeMQEAAA%3D%3D&product=open&%24full_url=https%3A%2F%2Fopen.spotify.com%2Ftrack%2F1nLnpLXvl68RZCSjfkyiaa%3Fsi%3DS-pT1LUdQvubX7bE0F2gHw&feature=organic&_branch_match_id=1484302801022976536"
       ]
@@ -480,8 +480,8 @@
       "lyrics": "",
       "selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-12T22:04:04.552722Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-12T22:48:57.116045Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/One-Dance",
       "request_ids": [
         "||https://open.spotify.com/track/1zi7xx7UVEFkmKfv06H8x0"
       ]
@@ -497,8 +497,8 @@
       "lyrics": "",
       "selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-12T22:04:05.587987Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-12T22:48:58.013895Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/bad-guy",
       "request_ids": [
         "||https://open.spotify.com/track/2Fxmhks0bxGSBdJ92vM42m"
       ]
@@ -514,8 +514,8 @@
       "lyrics": "",
       "selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-12T22:04:06.481919Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-12T22:49:00.223486Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/The-Real-Slim-Shady",
       "request_ids": [
         "4/8/2026 8:33:11|mjrivera007@gmail.com|https://open.spotify.com/track/2WXUcFnJPPATncUkPYC54v?si=OO8kihmbQWaIViGf9KRALA"
       ]
@@ -531,8 +531,8 @@
       "lyrics": "",
       "selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-12T22:04:07.186664Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-12T22:49:01.172007Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/Dance-Monkey",
       "request_ids": [
         "||https://open.spotify.com/track/2XU0oxnq2qxCpomAAuJY8K"
       ]
@@ -548,8 +548,8 @@
       "lyrics": "",
       "selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-12T22:04:08.050885Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-12T22:49:02.275853Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/Time-is-Running-Out",
       "request_ids": [
         "||https://open.spotify.com/track/2takcwOaAZWiXQijPHIx7B"
       ]
@@ -565,8 +565,8 @@
       "lyrics": "",
       "selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-12T22:04:08.866842Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-12T22:49:03.109688Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/Don-t-Start-Now",
       "request_ids": [
         "||https://open.spotify.com/track/3PfIrDoz19wz7qK7tYeu62"
       ]
@@ -582,8 +582,8 @@
       "lyrics": "",
       "selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-12T22:04:09.569739Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-12T22:49:03.900932Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/WAP-feat-Megan-Thee-Stallion",
       "request_ids": [
         "||https://open.spotify.com/track/4Oun2ylbjFKMPTiaSbbCih"
       ]
@@ -599,8 +599,8 @@
       "lyrics": "",
       "selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-12T22:04:10.599138Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-12T22:49:04.796616Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/Happier-Than-Ever",
       "request_ids": [
         "||https://open.spotify.com/track/4RVwu0g32PAqgUiJoXsdF8"
       ]
@@ -616,8 +616,8 @@
       "lyrics": "",
       "selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-12T22:04:11.437276Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-12T22:49:05.503434Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/Prelude-for-Piano-No-11-in-F-Sharp-Minor",
       "request_ids": [
         "||https://open.spotify.com/track/4iV5W9uYEdYUVa79Axb7Rh"
       ]
@@ -633,8 +633,8 @@
       "lyrics": "",
       "selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-12T22:04:12.188540Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-12T22:49:06.230589Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/God-s-Plan",
       "request_ids": [
         "||https://open.spotify.com/track/6DCZcSspjsKoFjzjrWoCdn"
       ]
@@ -650,8 +650,8 @@
       "lyrics": "",
       "selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-12T22:04:12.936051Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-12T22:49:07.187565Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/Watermelon-Sugar",
       "request_ids": [
         "||https://open.spotify.com/track/6UelLqGlWMcVH1E5c4H7lY"
       ]
@@ -667,8 +667,8 @@
       "lyrics": "",
       "selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-12T22:04:14.383386Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-12T22:49:09.033596Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/24K-Magic",
       "request_ids": [
         "|nb72258@stu.alaschools.org|https://open.spotify.com/track/6b8Be6ljOzmkOmFslEb23P?si=4674576dc0f44430"
       ]
@@ -684,8 +684,8 @@
       "lyrics": "",
       "selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-12T22:04:15.158880Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-12T22:49:09.885119Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/Despacito",
       "request_ids": [
         "||https://open.spotify.com/track/6habFhsOp2NvshLv26DqMb"
       ]
@@ -701,8 +701,8 @@
       "lyrics": "",
       "selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-12T22:04:15.817958Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-12T22:49:10.582599Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/XO-Tour-Llif3",
       "request_ids": [
         "||https://open.spotify.com/track/7GX5flRQZVHRAGd6B4TmDO"
       ]
@@ -718,8 +718,8 @@
       "lyrics": "",
       "selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-12T22:04:16.727403Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-12T22:49:11.253170Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/HUMBLE",
       "request_ids": [
         "||https://open.spotify.com/track/7KXjTSCq5nL1LoYtL7XAwS"
       ]
@@ -735,8 +735,8 @@
       "lyrics": "",
       "selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-12T22:04:17.423644Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-12T22:49:12.067200Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/Shape-of-You",
       "request_ids": [
         "||https://open.spotify.com/track/7qiZfU4dY1lWllzX7mPBI3"
       ]
@@ -752,8 +752,8 @@
       "lyrics": "",
       "selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-12T22:04:18.501728Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-12T22:49:12.905718Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/When-I-Look-At-You",
       "request_ids": [
         "4/6/2026 15:08:22|noahmathmaster@gmail.com|https://open.spotify.com/track/7ywzEdEuVG1lsjsRCGJfLy?si=75ae6370785b4fe7"
       ]
