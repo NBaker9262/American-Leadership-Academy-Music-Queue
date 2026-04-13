@@ -155,15 +155,34 @@ def parse_artist_from_spotify_description(description: str) -> str:
     if not value:
         return ""
 
+    value = re.sub(r"\s+", " ", value)
+
+    # Common formats observed on Spotify track pages, examples:
+    # - "Listen to Song on Spotify. Artist · Song · 2024"
+    # - "Listen to Song on Spotify. Artist"
+    # - "Listen to Song by Artist on Spotify."
+
+    spotify_dot_match = re.search(r"on Spotify\.\s*(.+)$", value, re.IGNORECASE)
+    if spotify_dot_match:
+        tail = spotify_dot_match.group(1).strip()
+        if tail:
+            tail = tail.split("\u00b7", 1)[0].strip()
+            tail = tail.rstrip(" .|\t\r\n")
+            if tail:
+                return tail
+
     if "\u00b7 Song" in value:
         left = value.split("\u00b7 Song", 1)[0].strip()
         if "on Spotify." in left:
-            return left.split("on Spotify.", 1)[1].strip()
+            tail = left.split("on Spotify.", 1)[1].strip()
+            tail = tail.rstrip(" .|\t\r\n")
+            return tail
         return left.strip()
 
     by_match = re.search(r"\sby\s(.+?)\son\sSpotify", value, re.IGNORECASE)
     if by_match:
-        return by_match.group(1).strip()
+        artist = by_match.group(1).strip().rstrip(" .|\t\r\n")
+        return artist
 
     return ""
 

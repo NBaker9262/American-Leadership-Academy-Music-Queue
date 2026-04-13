@@ -1164,13 +1164,14 @@ body.mod-panel-open {
 
 .mod-overlay {
   position: fixed;
-  bottom: 18px;
+  bottom: 12px;
   right: 0;
-  width: min(1480px, calc(100vw - 24px));
-  height: min(920px, calc(100vh - 24px));
+  width: min(1600px, calc(100vw - 16px));
+  height: min(960px, calc(100vh - 16px));
   z-index: 1000;
   display: flex;
   flex-direction: column;
+  font-size: 0.94rem;
   background:
     linear-gradient(160deg, rgba(9,12,20,0.98) 0%, rgba(8,10,17,0.99) 100%);
   border: 1px solid var(--border-strong);
@@ -1189,7 +1190,7 @@ body.mod-panel-open {
 
 .mod-overlay-header {
   flex-shrink: 0;
-  padding: 18px 24px 14px;
+  padding: 14px 18px 10px;
   border-bottom: 1px solid var(--border);
   background: rgba(15, 20, 32, 0.96);
   backdrop-filter: blur(18px);
@@ -1227,10 +1228,10 @@ body.mod-panel-open {
 .mod-overlay-body {
   flex: 1;
   overflow: hidden;
-  padding: 16px 24px 24px;
+  padding: 12px 18px 18px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
   min-height: 0;
 }
 
@@ -1238,7 +1239,7 @@ body.mod-panel-open {
   grid-column: 2;
   grid-row: 1;
   flex-shrink: 0;
-  padding: 18px;
+  padding: 14px;
 }
 
 .mod-top-search-card .search-controls {
@@ -1247,7 +1248,7 @@ body.mod-panel-open {
 }
 
 .mod-top-search-card .btn {
-  min-height: 44px;
+  min-height: 40px;
 }
 
 .search-card #manualSearchResults {
@@ -1261,7 +1262,7 @@ body.mod-panel-open {
   display: grid;
   grid-template-columns: minmax(0, 1.55fr) minmax(380px, 1fr);
   grid-template-rows: minmax(0, auto) minmax(0, 1fr);
-  gap: 16px;
+  gap: 12px;
   align-items: stretch;
   min-height: 0;
 }
@@ -1272,7 +1273,7 @@ body.mod-panel-open {
   overflow-y: auto;
   overflow-x: hidden;
   min-height: 0;
-  padding: 22px;
+  padding: 16px;
 }
 
 .mod-right-stack {
@@ -1280,19 +1281,19 @@ body.mod-panel-open {
   grid-row: 2;
   display: grid;
   grid-template-rows: minmax(320px, 1.2fr) minmax(250px, 0.9fr);
-  gap: 16px;
+  gap: 12px;
   overflow-y: hidden;
   min-height: 0;
 }
 
 .mod-right-stack .approved-card {
   min-height: 0;
-  padding: 20px;
+  padding: 16px;
 }
 
 .mod-right-stack .up-next-card {
   min-height: 0;
-  padding: 20px;
+  padding: 16px;
 }
 
 #approvedQueueList {
@@ -2891,9 +2892,9 @@ body.mod-panel-open {
    ====================================================== */
 .mod-overlay .request-item,
 .mod-overlay .queue-item {
-  grid-template-columns: 72px minmax(0, 1fr);
-  gap: 16px;
-  padding: 16px;
+  grid-template-columns: 64px minmax(0, 1fr);
+  gap: 12px;
+  padding: 12px;
   align-items: start;
 }
 
@@ -2912,22 +2913,22 @@ body.mod-panel-open {
   grid-column: 2;
   justify-content: flex-start;
   flex-wrap: wrap;
-  margin-top: 12px;
+  margin-top: 8px;
 }
 
 .mod-overlay .request-actions .btn,
 .mod-overlay .request-actions .ghost-btn,
 .mod-overlay .queue-item-actions .btn,
 .mod-overlay .queue-item-actions .ghost-btn {
-  min-height: 34px;
-  padding: 7px 11px;
-  font-size: 0.84rem;
+  min-height: 30px;
+  padding: 6px 10px;
+  font-size: 0.82rem;
 }
 
 .request-status-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
   margin-top: 8px;
 }
 

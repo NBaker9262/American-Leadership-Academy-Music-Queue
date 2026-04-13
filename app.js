@@ -27,6 +27,8 @@ const CONFIG = {
     "user-read-playback-state",
     "user-modify-playback-state",
     "user-read-currently-playing",
+    "playlist-read-private",
+    "playlist-read-collaborative",
     "playlist-modify-public",
     "playlist-modify-private"
   ],
@@ -48,6 +50,7 @@ const CONFIG = {
   lyricsPrefetchConcurrency: 2,
   lyricsPrefetchMaxSongsPerLoad: 80,
   lyricsPrefetchDelayMs: 220,
+  debugModeration: false,
   themeHardBlockTerms: [
     "sex",
     "sexy",
@@ -146,7 +149,8 @@ const LS = {
   approvedQueue: "ala_approved_queue",
   rejectedIds: "ala_rejected_ids",
   queuePointer: "ala_queue_pointer",
-  djAssistedRequests: "ala_dj_assisted_requests"
+  djAssistedRequests: "ala_dj_assisted_requests",
+  moderationOverrides: "ala_moderation_overrides"
 };
 
 const authStorage = window.sessionStorage;
@@ -198,7 +202,6 @@ const el = {
   btnAddSelectedToPlaylistPicker: document.getElementById("btnAddSelectedToPlaylistPicker"),
   btnCloseModerationReason: document.getElementById("btnCloseModerationReason"),
   btnCloseLyricsModal: document.getElementById("btnCloseLyricsModal"),
-  btnReloadLyricsCache: document.getElementById("btnReloadLyricsCache"),
   btnRefreshPlaylistPicker: document.getElementById("btnRefreshPlaylistPicker"),
   btnClosePlaylistPicker: document.getElementById("btnClosePlaylistPicker"),
   playPauseIcon: document.getElementById("playPauseIcon"),
@@ -271,9 +274,13 @@ let refreshPlaybackRequestSeq = 0;
 let refreshPlaybackAppliedSeq = 0;
 let lyricsCacheSnapshot = null;
 let lyricsCacheCountdownTimer = null;
-let lyricsCacheNextRefreshAtMs = 0;
+let lyricsCacheLastGeneratedAtMs = 0;
+let lyricsCachePollTimer = null;
+let lyricsCachePollLastSeenGeneratedAtMs = 0;
 let playlistPickerContext = null;
 let playlistPickerCache = { items: [], fetchedAtMs: 0 };
+
+let isLoadingRequests = false;
 
 // ======================================================
 // BASIC HELPERS
@@ -644,6 +651,24 @@ function getModerationOverride(requestId) {
   return moderationOverrideByRequestId.get(key) || null;
 }
 
+function loadModerationOverridesFromStorage() {
+  const stored = safeJsonParse(persistentStorage.getItem(LS.moderationOverrides), {});
+  moderationOverrideByRequestId.clear();
+
+  if (!stored || typeof stored !== "object") return;
+
+  for (const [requestId, override] of Object.entries(stored)) {
+    if (!requestId) continue;
+    if (!override || typeof override !== "object") continue;
+    moderationOverrideByRequestId.set(String(requestId), override);
+  }
+}
+
+function persistModerationOverridesToStorage() {
+  const serialized = Object.fromEntries(moderationOverrideByRequestId.entries());
+  persistentStorage.setItem(LS.moderationOverrides, JSON.stringify(serialized));
+}
+
 function setModerationOverride(requestId, patch) {
   const key = String(requestId || "").trim();
   if (!key || !patch || typeof patch !== "object") return null;
@@ -656,6 +681,7 @@ function setModerationOverride(requestId, patch) {
   };
 
   moderationOverrideByRequestId.set(key, merged);
+  persistModerationOverridesToStorage();
   return merged;
 }
 
@@ -725,6 +751,11 @@ function getErrorStatusCode(error) {
   const match = message.match(/^(\d{3})\b/);
   if (!match) return null;
   return Number(match[1]);
+}
+
+function isInsufficientSpotifyScopeError(error) {
+  const message = String(error?.message || "");
+  return message.includes("Insufficient client scope");
 }
 
 function pushModerationHistory(action) {
@@ -858,6 +889,9 @@ function ensureStorageDefaults() {
   }
   if (!persistentStorage.getItem(LS.djAssistedRequests)) {
     persistentStorage.setItem(LS.djAssistedRequests, JSON.stringify([]));
+  }
+  if (!persistentStorage.getItem(LS.moderationOverrides)) {
+    persistentStorage.setItem(LS.moderationOverrides, JSON.stringify({}));
   }
 }
 
@@ -2832,7 +2866,18 @@ async function openPlaylistPicker(mode, forceRefresh = false) {
   el.playlistPickerBackdrop.classList.add("playlist-picker-is-open");
   el.playlistPickerModal.classList.add("playlist-picker-is-open");
 
-  const playlists = await fetchSignedInUserPlaylists(forceRefresh);
+  let playlists = [];
+  try {
+    playlists = await fetchSignedInUserPlaylists(forceRefresh);
+  } catch (error) {
+    if (isInsufficientSpotifyScopeError(error)) {
+      throw new Error(
+        "Spotify permissions are missing for playlists. Click Logout, then Login again to approve playlist access (playlist-read-private)."
+      );
+    }
+
+    throw error;
+  }
   renderPlaylistPickerList(playlists);
 
   if (el.playlistPickerDescription) {
@@ -3161,11 +3206,19 @@ function normalizeLyricsCacheKey(artist, song) {
   return `${safeArtist}|${safeSong}`;
 }
 
-function formatCountdownMmSs(milliseconds) {
-  const totalSeconds = Math.max(0, Math.ceil(Number(milliseconds || 0) / 1000));
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+function formatElapsedShort(milliseconds) {
+  const totalSeconds = Math.max(0, Math.floor(Number(milliseconds || 0) / 1000));
+
+  if (totalSeconds < 60) return `${totalSeconds}s`;
+
+  const totalMinutes = Math.floor(totalSeconds / 60);
+  if (totalMinutes < 60) return `${totalMinutes}m`;
+
+  const totalHours = Math.floor(totalMinutes / 60);
+  if (totalHours < 24) return `${totalHours}h`;
+
+  const totalDays = Math.floor(totalHours / 24);
+  return `${totalDays}d`;
 }
 
 function setLyricsCacheCountdownLabel(message) {
@@ -3176,18 +3229,13 @@ function setLyricsCacheCountdownLabel(message) {
 function updateLyricsCacheCountdownLabel() {
   if (!el.lyricsCacheCountdown) return;
 
-  if (!lyricsCacheNextRefreshAtMs) {
-    setLyricsCacheCountdownLabel("Lyrics cache timer unavailable");
+  if (!lyricsCacheLastGeneratedAtMs) {
+    setLyricsCacheCountdownLabel("Lyrics cache: loading...");
     return;
   }
 
-  const remainingMs = lyricsCacheNextRefreshAtMs - Date.now();
-  if (remainingMs <= 0) {
-    setLyricsCacheCountdownLabel("Lyrics cache refresh due now");
-    return;
-  }
-
-  setLyricsCacheCountdownLabel(`Next lyrics cache in ${formatCountdownMmSs(remainingMs)}`);
+  const elapsedMs = Math.max(0, Date.now() - lyricsCacheLastGeneratedAtMs);
+  setLyricsCacheCountdownLabel(`Lyrics cache: updated ${formatElapsedShort(elapsedMs)} ago`);
 }
 
 function stopLyricsCacheCountdown() {
@@ -3198,26 +3246,26 @@ function stopLyricsCacheCountdown() {
 }
 
 function startLyricsCacheCountdown(cacheData) {
-  stopLyricsCacheCountdown();
-
   const generatedAtMs = Date.parse(String(cacheData?.generated_at || ""));
-  const refreshMinutes = Math.max(
-    1,
-    Number(cacheData?.refresh_interval_minutes || CONFIG.lyricsCacheRefreshMinutes || 5)
-  );
 
   if (!Number.isFinite(generatedAtMs)) {
-    lyricsCacheNextRefreshAtMs = 0;
-    setLyricsCacheCountdownLabel("Lyrics cache timer unavailable");
+    lyricsCacheLastGeneratedAtMs = 0;
+    setLyricsCacheCountdownLabel("Lyrics cache: unavailable");
     return;
   }
 
-  lyricsCacheNextRefreshAtMs = generatedAtMs + refreshMinutes * 60 * 1000;
+  if (generatedAtMs === lyricsCacheLastGeneratedAtMs && lyricsCacheCountdownTimer) {
+    updateLyricsCacheCountdownLabel();
+    return;
+  }
+
+  lyricsCacheLastGeneratedAtMs = generatedAtMs;
+  stopLyricsCacheCountdown();
   updateLyricsCacheCountdownLabel();
   lyricsCacheCountdownTimer = window.setInterval(updateLyricsCacheCountdownLabel, 1000);
 }
 
-async function fetchLyricsCacheSnapshot() {
+async function fetchLyricsCacheSnapshot(options = {}) {
   if (!CONFIG.lyricsCacheUseOnLoad) {
     return {
       ok: false,
@@ -3233,7 +3281,10 @@ async function fetchLyricsCacheSnapshot() {
     };
   }
 
-  logConsoleEvent("Lyrics Cache", "Fetching cache snapshot...", { cacheUrl }, "info");
+  const quiet = !!options.quiet;
+  if (!quiet) {
+    logConsoleEvent("Lyrics Cache", "Fetching cache snapshot...", { cacheUrl }, "info");
+  }
 
   try {
     const response = await fetch(`${cacheUrl}${cacheUrl.includes("?") ? "&" : "?"}t=${Date.now()}`, {
@@ -3245,7 +3296,9 @@ async function fetchLyricsCacheSnapshot() {
     });
 
     if (!response.ok) {
-      logConsoleEvent("Lyrics Cache", "Cache snapshot fetch failed.", { status: response.status }, "warn");
+      if (!quiet) {
+        logConsoleEvent("Lyrics Cache", "Cache snapshot fetch failed.", { status: response.status }, "warn");
+      }
       return {
         ok: false,
         reason: `HTTP ${response.status}`
@@ -3256,22 +3309,80 @@ async function fetchLyricsCacheSnapshot() {
     lyricsCacheSnapshot = json;
     startLyricsCacheCountdown(json);
 
-    logConsoleEvent("Lyrics Cache", "Cache snapshot loaded.", {
-      generatedAt: json?.generated_at || "",
-      stats: json?.stats || null
-    }, "success");
+    if (!quiet) {
+      logConsoleEvent("Lyrics Cache", "Cache snapshot loaded.", {
+        generatedAt: json?.generated_at || "",
+        stats: json?.stats || null
+      }, "success");
+    }
 
     return {
       ok: true,
       cache: json
     };
   } catch (error) {
-    logConsoleEvent("Lyrics Cache", "Cache snapshot request failed.", { error: error?.message || error }, "error");
+    if (!quiet) {
+      logConsoleEvent("Lyrics Cache", "Cache snapshot request failed.", { error: error?.message || error }, "error");
+    }
     return {
       ok: false,
       reason: error?.message || "Failed to load lyrics cache"
     };
   }
+}
+
+function isModerationPanelOpen() {
+  return document.body.classList.contains("mod-panel-open");
+}
+
+function stopLyricsCachePolling() {
+  if (lyricsCachePollTimer) {
+    window.clearInterval(lyricsCachePollTimer);
+    lyricsCachePollTimer = null;
+  }
+  lyricsCachePollLastSeenGeneratedAtMs = 0;
+}
+
+function startLyricsCachePolling() {
+  stopLyricsCachePolling();
+  if (!CONFIG.lyricsCacheUseOnLoad) return;
+
+  lyricsCachePollTimer = window.setInterval(async () => {
+    if (!isModerationPanelOpen()) return;
+
+    const previousGeneratedAtMs = lyricsCacheLastGeneratedAtMs;
+    const cacheResult = await fetchLyricsCacheSnapshot({ quiet: true });
+    if (!cacheResult.ok) return;
+
+    const currentGeneratedAtMs = lyricsCacheLastGeneratedAtMs;
+    if (!Number.isFinite(currentGeneratedAtMs) || currentGeneratedAtMs <= 0) return;
+
+    if (!lyricsCachePollLastSeenGeneratedAtMs) {
+      lyricsCachePollLastSeenGeneratedAtMs = currentGeneratedAtMs;
+      return;
+    }
+
+    if (currentGeneratedAtMs === previousGeneratedAtMs || currentGeneratedAtMs === lyricsCachePollLastSeenGeneratedAtMs) {
+      return;
+    }
+
+    lyricsCachePollLastSeenGeneratedAtMs = currentGeneratedAtMs;
+
+    logConsoleEvent("Moderation", "Lyrics cache updated; syncing requests shortly.", {
+      generatedAt: new Date(currentGeneratedAtMs).toISOString()
+    }, "info");
+
+    window.setTimeout(async () => {
+      if (!isModerationPanelOpen()) return;
+      if (lyricsCacheLastGeneratedAtMs !== currentGeneratedAtMs) return;
+
+      try {
+        await loadRequests();
+      } catch (error) {
+        console.warn("Auto-sync after lyrics cache update failed:", error);
+      }
+    }, 60000);
+  }, 30000);
 }
 
 function getLyricsCacheEntryForRequest(request, cacheData) {
@@ -3904,6 +4015,14 @@ async function addManualSearchResultToQueue(trackId) {
 // LOAD REQUESTS
 // ======================================================
 async function loadRequests() {
+  if (isLoadingRequests) {
+    logConsoleEvent("Moderation", "Request load ignored (already in progress).", null, "warn");
+    return;
+  }
+
+  isLoadingRequests = true;
+
+  try {
   setStatus("Loading request rows from Google Sheet and DJ local storage...");
   logConsoleEvent("Moderation", "Request load started.", {
     source: "google-sheet-and-dj-storage"
@@ -3970,6 +4089,9 @@ async function loadRequests() {
     lyricsCacheResult,
     lyricsPrefetch
   }, "success");
+  } finally {
+    isLoadingRequests = false;
+  }
 }
 
 // ======================================================
@@ -3979,6 +4101,9 @@ function openModerationPanel() {
   document.getElementById("modOverlay")?.classList.add("mod-is-open");
   document.getElementById("modBackdrop")?.classList.add("mod-is-open");
   document.body.classList.add("mod-panel-open");
+
+  fetchLyricsCacheSnapshot({ quiet: true }).catch(() => null);
+  startLyricsCachePolling();
 }
 
 function closeModerationPanel() {
@@ -3987,6 +4112,7 @@ function closeModerationPanel() {
   document.body.classList.remove("mod-panel-open");
   closeModerationReasonModal();
   closeLyricsModal();
+  stopLyricsCachePolling();
 }
 
 // ======================================================
@@ -4011,23 +4137,6 @@ function wireStaticEvents() {
     } catch (error) {
       console.error(error);
       setStatus(error?.message || "Failed to load requests.");
-    }
-  });
-  el.btnReloadLyricsCache?.addEventListener("click", async () => {
-    try {
-      const cacheResult = await fetchLyricsCacheSnapshot();
-      if (!cacheResult.ok) {
-        throw new Error(cacheResult.reason || "Lyrics cache reload failed.");
-      }
-
-      if (Array.isArray(currentRequests) && currentRequests.length) {
-        await applyLyricsCacheForLoadedRequests(currentRequests);
-      }
-
-      setStatus("Lyrics cache reloaded.");
-    } catch (error) {
-      console.error(error);
-      setStatus(error?.message || "Could not reload lyrics cache.");
     }
   });
 
@@ -4503,6 +4612,7 @@ function stopPlaybackPolling() {
 async function init() {
   clearLegacyAuthStorage();
   ensureStorageDefaults();
+  loadModerationOverridesFromStorage();
   wireStaticEvents();
   renderApprovedQueue();
   renderApprovedPreview();
