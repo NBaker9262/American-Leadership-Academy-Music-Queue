@@ -27,6 +27,8 @@ const CONFIG = {
     "user-read-playback-state",
     "user-modify-playback-state",
     "user-read-currently-playing",
+    "playlist-read-private",
+    "playlist-read-collaborative",
     "playlist-modify-public",
     "playlist-modify-private"
   ],
@@ -749,6 +751,11 @@ function getErrorStatusCode(error) {
   const match = message.match(/^(\d{3})\b/);
   if (!match) return null;
   return Number(match[1]);
+}
+
+function isInsufficientSpotifyScopeError(error) {
+  const message = String(error?.message || "");
+  return message.includes("Insufficient client scope");
 }
 
 function pushModerationHistory(action) {
@@ -2859,7 +2866,18 @@ async function openPlaylistPicker(mode, forceRefresh = false) {
   el.playlistPickerBackdrop.classList.add("playlist-picker-is-open");
   el.playlistPickerModal.classList.add("playlist-picker-is-open");
 
-  const playlists = await fetchSignedInUserPlaylists(forceRefresh);
+  let playlists = [];
+  try {
+    playlists = await fetchSignedInUserPlaylists(forceRefresh);
+  } catch (error) {
+    if (isInsufficientSpotifyScopeError(error)) {
+      throw new Error(
+        "Spotify permissions are missing for playlists. Click Logout, then Login again to approve playlist access (playlist-read-private)."
+      );
+    }
+
+    throw error;
+  }
   renderPlaylistPickerList(playlists);
 
   if (el.playlistPickerDescription) {
