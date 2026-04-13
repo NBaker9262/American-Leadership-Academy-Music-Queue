@@ -47,3 +47,10 @@ If lyrics fail in UI, run:
 ```bash
 curl "http://127.0.0.1:8787/health"
 ```
+
+## 4) GitHub Actions Cache Pull (bs4)
+
+- Workflow: .github/workflows/lyrics-cache-refresh.yml`r
+- Runs on a 5-minute cron schedule (*/5 * * * *) and can also be started on demand from the GitHub Actions page (Run workflow).
+- The cache build now targets up to 500 tracks per run and uses lower scrape delay to catch new songs faster.
+- In the moderation panel UI, use Run Lyrics Pull (bs4) to open the workflow and Reload Cache after the run completes.

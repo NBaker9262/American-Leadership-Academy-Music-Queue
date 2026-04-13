@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -44,14 +44,8 @@
             <button id="btnLogout" class="btn" type="button">
               Logout
             </button>
-            <button id="btnStartDefaultPlaylist" class="btn btn-primary" type="button">
-              Start Main Playlist
-            </button>
-            <button id="btnStartSlowPlaylist" class="btn btn-secondary" type="button">
-              Start Slow Playlist
-            </button>
-            <button id="btnStartFunPlaylist" class="btn btn-secondary" type="button">
-              Start Fun Playlist
+            <button id="btnPlayPlaylistPicker" class="btn btn-primary" type="button">
+              Play Playlist
             </button>
             <button id="btnOpenModeration" class="btn btn-moderation" type="button">
               Moderation Panel
@@ -100,13 +94,13 @@
             <div class="playback-controls-panel">
               <div class="playback-buttons">
                 <button id="btnPrevTrack" class="control-button" type="button" aria-label="Previous track">
-                  <span aria-hidden="true">⏮︎</span>
+                  <span aria-hidden="true">Prev</span>
                 </button>
                 <button id="btnPlayPause" class="play-pause-button" type="button" aria-label="Play or pause">
-                  <span id="playPauseIcon" aria-hidden="true">▶︎</span>
+                  <span id="playPauseIcon" aria-hidden="true">Play</span>
                 </button>
                 <button id="btnNextTrack" class="control-button" type="button" aria-label="Next track">
-                  <span aria-hidden="true">⏭︎</span>
+                  <span aria-hidden="true">Next</span>
                 </button>
               </div>
 
@@ -207,6 +201,20 @@
           <div id="lyricsCacheCountdown" class="lyrics-cache-pill" aria-live="polite">
             Next lyrics cache in --:--
           </div>
+
+          <a
+            id="btnRunLyricsCacheWorkflow"
+            class="btn btn-small"
+            href="https://github.com/NBaker9262/American-Leadership-Academy-Music-Queue/actions/workflows/lyrics-cache-refresh.yml"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Run Lyrics Pull (bs4)
+          </a>
+
+          <button id="btnReloadLyricsCache" class="btn btn-small" type="button">
+            Reload Cache
+          </button>
 
           <button id="btnApproveAllCleanVisible" class="btn btn-small" type="button">
             Approve All Clean
@@ -379,14 +387,8 @@
               </p>
 
               <div class="playlist-routing-actions">
-                <button id="btnAddSelectedToMainPlaylist" class="btn btn-small" type="button">
-                  Add to Main Playlist
-                </button>
-                <button id="btnAddSelectedToSlowPlaylist" class="btn btn-small" type="button">
-                  Add to Slow Playlist
-                </button>
-                <button id="btnAddSelectedToFunPlaylist" class="btn btn-small" type="button">
-                  Add to Fun Playlist
+                <button id="btnAddSelectedToPlaylistPicker" class="btn btn-small" type="button">
+                  Add to Playlist
                 </button>
               </div>
             </div>
@@ -397,6 +399,40 @@
     </div>
   </aside>
 
+
+  <!-- PLAYLIST PICKER BACKDROP -->
+  <div id="playlistPickerBackdrop" class="playlist-picker-backdrop"></div>
+
+  <!-- PLAYLIST PICKER MODAL -->
+  <aside
+    id="playlistPickerModal"
+    class="playlist-picker-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Playlist Picker"
+  >
+    <div class="playlist-picker-header">
+      <div>
+        <p class="section-kicker">Spotify Playlists</p>
+        <h2 id="playlistPickerTitle">Choose a Playlist</h2>
+      </div>
+      <div class="playlist-picker-header-actions">
+        <button id="btnRefreshPlaylistPicker" class="btn btn-small" type="button">
+          Refresh
+        </button>
+        <button id="btnClosePlaylistPicker" class="btn lyrics-close-btn" type="button">
+          &#x2715; Close
+        </button>
+      </div>
+    </div>
+
+    <div id="playlistPickerDescription" class="summary-text playlist-picker-description">
+      Loading playlists...
+    </div>
+    <div id="playlistPickerList" class="playlist-picker-list">
+      <div class="empty-state">Loading playlists...</div>
+    </div>
+  </aside>
   <!-- MODERATION REASONING BACKDROP -->
   <div id="moderationReasonBackdrop" class="moderation-reason-backdrop"></div>
 

@@ -16,7 +16,7 @@ permissions:
 
 concurrency:
   group: lyrics-cache-refresh
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   build-cache:
@@ -40,8 +40,8 @@ jobs:
         env:
           REQUESTS_CSV_URL: https://docs.google.com/spreadsheets/d/e/2PACX-1vQyc3RRDmjc-nN-XgMMDocbnn1tlxue5ynNoNnYSxnRKxgp2LRGNmYZXnVgAFLH7IViwTAtmIAkvDsK/pub?output=csv
           LYRICS_CACHE_REFRESH_MINUTES: "5"
-          LYRICS_SCRAPE_DELAY_MS: "250"
-          LYRICS_CACHE_MAX_TRACKS: "120"
+          LYRICS_SCRAPE_DELAY_MS: "150"
+          LYRICS_CACHE_MAX_TRACKS: "500"
         run: |
           python scripts/build_lyrics_cache.py
 

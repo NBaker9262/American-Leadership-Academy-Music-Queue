@@ -1,4 +1,4 @@
-// ======================================================
+﻿// ======================================================
 // ALA Music Queue Dashboard
 // Cleaned + fixed single-file app.js
 // - Spotify PKCE login
@@ -37,6 +37,8 @@ const CONFIG = {
   trackLookupRetryCount: 2,
   trackLookupRetryDelayMs: 500,
   manualSearchLimit: 8,
+  userPlaylistFetchLimit: 50,
+  playlistPickerCacheMs: 120000,
   lyricsApiBaseUrl: "http://127.0.0.1:8787",
   lyricsApiTimeoutMs: 12000,
   lyricsCacheUseOnLoad: true,
@@ -126,8 +128,8 @@ const CONFIG = {
       id: "language-review",
       category: "Mild Language",
       severity: "review",
-      terms: ["damn", "hell", "sucks", "freakin"],
-      phrases: ["lose my mind", "out of control", "shut up"]
+      terms: ["damn", "hell", "sucks", "freakin", "shit", "bitch", "ass", "fuck", "motherfucker"],
+      phrases: ["lose my mind", "out of control", "shut up", "f you", "f*** you", "middle finger"]
     }
   ]
 };
@@ -181,9 +183,7 @@ const el = {
   btnRefreshPlayback: document.getElementById("btnRefreshPlayback"),
   btnPrevQueue: document.getElementById("btnPrevQueue"),
   btnNextQueue: document.getElementById("btnNextQueue"),
-  btnStartDefaultPlaylist: document.getElementById("btnStartDefaultPlaylist"),
-  btnStartSlowPlaylist: document.getElementById("btnStartSlowPlaylist"),
-  btnStartFunPlaylist: document.getElementById("btnStartFunPlaylist"),
+  btnPlayPlaylistPicker: document.getElementById("btnPlayPlaylistPicker"),
   btnAddApprovedToQueue: document.getElementById("btnAddApprovedToQueue"),
   btnApproveAllCleanVisible: document.getElementById("btnApproveAllCleanVisible"),
   btnRemoveAllApproved: document.getElementById("btnRemoveAllApproved"),
@@ -195,11 +195,12 @@ const el = {
   btnPlayPause: document.getElementById("btnPlayPause"),
   btnNextTrack: document.getElementById("btnNextTrack"),
   btnAddDjAssistedRequest: document.getElementById("btnAddDjAssistedRequest"),
-  btnAddSelectedToMainPlaylist: document.getElementById("btnAddSelectedToMainPlaylist"),
-  btnAddSelectedToSlowPlaylist: document.getElementById("btnAddSelectedToSlowPlaylist"),
-  btnAddSelectedToFunPlaylist: document.getElementById("btnAddSelectedToFunPlaylist"),
+  btnAddSelectedToPlaylistPicker: document.getElementById("btnAddSelectedToPlaylistPicker"),
   btnCloseModerationReason: document.getElementById("btnCloseModerationReason"),
   btnCloseLyricsModal: document.getElementById("btnCloseLyricsModal"),
+  btnReloadLyricsCache: document.getElementById("btnReloadLyricsCache"),
+  btnRefreshPlaylistPicker: document.getElementById("btnRefreshPlaylistPicker"),
+  btnClosePlaylistPicker: document.getElementById("btnClosePlaylistPicker"),
   playPauseIcon: document.getElementById("playPauseIcon"),
 
   status: document.getElementById("status"),
@@ -237,7 +238,12 @@ const el = {
   lyricsModalMeta: document.getElementById("lyricsModalMeta"),
   lyricsModalBody: document.getElementById("lyricsModalBody"),
   lyricsModalExternalLink: document.getElementById("lyricsModalExternalLink"),
-  lyricsCacheCountdown: document.getElementById("lyricsCacheCountdown")
+  lyricsCacheCountdown: document.getElementById("lyricsCacheCountdown"),
+  playlistPickerBackdrop: document.getElementById("playlistPickerBackdrop"),
+  playlistPickerModal: document.getElementById("playlistPickerModal"),
+  playlistPickerTitle: document.getElementById("playlistPickerTitle"),
+  playlistPickerDescription: document.getElementById("playlistPickerDescription"),
+  playlistPickerList: document.getElementById("playlistPickerList")
 };
 
 // --------------------
@@ -266,6 +272,8 @@ let refreshPlaybackAppliedSeq = 0;
 let lyricsCacheSnapshot = null;
 let lyricsCacheCountdownTimer = null;
 let lyricsCacheNextRefreshAtMs = 0;
+let playlistPickerContext = null;
+let playlistPickerCache = { items: [], fetchedAtMs: 0 };
 
 // ======================================================
 // BASIC HELPERS
@@ -275,6 +283,25 @@ function setStatus(message) {
   console.log(message);
 }
 
+function logConsoleEvent(scope, message, detail = null, tone = "info") {
+  const toneStyleByName = {
+    info: "background:#18243a;color:#9fd1ff;padding:2px 8px;border-radius:999px;font-weight:700;",
+    success: "background:#123528;color:#8cf5bd;padding:2px 8px;border-radius:999px;font-weight:700;",
+    warn: "background:#3b2b10;color:#ffd58b;padding:2px 8px;border-radius:999px;font-weight:700;",
+    error: "background:#3b141b;color:#ffb5c0;padding:2px 8px;border-radius:999px;font-weight:700;"
+  };
+
+  const scopeStyle = toneStyleByName[tone] || toneStyleByName.info;
+  const messageStyle = "color:#d8e5ff;font-weight:600;";
+  const timeStyle = "color:#9fb2cf;";
+  const timestamp = new Date().toLocaleTimeString();
+
+  console.groupCollapsed(`%c${scope}%c ${message} %c${timestamp}`, scopeStyle, messageStyle, timeStyle);
+  if (detail !== null && detail !== undefined) {
+    console.log(detail);
+  }
+  console.groupEnd();
+}
 function escapeHtml(value) {
   return String(value ?? "")
     .replaceAll("&", "&amp;")
@@ -343,7 +370,7 @@ function normalizeModerationText(value) {
     .toLowerCase()
     .normalize("NFKD")
     .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[’'`]/g, " ")
+    .replace(/[\u2018\u2019'`]/g, " ")
     .replace(/[^a-z0-9\s]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
@@ -758,13 +785,13 @@ function updatePlaybackStateLabel() {
 
   if (!currentNowPlayingTrack) {
     el.playbackStateLabel.textContent = "No Active Song";
-    if (el.playPauseIcon) el.playPauseIcon.textContent = "▶︎";
+    if (el.playPauseIcon) el.playPauseIcon.textContent = "Play";
     return;
   }
 
   el.playbackStateLabel.textContent = isPlaybackActive ? "Playing" : "Paused";
   if (el.playPauseIcon) {
-    el.playPauseIcon.textContent = isPlaybackActive ? "⏸︎" : "▶︎";
+    el.playPauseIcon.textContent = isPlaybackActive ? "Pause" : "Play";
   }
 }
 
@@ -1009,7 +1036,7 @@ function slugifyForMusixmatch(value) {
     .trim()
     .normalize("NFKD")
     .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[’'`]/g, "-")
+    .replace(/[\u2018\u2019'`]/g, " ")
     .replace(/[,&/+]+/g, " ")
     .replace(/[^\p{L}\p{N}\s-]/gu, " ")
     .replace(/\s+/g, "-")
@@ -1812,6 +1839,13 @@ function buildRequestSummary(requests) {
     el.requestSummary.textContent =
       `Loaded ${total} request(s) | Valid Spotify links: ${valid} | Clean: ${clean} | Explicit: ${explicit} | Theme Review: ${themeReview} | Theme Blocked: ${themeBlocked} | Errors: ${errors}`;
   }
+
+  logConsoleEvent(
+    "Moderation",
+    "Summary refreshed.",
+    { total, valid, clean, explicit, themeReview, themeBlocked, errors },
+    themeBlocked > 0 || explicit > 0 ? "warn" : "info"
+  );
 }
 
 // ======================================================
@@ -1882,7 +1916,7 @@ function approveRequest(request, options = {}) {
   renderApprovedPreview();
 
   if (!silentStatus) {
-    setStatus(`Approved: ${request.spotify.artist} — ${request.spotify.name}`);
+    setStatus(`Approved: ${request.spotify.artist} - ${request.spotify.name}`);
   }
 
   return true;
@@ -2085,7 +2119,7 @@ function renderManualSearchResults() {
 
             <div class="request-artist">${escapeHtml(spotify?.artist || "Unknown artist")}</div>
             <div class="request-meta">
-              ${escapeHtml(spotify?.album || "Unknown Album")} • ${escapeHtml(msToMinSec(spotify?.durationMs || 0))}
+              ${escapeHtml(spotify?.album || "Unknown Album")} - ${escapeHtml(msToMinSec(spotify?.durationMs || 0))}
             </div>
             <div class="request-submitted">Spotify track ID: ${escapeHtml(spotify?.id || "Unavailable")}</div>
             <div class="moderation-inline-note">${escapeHtml(moderation.compactReason)}</div>
@@ -2166,9 +2200,9 @@ function renderRequests(requests) {
 
             <div class="request-artist">${escapeHtml(artistName)}</div>
             <div class="request-meta">
-              ${escapeHtml(album)} • ${request.spotify ? escapeHtml(msToMinSec(request.spotify.durationMs)) : "—"}
+              ${escapeHtml(album)} - ${escapeHtml(msToMinSec(request.spotify?.durationMs || 0))}
             </div>
-            <div class="request-submitted">${escapeHtml(request.timestamp || "—")} • ${escapeHtml(sourceLabel)}</div>
+            <div class="request-submitted">${escapeHtml(request.timestamp || "Unknown time")} - ${escapeHtml(sourceLabel)}</div>
             <div class="request-status-tags">${buildRequestStatusTags(request, moderation)}</div>
             <div class="moderation-inline-note">${escapeHtml(moderation?.compactReason || "Moderation metadata unavailable.")}</div>
           </div>
@@ -2249,13 +2283,13 @@ function renderApprovedQueue() {
 
           <div class="queue-item-main">
             <div class="request-title-row">
-              <span class="queue-drag-handle" aria-hidden="true" title="Drag to reorder">⋮⋮</span>
+              <span class="queue-drag-handle" aria-hidden="true" title="Drag to reorder">::</span>
               <div class="queue-item-title">${escapeHtml(name)}</div>
               ${sourceBadge}
             </div>
             <div class="queue-item-artist">${escapeHtml(artist)}</div>
             <div class="request-status-tags">${buildRequestStatusTags(item, moderation)}</div>
-            <div class="moderation-inline-note">${escapeHtml(sourceLabel)} • ${escapeHtml(moderation?.compactReason || "Moderation metadata unavailable.")}</div>
+            <div class="moderation-inline-note">${escapeHtml(sourceLabel)} - ${escapeHtml(moderation?.compactReason || "Moderation metadata unavailable.")}</div>
           </div>
 
           <div class="queue-item-actions">
@@ -2319,9 +2353,9 @@ function renderApprovedPreview() {
 
         <div class="request-artist">${escapeHtml(item.artist || "Unknown artist")}</div>
         <div class="request-meta">
-          ${escapeHtml(item.album || "Unknown Album")} • ${escapeHtml(msToMinSec(item.durationMs))}
+          ${escapeHtml(item.album || "Unknown Album")} - ${escapeHtml(msToMinSec(item.durationMs))}
         </div>
-        <div class="request-submitted">Selected approved track preview • ${escapeHtml(getSourceLabel(current.source))}</div>
+        <div class="request-submitted">Selected approved track preview - ${escapeHtml(getSourceLabel(current.source))}</div>
         <div class="request-status-tags">${buildRequestStatusTags(current, moderation)}</div>
         <div class="moderation-inline-note">${escapeHtml(moderation?.compactReason || "Moderation metadata unavailable.")}</div>
       </div>
@@ -2379,7 +2413,7 @@ function renderSpotifyQueue(queueData) {
 
           <div class="request-artist">${escapeHtml(currentArtist || "Unknown artist")}</div>
           <div class="request-meta">
-            ${escapeHtml(currentlyPlaying.album?.name || "Unknown Album")} • ${escapeHtml(msToMinSec(currentlyPlaying.duration_ms))}
+            ${escapeHtml(currentlyPlaying.album?.name || "Unknown Album")} - ${escapeHtml(msToMinSec(currentlyPlaying.duration_ms))}
           </div>
         </div>
 
@@ -2421,7 +2455,7 @@ function renderSpotifyQueue(queueData) {
 
           <div class="request-artist">${escapeHtml(artist || "Unknown artist")}</div>
           <div class="request-meta">
-            ${escapeHtml(item.album?.name || "Unknown Album")} • ${escapeHtml(msToMinSec(item.duration_ms))}
+            ${escapeHtml(item.album?.name || "Unknown Album")} - ${escapeHtml(msToMinSec(item.duration_ms))}
           </div>
         </div>
 
@@ -2656,6 +2690,189 @@ async function addSelectedApprovedToPlaylist(playlistId) {
   return item;
 }
 
+function toSpotifyApiPath(value) {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+
+  if (raw.startsWith("https://api.spotify.com/v1")) {
+    return raw.slice("https://api.spotify.com/v1".length) || "";
+  }
+
+  if (raw.startsWith("/")) {
+    return raw;
+  }
+
+  return `/${raw.replace(/^\/+/, "")}`;
+}
+
+function closePlaylistPicker() {
+  if (!el.playlistPickerModal || !el.playlistPickerBackdrop) return;
+  el.playlistPickerModal.classList.remove("playlist-picker-is-open");
+  el.playlistPickerBackdrop.classList.remove("playlist-picker-is-open");
+  playlistPickerContext = null;
+}
+
+function getPlaylistPickerModeLabel(mode) {
+  return mode === "add" ? "Choose Playlist for Moderated Song" : "Choose Playlist to Play";
+}
+
+function renderPlaylistPickerList(playlists) {
+  if (!el.playlistPickerList) return;
+
+  if (!Array.isArray(playlists) || !playlists.length) {
+    el.playlistPickerList.innerHTML = '<div class="empty-state">No playlists were found for this Spotify account.</div>';
+    return;
+  }
+
+  el.playlistPickerList.innerHTML = playlists
+    .map((playlist) => {
+      const playlistId = String(playlist?.id || "").trim();
+      const playlistName = String(playlist?.name || "Untitled Playlist").trim() || "Untitled Playlist";
+      const ownerName = String(playlist?.owner?.display_name || playlist?.owner?.id || "Unknown Owner").trim();
+      const totalTracks = Number(playlist?.tracks?.total || 0);
+      const imageUrl = String(playlist?.images?.[0]?.url || "").trim();
+
+      const art = imageUrl
+        ? `<img class="playlist-picker-art" src="${escapeHtml(imageUrl)}" alt="${escapeHtml(playlistName)} artwork" loading="lazy" />`
+        : '<div class="playlist-picker-art playlist-picker-art-fallback">No Art</div>';
+
+      return `
+        <button
+          type="button"
+          class="playlist-picker-item"
+          data-playlist-id="${escapeHtml(playlistId)}"
+          data-playlist-name="${escapeHtml(playlistName)}"
+        >
+          ${art}
+          <span class="playlist-picker-copy">
+            <span class="playlist-picker-name">${escapeHtml(playlistName)}</span>
+            <span class="playlist-picker-meta">${escapeHtml(ownerName)} | ${escapeHtml(totalTracks)} track(s)</span>
+          </span>
+        </button>
+      `;
+    })
+    .join("");
+}
+
+async function fetchSignedInUserPlaylists(forceRefresh = false) {
+  const now = Date.now();
+  if (
+    !forceRefresh &&
+    Array.isArray(playlistPickerCache.items) &&
+    playlistPickerCache.items.length > 0 &&
+    now - Number(playlistPickerCache.fetchedAtMs || 0) < Number(CONFIG.playlistPickerCacheMs || 120000)
+  ) {
+    return playlistPickerCache.items;
+  }
+
+  const me = await getCurrentUserProfile();
+  const myUserId = String(me?.id || "").trim().toLowerCase();
+
+  const limit = Math.max(1, Math.min(50, Number(CONFIG.userPlaylistFetchLimit || 50)));
+  let nextPath = `/me/playlists?limit=${limit}`;
+  const collected = [];
+
+  while (nextPath) {
+    const page = await spotifyFetch(nextPath);
+    const pageItems = Array.isArray(page?.items) ? page.items : [];
+    collected.push(...pageItems);
+
+    if (collected.length >= 500) {
+      break;
+    }
+
+    nextPath = toSpotifyApiPath(page?.next);
+  }
+
+  let owned = collected.filter((playlist) => {
+    const ownerId = String(playlist?.owner?.id || "").trim().toLowerCase();
+    return !!myUserId && ownerId === myUserId;
+  });
+
+  if (!owned.length) {
+    owned = collected;
+  }
+
+  owned = owned
+    .filter((playlist) => !!playlist?.id)
+    .sort((a, b) => String(a?.name || "").localeCompare(String(b?.name || ""), undefined, { sensitivity: "base" }));
+
+  playlistPickerCache = {
+    items: owned,
+    fetchedAtMs: Date.now()
+  };
+
+  return owned;
+}
+
+async function openPlaylistPicker(mode, forceRefresh = false) {
+  const safeMode = String(mode || "start").trim() === "add" ? "add" : "start";
+
+  if (!el.playlistPickerModal || !el.playlistPickerBackdrop || !el.playlistPickerList) {
+    throw new Error("Playlist picker UI is not available.");
+  }
+
+  if (safeMode === "add" && !getSelectedApprovedItem()?.spotify?.uri) {
+    throw new Error("Select an approved song before adding to a playlist.");
+  }
+
+  playlistPickerContext = { mode: safeMode };
+
+  if (el.playlistPickerTitle) {
+    el.playlistPickerTitle.textContent = getPlaylistPickerModeLabel(safeMode);
+  }
+
+  if (el.playlistPickerDescription) {
+    el.playlistPickerDescription.textContent = safeMode === "add"
+      ? "Pick one of your playlists to store the currently selected moderated song."
+      : "Pick one of your playlists to start playback on the active Spotify device.";
+  }
+
+  el.playlistPickerList.innerHTML = '<div class="empty-state">Loading playlists...</div>';
+  el.playlistPickerBackdrop.classList.add("playlist-picker-is-open");
+  el.playlistPickerModal.classList.add("playlist-picker-is-open");
+
+  const playlists = await fetchSignedInUserPlaylists(forceRefresh);
+  renderPlaylistPickerList(playlists);
+
+  if (el.playlistPickerDescription) {
+    el.playlistPickerDescription.textContent = `${playlists.length} playlist(s) available for ${safeMode === "add" ? "adding moderated songs" : "starting playback"}.`;
+  }
+
+  logConsoleEvent("Playlists", `Loaded ${playlists.length} playlist(s) for picker.`, { mode: safeMode }, "success");
+}
+
+async function handlePlaylistPickerSelection(playlistId, playlistName) {
+  const safePlaylistId = String(playlistId || "").trim();
+  const safePlaylistName = String(playlistName || "Playlist").trim() || "Playlist";
+
+  if (!safePlaylistId) {
+    throw new Error("Missing playlist ID from picker selection.");
+  }
+
+  const mode = playlistPickerContext?.mode || "start";
+
+  if (mode === "add") {
+    const item = await addSelectedApprovedToPlaylist(safePlaylistId);
+    setStatus(`Added to ${safePlaylistName}: ${item?.spotify?.artist || "Unknown Artist"} - ${item?.spotify?.name || "Unknown Song"}`);
+    logConsoleEvent("Moderation", "Added moderated song to playlist.", {
+      playlistId: safePlaylistId,
+      playlistName: safePlaylistName,
+      track: item?.spotify?.name || "Unknown Song"
+    }, "success");
+    closePlaylistPicker();
+    return;
+  }
+
+  await startPlaylistById(safePlaylistId);
+  setStatus(`Started playlist: ${safePlaylistName}.`);
+  await refreshPlayback();
+  logConsoleEvent("Playback", "Started playlist from picker.", {
+    playlistId: safePlaylistId,
+    playlistName: safePlaylistName
+  }, "success");
+  closePlaylistPicker();
+}
 async function addDjAssistedRequestFromForm() {
   const studentName = String(el.djStudentNameInput?.value || "").trim();
   const theme = String(el.djThemeInput?.value || "").trim();
@@ -2819,6 +3036,55 @@ function applyStatusTagEdit(requestId, editField) {
   }
 }
 
+function applyModerationBypass(requestId, bypassField) {
+  const key = String(requestId || "").trim();
+  const field = String(bypassField || "").trim();
+  if (!key || !field) return;
+
+  const request = getRequestById(key);
+  if (!request) {
+    setStatus("Could not find request to bypass moderation status.");
+    return;
+  }
+
+  if (field === "explicit") {
+    if (!request.spotify) {
+      setStatus("Cannot bypass explicit status without a valid Spotify track.");
+      return;
+    }
+
+    const confirmed = runModerationEditPuzzle("Explicit Bypass to Clean");
+    if (!confirmed) {
+      setStatus("Explicit bypass canceled.");
+      return;
+    }
+
+    setModerationOverride(key, { explicitStatus: "clean" });
+    setStatus("Explicit gate bypassed: marked as clean by moderator override.");
+    logConsoleEvent("Moderation", "Explicit bypass applied.", { requestId: key }, "warn");
+  }
+
+  if (field === "theme") {
+    const confirmed = runModerationEditPuzzle("Theme Bypass to Clear");
+    if (!confirmed) {
+      setStatus("Theme bypass canceled.");
+      return;
+    }
+
+    setModerationOverride(key, { themeStatus: "clear" });
+    setStatus("Theme gate bypassed: marked as clear by moderator override.");
+    logConsoleEvent("Moderation", "Theme bypass applied.", { requestId: key }, "warn");
+  }
+
+  renderRequests(currentRequests);
+  renderApprovedQueue();
+  renderApprovedPreview();
+
+  if (moderationDetailContext?.requestId === key) {
+    const updated = getRequestById(key) || moderationDetailContext;
+    openModerationReasonModal(updated);
+  }
+}
 function getLyricsFetchStatusTag(requestId) {
   const key = String(requestId || "").trim();
   const state = key ? lyricsFetchStateByRequestId.get(key) : null;
@@ -2967,6 +3233,8 @@ async function fetchLyricsCacheSnapshot() {
     };
   }
 
+  logConsoleEvent("Lyrics Cache", "Fetching cache snapshot...", { cacheUrl }, "info");
+
   try {
     const response = await fetch(`${cacheUrl}${cacheUrl.includes("?") ? "&" : "?"}t=${Date.now()}`, {
       method: "GET",
@@ -2977,6 +3245,7 @@ async function fetchLyricsCacheSnapshot() {
     });
 
     if (!response.ok) {
+      logConsoleEvent("Lyrics Cache", "Cache snapshot fetch failed.", { status: response.status }, "warn");
       return {
         ok: false,
         reason: `HTTP ${response.status}`
@@ -2987,11 +3256,17 @@ async function fetchLyricsCacheSnapshot() {
     lyricsCacheSnapshot = json;
     startLyricsCacheCountdown(json);
 
+    logConsoleEvent("Lyrics Cache", "Cache snapshot loaded.", {
+      generatedAt: json?.generated_at || "",
+      stats: json?.stats || null
+    }, "success");
+
     return {
       ok: true,
       cache: json
     };
   } catch (error) {
+    logConsoleEvent("Lyrics Cache", "Cache snapshot request failed.", { error: error?.message || error }, "error");
     return {
       ok: false,
       reason: error?.message || "Failed to load lyrics cache"
@@ -3209,7 +3484,7 @@ async function prefetchLyricsForLoadedRequests(requests) {
       }
 
       setStatus(
-        `Lyrics prefetch ${processed}/${groups.length} • Fetched: ${stats.success} • Fallback: ${stats.fallback} • Failed: ${stats.failed}`
+        `Lyrics prefetch ${processed}/${groups.length} - Fetched: ${stats.success} - Fallback: ${stats.fallback} - Failed: ${stats.failed}`
       );
 
       await wait(Math.max(0, Number(CONFIG.lyricsPrefetchDelayMs) || 0));
@@ -3287,12 +3562,25 @@ function moderationReasonHtml(request, moderation) {
     statusTagHtml(lyricsStatus.label, lyricsStatus.tone)
   ].join("");
 
+  const bypassActions = request?.requestId
+    ? `
+      <div class="moderation-bypass-actions">
+        <button class="btn btn-small moderation-bypass-btn" data-request-id="${escapeHtml(request.requestId)}" data-bypass-field="explicit" type="button">
+          Bypass Explicit
+        </button>
+        <button class="btn btn-small moderation-bypass-btn" data-request-id="${escapeHtml(request.requestId)}" data-bypass-field="theme" type="button">
+          Bypass Theme Flag
+        </button>
+      </div>
+    `
+    : "";
+
   const summaryRows = policySummary.length
     ? policySummary
       .map((entry) => `
         <div class="moderation-reason-item">
-          <div class="moderation-reason-label">${escapeHtml(entry.severity.toUpperCase())} • ${escapeHtml(entry.category)}</div>
-          <div class="moderation-reason-value">${escapeHtml(entry.count)} hit(s) • Fields: ${escapeHtml(entry.fields.join(", "))}</div>
+          <div class="moderation-reason-label">${escapeHtml(entry.severity.toUpperCase())} | ${escapeHtml(entry.category)}</div>
+          <div class="moderation-reason-value">${escapeHtml(entry.count)} hit(s) | Fields: ${escapeHtml(entry.fields.join(", "))}</div>
           <div class="moderation-inline-note">Matches: ${escapeHtml(entry.matches.join(", "))}</div>
         </div>
       `)
@@ -3319,7 +3607,8 @@ function moderationReasonHtml(request, moderation) {
       <div class="request-status-tags moderation-tags-wrap">
         ${detailTags}
       </div>
-      <p class="moderation-inline-note">Click Explicit or Theme tags to run the override puzzle and change status.</p>
+      <p class="moderation-inline-note">Use status tags or bypass buttons to run the safety puzzle and override moderation state when needed.</p>
+      ${bypassActions}
     </div>
 
     <div class="moderation-reason-grid">
@@ -3484,7 +3773,7 @@ function renderLyricsSuccess({ lyrics, selectorUsed, source }) {
   el.lyricsModalBody.innerHTML = `
     <div class="lyrics-success-wrap">
       <pre class="lyrics-text-pre">${escapeHtml(lyrics)}</pre>
-      <p class="lyrics-fallback-copy">Source: ${escapeHtml(source || "Lyrics API")} ${selectorUsed ? `• Selector: ${escapeHtml(selectorUsed)}` : ""}</p>
+      <p class="lyrics-fallback-copy">Source: ${escapeHtml(source || "Lyrics API")} ${selectorUsed ? `- Selector: ${escapeHtml(selectorUsed)}` : ""}</p>
     </div>
   `;
 }
@@ -3608,7 +3897,7 @@ async function addManualSearchResultToQueue(trackId) {
   }
 
   renderManualSearchResults();
-  setStatus(`Moderator override added: ${request.spotify.artist} — ${request.spotify.name}`);
+  setStatus(`Moderator override added: ${request.spotify.artist} - ${request.spotify.name}`);
 }
 
 // ======================================================
@@ -3616,6 +3905,9 @@ async function addManualSearchResultToQueue(trackId) {
 // ======================================================
 async function loadRequests() {
   setStatus("Loading request rows from Google Sheet and DJ local storage...");
+  logConsoleEvent("Moderation", "Request load started.", {
+    source: "google-sheet-and-dj-storage"
+  }, "info");
 
   let sheetRows = [];
   let sheetError = null;
@@ -3625,6 +3917,9 @@ async function loadRequests() {
   } catch (error) {
     sheetError = error;
     console.warn("Sheet request load failed:", error);
+    logConsoleEvent("Moderation", "Google Sheet load failed. Using DJ local requests only.", {
+      error: error?.message || error
+    }, "warn");
   }
 
   const djRows = getDjAssistedRequests();
@@ -3657,13 +3952,24 @@ async function loadRequests() {
     : "";
 
   if (sheetError) {
-    setStatus(
-      `Loaded ${enriched.length} request(s). Google Sheet was unavailable, DJ local requests are still active.${lyricsCacheSummary}${lyricsSummary}`
-    );
+    const finalMessage =
+      `Loaded ${enriched.length} request(s). Google Sheet was unavailable, DJ local requests are still active.${lyricsCacheSummary}${lyricsSummary}`;
+    setStatus(finalMessage);
+    logConsoleEvent("Moderation", "Request load completed with Google Sheet fallback.", {
+      total: enriched.length,
+      lyricsCacheResult,
+      lyricsPrefetch
+    }, "warn");
     return;
   }
 
-  setStatus(`Finished loading ${enriched.length} request(s).${lyricsCacheSummary}${lyricsSummary}`);
+  const finalMessage = `Finished loading ${enriched.length} request(s).${lyricsCacheSummary}${lyricsSummary}`;
+  setStatus(finalMessage);
+  logConsoleEvent("Moderation", "Request load completed.", {
+    total: enriched.length,
+    lyricsCacheResult,
+    lyricsPrefetch
+  }, "success");
 }
 
 // ======================================================
@@ -3707,6 +4013,23 @@ function wireStaticEvents() {
       setStatus(error?.message || "Failed to load requests.");
     }
   });
+  el.btnReloadLyricsCache?.addEventListener("click", async () => {
+    try {
+      const cacheResult = await fetchLyricsCacheSnapshot();
+      if (!cacheResult.ok) {
+        throw new Error(cacheResult.reason || "Lyrics cache reload failed.");
+      }
+
+      if (Array.isArray(currentRequests) && currentRequests.length) {
+        await applyLyricsCacheForLoadedRequests(currentRequests);
+      }
+
+      setStatus("Lyrics cache reloaded.");
+    } catch (error) {
+      console.error(error);
+      setStatus(error?.message || "Could not reload lyrics cache.");
+    }
+  });
 
   el.btnRefreshPlayback?.addEventListener("click", async () => {
     try {
@@ -3717,45 +4040,23 @@ function wireStaticEvents() {
     }
   });
 
-  el.btnStartDefaultPlaylist?.addEventListener("click", async () => {
+  el.btnPlayPlaylistPicker?.addEventListener("click", async () => {
     try {
-      await startDefaultPlaylist();
-      setStatus("Main playlist started.");
-      await refreshPlayback();
+      await openPlaylistPicker("start", false);
     } catch (error) {
       console.error(error);
-      setStatus(error?.message || "Could not start main playlist.");
-    }
-  });
-
-  el.btnStartSlowPlaylist?.addEventListener("click", async () => {
-    try {
-      await startSlowPlaylist();
-      setStatus("Slow playlist started.");
-      await refreshPlayback();
-    } catch (error) {
-      console.error(error);
-      setStatus(error?.message || "Could not start slow playlist.");
-    }
-  });
-
-  el.btnStartFunPlaylist?.addEventListener("click", async () => {
-    try {
-      await startFunPlaylist();
-      setStatus("Fun playlist started.");
-      await refreshPlayback();
-    } catch (error) {
-      console.error(error);
-      setStatus(error?.message || "Could not start fun playlist.");
+      setStatus(error?.message || "Could not open playlist picker.");
     }
   });
 
   el.btnAddApprovedToQueue?.addEventListener("click", async () => {
     try {
       const item = await addSelectedApprovedToQueue();
-      setStatus(
-        `Added to queue: ${item?.spotify?.artist || "Unknown Artist"} — ${item?.spotify?.name || "Unknown Song"}`
-      );
+      setStatus(`Added to queue: ${item?.spotify?.artist || "Unknown Artist"} - ${item?.spotify?.name || "Unknown Song"}`);
+      logConsoleEvent("Moderation", "Approved song added to active queue.", {
+        requestId: item?.requestId || "",
+        track: item?.spotify?.name || "Unknown Song"
+      }, "success");
     } catch (error) {
       console.error(error);
       setStatus(error?.message || "Could not add approved song to queue.");
@@ -3969,42 +4270,31 @@ function wireStaticEvents() {
     openModerationDetailsByRequestId(detailButton.dataset.requestId || "");
   });
 
-  el.btnAddSelectedToMainPlaylist?.addEventListener("click", async () => {
+  el.btnAddSelectedToPlaylistPicker?.addEventListener("click", async () => {
     try {
-      const item = await addSelectedApprovedToPlaylist(CONFIG.defaultPlaylistId);
-      setStatus(`Added to Main playlist: ${item?.spotify?.artist || "Unknown Artist"} - ${item?.spotify?.name || "Unknown Song"}`);
+      await openPlaylistPicker("add", false);
     } catch (error) {
       console.error(error);
-      setStatus(error?.message || "Could not add selected song to Main playlist.");
-    }
-  });
-
-  el.btnAddSelectedToSlowPlaylist?.addEventListener("click", async () => {
-    try {
-      const item = await addSelectedApprovedToPlaylist(CONFIG.slowPlaylistId);
-      setStatus(`Added to Slow playlist: ${item?.spotify?.artist || "Unknown Artist"} - ${item?.spotify?.name || "Unknown Song"}`);
-    } catch (error) {
-      console.error(error);
-      setStatus(error?.message || "Could not add selected song to Slow playlist.");
-    }
-  });
-
-  el.btnAddSelectedToFunPlaylist?.addEventListener("click", async () => {
-    try {
-      const item = await addSelectedApprovedToPlaylist(CONFIG.funPlaylistId);
-      setStatus(`Added to Fun playlist: ${item?.spotify?.artist || "Unknown Artist"} - ${item?.spotify?.name || "Unknown Song"}`);
-    } catch (error) {
-      console.error(error);
-      setStatus(error?.message || "Could not add selected song to Fun playlist.");
+      setStatus(error?.message || "Could not open playlist picker for add-to-playlist.");
     }
   });
 
   el.btnOpenModeration?.addEventListener("click", () => openModerationPanel());
   document.getElementById("btnCloseModeration")?.addEventListener("click", () => closeModerationPanel());
   document.getElementById("modBackdrop")?.addEventListener("click", () => closeModerationPanel());
+
   el.btnCloseModerationReason?.addEventListener("click", () => closeModerationReasonModal());
   el.moderationReasonBackdrop?.addEventListener("click", () => closeModerationReasonModal());
   el.moderationReasonBody?.addEventListener("click", (event) => {
+    const bypassButton = event.target.closest(".moderation-bypass-btn");
+    if (bypassButton) {
+      applyModerationBypass(
+        bypassButton.dataset.requestId || "",
+        bypassButton.dataset.bypassField || ""
+      );
+      return;
+    }
+
     const statusEditButton = event.target.closest(".mod-status-edit-btn");
     if (!statusEditButton) return;
 
@@ -4013,8 +4303,35 @@ function wireStaticEvents() {
       statusEditButton.dataset.editField || ""
     );
   });
+
   el.btnCloseLyricsModal?.addEventListener("click", () => closeLyricsModal());
   el.lyricsBackdrop?.addEventListener("click", () => closeLyricsModal());
+
+  el.btnClosePlaylistPicker?.addEventListener("click", () => closePlaylistPicker());
+  el.playlistPickerBackdrop?.addEventListener("click", () => closePlaylistPicker());
+  el.btnRefreshPlaylistPicker?.addEventListener("click", async () => {
+    try {
+      await openPlaylistPicker(playlistPickerContext?.mode || "start", true);
+    } catch (error) {
+      console.error(error);
+      setStatus(error?.message || "Could not refresh playlists.");
+    }
+  });
+
+  el.playlistPickerList?.addEventListener("click", async (event) => {
+    const playlistButton = event.target.closest(".playlist-picker-item");
+    if (!playlistButton) return;
+
+    try {
+      await handlePlaylistPickerSelection(
+        playlistButton.dataset.playlistId || "",
+        playlistButton.dataset.playlistName || ""
+      );
+    } catch (error) {
+      console.error(error);
+      setStatus(error?.message || "Could not apply playlist picker selection.");
+    }
+  });
 
   el.btnNowPlayingLyrics?.addEventListener("click", () => {
     if (!currentNowPlayingTrack) {

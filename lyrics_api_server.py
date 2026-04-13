@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """Single-file BeautifulSoup lyrics API.
 
 Run:
@@ -58,7 +58,7 @@ class LyricsResult:
 
 def slugify_for_musixmatch(value: str) -> str:
     value = str(value or "").strip()
-    value = value.replace("'", "-").replace("’", "-").replace("`", "-")
+    value = value.replace("'", "-").replace("\u2019", "-").replace("`", "-")
     value = re.sub(r"[,&/+]+", " ", value)
     value = "".join(ch for ch in value if ch.isalnum() or ch in {" ", "-"})
     value = re.sub(r"\s+", "-", value)
