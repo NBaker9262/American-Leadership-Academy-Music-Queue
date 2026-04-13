@@ -3,7 +3,7 @@ name: Lyrics Cache Refresh
 'on':
   workflow_dispatch:
   schedule:
-    - cron: "*/5 * * * *"
+    - cron: "*/10 * * * *"
   push:
     paths:
       - scripts/build_lyrics_cache.py
@@ -16,7 +16,7 @@ permissions:
 
 concurrency:
   group: lyrics-cache-refresh
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   build-cache:
@@ -39,9 +39,9 @@ jobs:
       - name: Build lyrics cache
         env:
           REQUESTS_CSV_URL: https://docs.google.com/spreadsheets/d/e/2PACX-1vQyc3RRDmjc-nN-XgMMDocbnn1tlxue5ynNoNnYSxnRKxgp2LRGNmYZXnVgAFLH7IViwTAtmIAkvDsK/pub?output=csv
-          LYRICS_CACHE_REFRESH_MINUTES: "5"
-          LYRICS_SCRAPE_DELAY_MS: "150"
-          LYRICS_CACHE_MAX_TRACKS: "500"
+          LYRICS_CACHE_REFRESH_MINUTES: "10"
+          LYRICS_SCRAPE_DELAY_MS: "300"
+          LYRICS_CACHE_MAX_TRACKS: "200"
         run: |
           python scripts/build_lyrics_cache.py
 
