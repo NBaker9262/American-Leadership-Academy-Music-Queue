@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-04-14T06:01:03.273588Z",
-  "next_refresh_at": "2026-04-14T06:06:03.273596Z",
+  "generated_at": "2026-04-14T07:59:33.225493Z",
+  "next_refresh_at": "2026-04-14T08:04:33.225509Z",
   "refresh_interval_minutes": 5,
   "source": {
     "requests_csv_url": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQyc3RRDmjc-nN-XgMMDocbnn1tlxue5ynNoNnYSxnRKxgp2LRGNmYZXnVgAFLH7IViwTAtmIAkvDsK/pub?output=csv",
@@ -10,8 +10,8 @@
     "request_rows": 23,
     "tracks_considered": 23,
     "spotify_meta_resolved": 22,
-    "lyrics_success": 18,
-    "lyrics_fallback": 5
+    "lyrics_success": 8,
+    "lyrics_fallback": 15
   },
   "by_track_id": {
     "0E7s6qk8zR2G6N3v9pR6Jh": {
@@ -20,7 +20,7 @@
       "status": "fallback",
       "lyrics": "",
       "error": "Spotify metadata lookup failed: Spotify metadata lookup failed: 404 Client Error: Not Found for url: https://open.spotify.com/oembed?url=https%3A%2F%2Fopen.spotify.com%2Ftrack%2F0E7s6qk8zR2G6N3v9pR6Jh",
-      "updated_at": "2026-04-14T06:00:46.946617Z",
+      "updated_at": "2026-04-14T07:59:05.427414Z",
       "request_ids": [
         "||https://open.spotify.com/track/0E7s6qk8zR2G6N3v9pR6Jh"
       ]
@@ -40,7 +40,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T06:00:47.373401Z",
+      "updated_at": "2026-04-14T07:59:05.800487Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -53,21 +53,22 @@
       "artist": "Post Malone, 21 Savage",
       "song": "rockstar (feat. 21 Savage)",
       "song_key": "post malone, 21 savage|rockstar (feat. 21 savage)",
-      "musixmatch_url": "https://www.musixmatch.com/lyrics/Post-Malone/rockstar",
-      "status": "success",
-      "lyrics": "Hahahahaha\nTank God\nAyy, ayy\nI′ve been fuckin' hoes and poppin′ pillies\nMan, I feel just like a rockstar (ayy, ayy)\nAll my brothers got that gas\nAnd they always be smokin' like a Rasta\nFuckin' with me, call up on a Uzi\nAnd show up, man, them the shottas\nWhen my homies pull up on your block\nThey make that thing go grrra-ta-ta-ta (ta, pow, pow, pow, ayy, ayy)\nSwitch my whip, came back in black\nI′m startin′ sayin', \"Rest in peace to Bon Scott\" (Scott, ayy)\nClose that door, we blowin′ smoke\nShe ask me light a fire like I'm Morrison (′son, ayy)\nAct a fool on stage\nProlly leave my fuckin' show in a cop car (car, ayy)\nShit was legendary\nThrew a TV out the window of the Montage\nCocaine on the table, liquor pourin′, don't give a damn\nDude, your girlfriend is a groupie, she just tryna get in\nSayin', \"I′m with the band\" (ayy, ayy)\nNow she actin′ outta pocket, tryna grab up on my pants\nHundred bitches in my trailer say they ain't got a man\nAnd they all brought a friend (yeah, ayy, ayy, ayy)\nI′ve been fuckin' hoes and poppin′ pillies\nMan, I feel just like a rockstar (ayy, ayy)\nAll my brothers got that gas\nAnd they always be smokin' like a Rasta\nFuckin′ with me, call up on a Uzi\nAnd show up, man, them the shottas\nWhen my homies pull up on your block\nThey make that thing go grrra-ta-ta-ta (ta, pow, pow, pow)\nI've been in the Hills fuckin' superstars\nFeelin′ like a popstar (21, 21, 21)\nDrinkin′ Henny, bad bitches jumpin' in the pool\nAnd they ain′t got on no bra (bra)\nHit her from the back, pullin' on her tracks\nAnd now she screamin′ out, \"¡No más!\" (yeah, yeah, yeah)\nThey like, \"Savage, why you got a twelve car garage\nAnd you only got six cars?\" (21)\nI ain't with the cakin′, how you kiss that? (kiss that?)\nYour wifey say I'm lookin' like a whole snack (big snack)\nGreen hundreds in my safe, I got old racks (old racks)\nL.A. bitches always askin′, \"Where the coke at?\" (21, 21)\nLivin′ like a rockstar, smash out on a cop car\nSweeter than a Pop-Tart, you know you are not hard\nI done made the hot chart, 'member I used to trap hard\nLivin′ like a rockstar, I'm livin′ like a rockstar (ayy)\nI've been fuckin′ hoes and poppin' pillies\nMan, I feel just like a rockstar (ayy, ayy)\nAll my brothers got that gas\nAnd they always be smokin' like a Rasta (yeah, yeah, yeah, yeah)\nFuckin′ with me, call up on a Uzi\nAnd show up, man, them the shottas\nWhen my homies pull up on your block\nThey make that thing go grrra-ta-ta-ta (ta, grrra-ta-ta-ta-ta)\nStar, star, rockstar, rockstar, star\nRockstar\nRockstar, feel just like a-\nRockstar\nRockstar\nRockstar\nFeel just like a",
-      "selector_used": "__NEXT_DATA__:props.pageProps.data.trackInfo.data.lyrics.body",
+      "musixmatch_url": "https://www.musixmatch.com/lyrics/Post-Malone-21-Savage/rockstar-feat-21-Savage",
+      "status": "fallback",
+      "lyrics": "",
+      "selector_used": "",
       "rating_label": "",
       "rating_code": "",
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T06:00:48.058775Z",
-      "error": "",
+      "updated_at": "2026-04-14T07:59:06.539232Z",
+      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Post-Malone-21-Savage/rockstar-feat-21-Savage",
         "https://www.musixmatch.com/lyrics/Post-Malone-21-Savage/rockstar",
-        "https://www.musixmatch.com/lyrics/Post-Malone/rockstar-feat-21-Savage"
+        "https://www.musixmatch.com/lyrics/Post-Malone/rockstar-feat-21-Savage",
+        "https://www.musixmatch.com/lyrics/Post-Malone/rockstar"
       ],
       "request_ids": [
         "||https://open.spotify.com/track/0e7ipj03S05BNilyu5bRzt"
@@ -88,7 +89,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T06:00:49.587359Z",
+      "updated_at": "2026-04-14T07:59:09.205345Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -110,8 +111,8 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T06:00:50.207476Z",
-      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Green-Day/Brain-Stew",
+      "updated_at": "2026-04-14T07:59:09.965898Z",
+      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Green-Day/Brain-Stew"
       ],
@@ -126,17 +127,20 @@
       "song": "One Dance",
       "song_key": "drake, wizkid, kyla|one dance",
       "musixmatch_url": "https://www.musixmatch.com/lyrics/Drake-Wizkid-Kyla/One-Dance",
-      "status": "success",
-      "lyrics": "Baby, I like your style\nGrips on your waist, front way, back way\nYou know that I don′t play\nStreets not safe, but I never run away\nEven when I'm away\nOti, oti\nThere′s never much love when we go OT\nI pray to make it back in one piece\nI pray, I pray\nThat's why I need a one dance\nGot a Hennessy in my hand\nOne more time 'fore I go\nHigher powers taking a hold on me\nI need a one dance\nGot a Hennessy in my hand\nOne more time ′fore I go\nHigher powers taking a hold on me\nBaby, I like your style\nStrength and guidance\nAll that I′m wishing for my friends\nNobody makes it from my ends\nI had to bust up the silence\nYou know you gotta stick by me\nSoon as you see the text, reply me\nI don't wanna spend time fighting\nWe′ve got no time, and that's why\nI need a one dance\nGot a Hennessy in my hand\nOne more time ′fore I go\nHigher powers taking a hold on me\nI need a one dance\nGot a Hennessy in my hand\nOne more time 'fore I go\nHigher powers taking a hold on me\nGot a pretty girl, and she love me long time\nFine like a wine, and she love me every time\nOh, yes, steady and fine\nBack up, back up, back up and whine am\nBack up, back up and whine am\nGirl, just back up, back up, back up and whine am\nOh, yes, steady and fine\nBack up, back up and whine am, girl\nTell me, I need to know\nWhere do you wanna go?\n′Cause if you're down, I'll take it slow\nMake you lose control\nWhere, where, where?\nWhere, where, where, where?\nOh, yes, steady and fine (where, where, where?)\nBack up, back up and whine am, girl (where, where, where, where?)\n′Cause if you′re down (back up, back up and-)\n'Cause if you′re down (back up, back up and-)\n'Cause if you′re down (back up, back up and-)\nI need a one dance (where, where, where?)\nGot a Hennessy in my hand (where, where?)\nOne more time 'fore I go (where, where, where?)\nHigher powers taking a hold on me (where, where, where, where?)\nI need a one dance\nGot a Hennessy in my hand\nOne more time ′fore I go\nHigher powers taking a hold on me",
-      "selector_used": "__NEXT_DATA__:props.pageProps.data.trackInfo.data.lyrics.body",
+      "status": "fallback",
+      "lyrics": "",
+      "selector_used": "",
       "rating_label": "",
       "rating_code": "",
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T06:00:50.982518Z",
-      "error": "",
-      "attempted_urls": [],
+      "updated_at": "2026-04-14T07:59:11.149745Z",
+      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "attempted_urls": [
+        "https://www.musixmatch.com/lyrics/Drake-Wizkid-Kyla/One-Dance",
+        "https://www.musixmatch.com/lyrics/Drake/One-Dance"
+      ],
       "request_ids": [
         "||https://open.spotify.com/track/1xznGGDReH1oQq0xzbwXa3"
       ]
@@ -148,17 +152,20 @@
       "song": "One Dance",
       "song_key": "drake, wizkid, kyla|one dance",
       "musixmatch_url": "https://www.musixmatch.com/lyrics/Drake-Wizkid-Kyla/One-Dance",
-      "status": "success",
-      "lyrics": "Baby, I like your style\nGrips on your waist, front way, back way\nYou know that I don′t play\nStreets not safe, but I never run away\nEven when I'm away\nOti, oti\nThere′s never much love when we go OT\nI pray to make it back in one piece\nI pray, I pray\nThat's why I need a one dance\nGot a Hennessy in my hand\nOne more time 'fore I go\nHigher powers taking a hold on me\nI need a one dance\nGot a Hennessy in my hand\nOne more time ′fore I go\nHigher powers taking a hold on me\nBaby, I like your style\nStrength and guidance\nAll that I′m wishing for my friends\nNobody makes it from my ends\nI had to bust up the silence\nYou know you gotta stick by me\nSoon as you see the text, reply me\nI don't wanna spend time fighting\nWe′ve got no time, and that's why\nI need a one dance\nGot a Hennessy in my hand\nOne more time ′fore I go\nHigher powers taking a hold on me\nI need a one dance\nGot a Hennessy in my hand\nOne more time 'fore I go\nHigher powers taking a hold on me\nGot a pretty girl, and she love me long time\nFine like a wine, and she love me every time\nOh, yes, steady and fine\nBack up, back up, back up and whine am\nBack up, back up and whine am\nGirl, just back up, back up, back up and whine am\nOh, yes, steady and fine\nBack up, back up and whine am, girl\nTell me, I need to know\nWhere do you wanna go?\n′Cause if you're down, I'll take it slow\nMake you lose control\nWhere, where, where?\nWhere, where, where, where?\nOh, yes, steady and fine (where, where, where?)\nBack up, back up and whine am, girl (where, where, where, where?)\n′Cause if you′re down (back up, back up and-)\n'Cause if you′re down (back up, back up and-)\n'Cause if you′re down (back up, back up and-)\nI need a one dance (where, where, where?)\nGot a Hennessy in my hand (where, where?)\nOne more time 'fore I go (where, where, where?)\nHigher powers taking a hold on me (where, where, where, where?)\nI need a one dance\nGot a Hennessy in my hand\nOne more time ′fore I go\nHigher powers taking a hold on me",
-      "selector_used": "__NEXT_DATA__:props.pageProps.data.trackInfo.data.lyrics.body",
+      "status": "fallback",
+      "lyrics": "",
+      "selector_used": "",
       "rating_label": "",
       "rating_code": "",
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T06:00:51.678474Z",
-      "error": "",
-      "attempted_urls": [],
+      "updated_at": "2026-04-14T07:59:14.096685Z",
+      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "attempted_urls": [
+        "https://www.musixmatch.com/lyrics/Drake-Wizkid-Kyla/One-Dance",
+        "https://www.musixmatch.com/lyrics/Drake/One-Dance"
+      ],
       "request_ids": [
         "||https://open.spotify.com/track/1zi7xx7UVEFkmKfv06H8x0"
       ]
@@ -178,7 +185,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T06:00:52.534579Z",
+      "updated_at": "2026-04-14T07:59:16.004439Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -200,8 +207,8 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T06:00:53.150514Z",
-      "error": "Lyrics element not found or extracted text was too short.",
+      "updated_at": "2026-04-14T07:59:17.012979Z",
+      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Eminem/The-Real-Slim-Shady"
       ],
@@ -216,17 +223,20 @@
       "song": "Dance Monkey",
       "song_key": "tones and i|dance monkey",
       "musixmatch_url": "https://www.musixmatch.com/lyrics/Tones-And-I/Dance-Monkey",
-      "status": "success",
-      "lyrics": "They say, \"Oh my God, I see the way you shine\nTake your hand, my dear, and place them both in mine\"\nYou know you stopped me dead while I was passing by\nAnd now I beg to see you dance just one more time\nOoh, I see you, see you, see you every time\nAnd oh my, I, I, I like your style\nYou, you make me, make me, make me wanna cry\nAnd now I beg to see you dance just one more time\nSo they say, \"Dance for me, dance for me, dance for me, oh\nI′ve never seen anybody do the things you do before\"\nThey say, \"Move for me, move for me, move for me, ay\nAnd when you're done, I′ll make you do it all again\"\nI said, \"Oh my God, I see you walking by\nTake my hands, my dear, and look me in my eyes\"\nJust like a monkey, I've been dancin' my whole life\nBut you just beg to see me dance just one more time\nOoh, I see you, see you, see you every time\nAnd oh my, I, I, I like your style\nYou, you make me, make me, make me wanna cry\nAnd now I beg to see you dance just one more time\nSo they say, \"Dance for me, dance for me, dance for me, oh\nI′ve never seen anybody do the things you do before\"\nThey say, \"Move for me, move for me, move for me, ay\nAnd when you′re done, I'll make you do it all again\"\nThey say, \"Dance for me, dance for me, dance for me, oh, oh, oh\nI′ve never seen anybody do the things you do before\"\nThey say, \"Move for me, move for me, move for me, ay\nAnd when you're done, I′ll make you do it all again\"\nOoh, ooh, ooh, ooh, ooh (do it all again, do it all again, do it all again)\nWhoa, whoa, oh\nOoh, ooh, ooh, ooh, ooh-ooh (do it all again, do it all again, do it all again)\nWhoa, ah\nThey say, \"Dance for me, dance for me, dance for me, oh\nI've never seen anybody do the things you do before\"\nThey say, \"Move for me, move for me, move for me, ay\nAnd when you′re done, I'll make you do it all again\"\nThey say, \"Dance for me, dance for me, dance for me, oh, oh, oh\nI've never seen anybody do the things you do before\"\nThey say, \"Move for me, move for me, move for me, ay (ooh)\nAnd when you′re done, I′ll make you do it all again\"\nAll again",
-      "selector_used": "__NEXT_DATA__:props.pageProps.data.trackInfo.data.lyrics.body",
+      "status": "fallback",
+      "lyrics": "",
+      "selector_used": "",
       "rating_label": "",
       "rating_code": "",
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T06:00:53.725278Z",
-      "error": "",
-      "attempted_urls": [],
+      "updated_at": "2026-04-14T07:59:18.361345Z",
+      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "attempted_urls": [
+        "https://www.musixmatch.com/lyrics/Tones-And-I/Dance-Monkey",
+        "https://www.musixmatch.com/lyrics/Tones/Dance-Monkey"
+      ],
       "request_ids": [
         "||https://open.spotify.com/track/2XU0oxnq2qxCpomAAuJY8K"
       ]
@@ -238,17 +248,19 @@
       "song": "Time is Running Out",
       "song_key": "muse|time is running out",
       "musixmatch_url": "https://www.musixmatch.com/lyrics/Muse/Time-is-Running-Out",
-      "status": "success",
-      "lyrics": "I think I′m drowning, asphyxiated\nI wanna break this spell that you've created\nYou′re something beautiful, a contradiction\nI wanna play the game, I want the friction\nAnd you will be the death of me\nYeah, you will be the death of me\nBury it\nI won't let you bury it\nI won't let you smother it\nI won′t let you murder it\nAnd our time is running out\nBut our time is running out\nYou can′t push it underground\nYou can't stop it screaming out\nI wanted freedom, bound and restricted\nI tried to give you up, but I′m addicted\nNow that you know I'm trapped, sense of elation\nYou′d never dream of breaking this fixation\nAnd you will squeeze the life out of me\nAnd bury it\nI won't let you bury it\nI won′t let you smother it\nI won't let you murder it\nAnd our time is running out\nBut our time is running out\nYou can't push it underground\nYou can′t stop it screaming out\nHow did it come to this?\nOoh, yeah, yeah, yeah, yeah, yeah\nOoh, yeah, yeah, yeah, yeah, yeah\nOoh, yeah, yeah, yeah, yeah, yeah\nYeah, you will suck the life out of me\nBury it\nI won′t let you bury it\nI won't let you smother it\nI won′t let you murder it\nAnd our time is running out\nAnd our time is running out\nYou can't push it underground\nYou can′t stop it screaming out\nHow did it come to this?\nOoh, yeah, yeah, yeah, yeah, yeah\nOoh, yeah, yeah, yeah, yeah, yeah\nOoh, yeah, yeah, yeah, yeah, yeah",
-      "selector_used": "__NEXT_DATA__:props.pageProps.data.trackInfo.data.lyrics.body",
+      "status": "fallback",
+      "lyrics": "",
+      "selector_used": "",
       "rating_label": "",
       "rating_code": "",
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T06:00:54.371628Z",
-      "error": "",
-      "attempted_urls": [],
+      "updated_at": "2026-04-14T07:59:19.864704Z",
+      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "attempted_urls": [
+        "https://www.musixmatch.com/lyrics/Muse/Time-is-Running-Out"
+      ],
       "request_ids": [
         "||https://open.spotify.com/track/2takcwOaAZWiXQijPHIx7B"
       ]
@@ -268,7 +280,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T06:00:55.219161Z",
+      "updated_at": "2026-04-14T07:59:20.773542Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -290,8 +302,8 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T06:00:55.880017Z",
-      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Cardi-B/WAP",
+      "updated_at": "2026-04-14T07:59:21.443617Z",
+      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Cardi-B-Megan-Thee-Stallion/WAP-feat-Megan-Thee-Stallion",
         "https://www.musixmatch.com/lyrics/Cardi-B-Megan-Thee-Stallion/WAP",
@@ -309,17 +321,19 @@
       "song": "Happier Than Ever",
       "song_key": "billie eilish|happier than ever",
       "musixmatch_url": "https://www.musixmatch.com/lyrics/Billie-Eilish/Happier-Than-Ever",
-      "status": "success",
-      "lyrics": "When I′m away from you\nI'm happier than ever\nWish I could explain it better\nI wish it wasn′t true\nGive me a day or two\nTo think of something clever\nTo write myself a letter\nTo tell me what to do, mm-mm\nDo you read my interviews?\nOr do you skip my avenue? (My avenue)\nWhen you (when you) said you were passing through\nWas I even on your way?\nI knew when I asked you to (when I asked you to)\nBe cool about what I was telling you\nYou'd do the opposite of what you said you'd do (what you said you′d do)\nAnd I′d end up more afraid\nDon't say it isn′t fair\nYou clearly weren't aware that you made me miserable\nSo if you really wanna know\nWhen I′m away from you (when I'm away from you)\nI′m happier than ever (happier than ever)\nWish I could explain it better (wish I could explain it better)\nI wish it wasn't true (wish it wasn't true), mm-hm\nYou call me again, drunk in your Benz\nDriving home under the influence\nYou scared me to death, but I′m wasting my breath\n′Cause you only listen to your fucking friends\nI don't relate to you\nI don′t relate to you, no\n'Cause I′d never treat me this shitty\nYou made me hate this city\nAnd I don't talk shit about you on the internet\nNever told anyone anything bad\n′Cause that shit's embarrassing, you were my everything\nAnd all that you did was make me fucking sad\nSo don't waste the time I don′t have\nAnd don′t try to make me feel bad\nI could talk about every time that you showed up on time\nBut I'd have an empty line ′cause you never did\nNever paid any mind to my mother or friends\nSo I shut 'em all out for you ′cause I was a kid\nYou ruined everything good\nAlways said you were misunderstood\nMade all my moments your own\nJust fucking leave me alone, whoa, yeah",
-      "selector_used": "__NEXT_DATA__:props.pageProps.data.trackInfo.data.lyrics.body",
+      "status": "fallback",
+      "lyrics": "",
+      "selector_used": "",
       "rating_label": "",
       "rating_code": "",
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T06:00:56.978484Z",
-      "error": "",
-      "attempted_urls": [],
+      "updated_at": "2026-04-14T07:59:23.843373Z",
+      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "attempted_urls": [
+        "https://www.musixmatch.com/lyrics/Billie-Eilish/Happier-Than-Ever"
+      ],
       "request_ids": [
         "||https://open.spotify.com/track/4RVwu0g32PAqgUiJoXsdF8"
       ]
@@ -339,8 +353,8 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T06:00:57.519077Z",
-      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Eduard-Abramyan/Prelude-for-Piano-No-11-in-F-Sharp-Minor",
+      "updated_at": "2026-04-14T07:59:24.870609Z",
+      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Eduard-Abramyan-Sona-Shaboyan/Prelude-for-Piano-No-11-in-F-Sharp-Minor",
         "https://www.musixmatch.com/lyrics/Eduard-Abramyan/Prelude-for-Piano-No-11-in-F-Sharp-Minor"
@@ -356,17 +370,19 @@
       "song": "God's Plan",
       "song_key": "drake|god's plan",
       "musixmatch_url": "https://www.musixmatch.com/lyrics/Drake/God-s-Plan",
-      "status": "success",
-      "lyrics": "Yeah, they wishin′ and wishin' and wishin′ and wishin'\nThey wishin' on me, yeah\nI been movin′ calm, don′t start no trouble with me\nTryna keep it peaceful is a struggle for me\nDon't pull up at 6 a.m. to cuddle with me\nYou know how I like it when you lovin′ on me\nI don't wanna die for them to miss me\nYes, I see the things that they wishin′ on me\nHope I got some brothers that outlive me\nThey gon' tell the story, shit was different with me\nGod′s plan, God's plan\nI hold back, sometimes I won't, yeah\nI feel good, sometimes I don′t, ay, don′t\nI finessed down Weston Road, ay, 'nessed\nMight go down a G-O-D, yeah, wait\nI go hard on Southside G, yeah, wait\nI make sure that north-side eat\nAnd still\nBad things, it′s a lot of bad things\nThat they wishin' and wishin′ and wishin' and wishin′\nThey wishin' on me\nBad things, it's a lot of bad things\nThat they wishin′ and wishin′ and wishin' and wishin′\nThey wishin' on me, yeah, ay, ay\nShe said, \"Do you love me?\" I tell her, \"Only partly\"\nI only love Mahbed and my momma, I′m sorry\nFifty Dub, I even got it tatted on me\n81, they'll bring the crashers to the party\nAnd you know me\nTurn the O2 into the O3, dog\nWithout 40, Oli, there′d be no me\nImagine if I never met the broskies\nGod's plan, God's plan\nI can′t do this on my own, ay, no, ay\nSomeone watchin′ this shit close, yep, close\nI've been me since Scarlett Road, ay, road, ay\nMight go down as G-O-D, yeah, wait\nI go hard on Southside G, ay, wait\nI make sure that north-side eat, yeah\nAnd still\nBad things, it′s a lot of bad things\nThat they wishin' and wishin′ and wishin' and wishin′\nThey wishin' on me, yeah, yeah\nBad things, it's a lot of bad things\nThat they wishin′ and wishin′ and wishin' and wishin′\nThey wishin' on me, yeah",
-      "selector_used": "__NEXT_DATA__:props.pageProps.data.trackInfo.data.lyrics.body",
+      "status": "fallback",
+      "lyrics": "",
+      "selector_used": "",
       "rating_label": "",
       "rating_code": "",
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T06:00:58.609131Z",
-      "error": "",
-      "attempted_urls": [],
+      "updated_at": "2026-04-14T07:59:26.409975Z",
+      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "attempted_urls": [
+        "https://www.musixmatch.com/lyrics/Drake/God-s-Plan"
+      ],
       "request_ids": [
         "||https://open.spotify.com/track/6DCZcSspjsKoFjzjrWoCdn"
       ]
@@ -386,7 +402,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T06:00:59.355466Z",
+      "updated_at": "2026-04-14T07:59:27.445095Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -400,17 +416,19 @@
       "song": "24K Magic",
       "song_key": "bruno mars|24k magic",
       "musixmatch_url": "https://www.musixmatch.com/lyrics/Bruno-Mars/24K-Magic",
-      "status": "success",
-      "lyrics": "Tonight\nI just want to take you higher\nThrow your hands up in the sky\nLet′s set this party off right\nPlayers\nPut your pinky rings up to the moon\nGirls, what y'all trying to do?\n24-karat magic in the air\nHead to toe, so player, uh, look out, uh\nPop-pop, it′s showtime (showtime)\nShow time (show time)\nGuess who's back again?\nOh, they don't know? (Go on, tell ′em)\nOh, they don′t know? (Go on, tell 'em)\nI bet they know soon as we walk in (sure ′nough)\nI'm wearing Cuban links (yeah)\nDesigner minks (yeah)\nInglewood′s finest shoes (whoop, whoop)\nDon't look too hard, might hurt yourself\nKnown to give the colour red the blues\nOoh, shit\nI′m a dangerous man\nWith some money in my pocket (keep up, whoop)\nSo many pretty girls around me\nAnd they waking up the rocket (keep up, whoop)\nWhy you mad? Fix your face\nAin't my fault that y'all be jocking (keep up, whoop)\nPlayers only, come on\nPut your pinky rings up to the moon\nGirls, what y′all trying to do?\n24-karat magic in the air\nHead to toe, so player, uh, look out, uh\nSecond verse for the hustlas (hustlas)\nGangstas (gangstas)\nBad bitches and your ugly ass friends (haha)\nCan I preach? (Uh-oh)\nCan I preach? (Uh-oh)\nI gotta show ′em how a pimp get it in\nFirst, take your sip (sip)\nDo your dip (dip)\nSpend your money like money ain't shit\nOoh-ooh (we too fresh)\nGot to blame in on Jesus (hashtag blessed)\nThey ain′t ready for me, uh (whoo)\nI'm a dangerous man\nWith some money in my pocket (keep up, whoop)\nSo many pretty girls around me\nAnd they waking up the rocket (keep up, whoop)\nWhy you mad? Fix your face\nAin′t my fault that y'all be jocking (keep up, whoop)\nPlayers only, come on\nPut your pinky rings up to the moon (whoo)\nHey girls, what y′all tryin' to do? (What y'all tryin′ to do?)\n24-karat magic in the air (air, air)\nHead to toe, so player, ooh, ooh, look out, uh\n(Whoop!) Everywhere I go they be like, \"Ooh, so player\"\n(Whoop!) Everywhere I go they be like, \"Ooh, so player\" (ah)\n(Whoop!) Everywhere I go they be like, \"Ooh, so player, ooh\"\nNow, now, now, now watch me break it down like, ugh\n24-karat (whoop), 24-karat magic (what′s that sound?)\n24-karat, 24-karat magic (come on now)\n24-karat, 24-karat magic (ooh)\nDon't fight the feelin′, invite the feeling\nJust put your pinky rings up to the moon (whoo)\nGirls, what y'all trying to do? (Tell me what y′all trying to do)\n24-karat magic in the air (c'mon)\nHead to toe, so player (hands up)\nPut your pinky rings up to the moon (24-karat, 24-karat magic)\nGirls, what y′all trying to do? (24-karat, 24-karat magic)\n24-karat magic in the air (24-karat magic)\nHead to toe so player (24-karat), uh, look out (24-karat magic...)",
-      "selector_used": "__NEXT_DATA__:props.pageProps.data.trackInfo.data.lyrics.body",
+      "status": "fallback",
+      "lyrics": "",
+      "selector_used": "",
       "rating_label": "",
       "rating_code": "",
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T06:00:59.982596Z",
-      "error": "",
-      "attempted_urls": [],
+      "updated_at": "2026-04-14T07:59:28.216769Z",
+      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "attempted_urls": [
+        "https://www.musixmatch.com/lyrics/Bruno-Mars/24K-Magic"
+      ],
       "request_ids": [
         "|nb72258@stu.alaschools.org|https://open.spotify.com/track/6b8Be6ljOzmkOmFslEb23P?si=4674576dc0f44430"
       ]
@@ -422,17 +440,19 @@
       "song": "XO Tour Llif3",
       "song_key": "lil uzi vert|xo tour llif3",
       "musixmatch_url": "https://www.musixmatch.com/lyrics/Lil-Uzi-Vert/XO-Tour-Llif3",
-      "status": "success",
-      "lyrics": "Are you alright? I′m alright\nI'm quite alright and my money′s right\n(8) yeah\n(Countin' them bands all way to the top 'til they be fallin′ over)\n(Countin′ them bands, on my way to the top 'til we fallin′ over)\nI don't really care if you cry\nOn the real, you should′ve never lied\nShould've saw the way she looked me in my eyes\nShe said, \"Baby, I am not afraid to die\"\nPush me to the edge\nAll my friends are dead, push me to the edge\nAll my friends are dead, push me to the edge\nAll my friends are dead, push me to the edge\nPhantom that′s all red, inside all white\nLike something you ride a sled down, I just want that head\nMy Brittany got mad, I'm barely her man now\nEverybody got the same swag now, watch the way that I tear it down\nStackin' my bands all the way to the top, all the way ′til my bands fallin′ over\nEvery time that you leave your spot, your girlfriend call me like, \"Come on over\"\nI like the way that she treat me, gon' leave you, won′t leave me, I call it that Casanova\nShe say I'm insane, yeah, I might blow my brain out\n(Hey) Xanny help the pain, yeah, please, Xanny make it go away\nI′m committed, not addicted, but it keep control of me\nAll the pain, now I can't feel it, I swear that it′s slowin' me, yeah\nI don't really care if you cry\nOn the real, you should′ve never lied\nSaw the way she looked me in my eyes\nShe said, \"I am not afraid to die\"\nYeah, all my friends are dead\nPush me to the edge, all my friends are dead\nYeah, ooh, push me to the edge\nAll my friends are dead, yeah, all my friends are dead, yeah\nThat is not your swag, I swear you fake hard\nNow these niggas wanna take my cadence (yeah)\nRain on ′em, thunderstorm, rain on 'em (ooh, yeah)\nMedicine, lil′ nigga take some (yeah, yeah)\nFast car, Nascar, race on 'em\nIn the club, ain′t got no ones, then we would beg them (yeah)\nClothes from overseas, got them racks and they all C-Notes\nYou is not a G, though\nLookin' at you stackin′ all your money, it all green though\nI was countin' that and these all twenties, that's a G-roll\nShe say, \"You′re the worst, you′re the worst\"\nI cannot die because this my universe\nI don't really care if you cry\nOn the real, you should′ve never lied\nShould've saw the way she looked me in my eyes\nShe said, \"Baby, I am not afraid to die\"\nPush me to the edge\nAll my friends are dead, push me to the edge\nAll my friends are dead, push me to the edge\nAll my friends are dead, push me to the edge",
-      "selector_used": "__NEXT_DATA__:props.pageProps.data.trackInfo.data.lyrics.body",
+      "status": "fallback",
+      "lyrics": "",
+      "selector_used": "",
       "rating_label": "",
       "rating_code": "",
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T06:01:00.564154Z",
-      "error": "",
-      "attempted_urls": [],
+      "updated_at": "2026-04-14T07:59:29.324913Z",
+      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "attempted_urls": [
+        "https://www.musixmatch.com/lyrics/Lil-Uzi-Vert/XO-Tour-Llif3"
+      ],
       "request_ids": [
         "||https://open.spotify.com/track/7GX5flRQZVHRAGd6B4TmDO"
       ]
@@ -452,7 +472,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T06:01:01.312275Z",
+      "updated_at": "2026-04-14T07:59:30.680353Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -474,7 +494,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T06:01:01.936307Z",
+      "updated_at": "2026-04-14T07:59:31.284515Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -496,7 +516,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T06:01:02.574476Z",
+      "updated_at": "2026-04-14T07:59:32.091661Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -510,17 +530,19 @@
       "song": "When I Look At You",
       "song_key": "miley cyrus|when i look at you",
       "musixmatch_url": "https://www.musixmatch.com/lyrics/Miley-Cyrus/When-I-Look-At-You",
-      "status": "success",
-      "lyrics": "Everybody needs inspiration\nEverybody needs a song\nA beautiful melody\nWhen the night′s so long\n'Cause there is no guarantee\nThat this life is easy\nYeah, when my world is falling apart\nWhen there′s no light to break up the dark\nThat's when I, I\nI look at you\nWhen the waves\nAre flooding the shore and I can't\nFind my way home anymore\nThat′s when I, I\nI look at you\nWhen I look at you, I see forgiveness\nI see the truth\nYou love me for who I am\nLike the stars hold the moon\nRight there where they belong\nAnd I know I′m not alone\nYeah, when my world is falling apart\nWhen there's no light to break up the dark\nThat′s when I, I\nI look at you\nWhen the waves\nAre flooding the shore and I can't\nFind my way home anymore\nThat′s when I, I\nI look at you\nYou appear just like a dream to me\nJust like Kaleidoscope colors that\nCover me, all I need\nEvery breath that I breathe\nDon't you know you′re beautiful?\nYeah, yeah, yeah\nWhen the waves\nAre flooding the shore and I can't\nFind my way home anymore\nThat's when I, I\nI look at you\nI look at you\nYou appear just like a dream\nTo me",
-      "selector_used": "__NEXT_DATA__:props.pageProps.data.trackInfo.data.lyrics.body",
+      "status": "fallback",
+      "lyrics": "",
+      "selector_used": "",
       "rating_label": "",
       "rating_code": "",
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T06:01:03.175788Z",
-      "error": "",
-      "attempted_urls": [],
+      "updated_at": "2026-04-14T07:59:32.815229Z",
+      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "attempted_urls": [
+        "https://www.musixmatch.com/lyrics/Miley-Cyrus/When-I-Look-At-You"
+      ],
       "request_ids": [
         "4/6/2026 15:08:22|noahmathmaster@gmail.com|https://open.spotify.com/track/7ywzEdEuVG1lsjsRCGJfLy?si=75ae6370785b4fe7"
       ]
@@ -542,7 +564,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T06:00:47.373401Z",
+      "updated_at": "2026-04-14T07:59:05.800487Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -555,21 +577,22 @@
       "artist": "Post Malone, 21 Savage",
       "song": "rockstar (feat. 21 Savage)",
       "song_key": "post malone, 21 savage|rockstar (feat. 21 savage)",
-      "musixmatch_url": "https://www.musixmatch.com/lyrics/Post-Malone/rockstar",
-      "status": "success",
-      "lyrics": "Hahahahaha\nTank God\nAyy, ayy\nI′ve been fuckin' hoes and poppin′ pillies\nMan, I feel just like a rockstar (ayy, ayy)\nAll my brothers got that gas\nAnd they always be smokin' like a Rasta\nFuckin' with me, call up on a Uzi\nAnd show up, man, them the shottas\nWhen my homies pull up on your block\nThey make that thing go grrra-ta-ta-ta (ta, pow, pow, pow, ayy, ayy)\nSwitch my whip, came back in black\nI′m startin′ sayin', \"Rest in peace to Bon Scott\" (Scott, ayy)\nClose that door, we blowin′ smoke\nShe ask me light a fire like I'm Morrison (′son, ayy)\nAct a fool on stage\nProlly leave my fuckin' show in a cop car (car, ayy)\nShit was legendary\nThrew a TV out the window of the Montage\nCocaine on the table, liquor pourin′, don't give a damn\nDude, your girlfriend is a groupie, she just tryna get in\nSayin', \"I′m with the band\" (ayy, ayy)\nNow she actin′ outta pocket, tryna grab up on my pants\nHundred bitches in my trailer say they ain't got a man\nAnd they all brought a friend (yeah, ayy, ayy, ayy)\nI′ve been fuckin' hoes and poppin′ pillies\nMan, I feel just like a rockstar (ayy, ayy)\nAll my brothers got that gas\nAnd they always be smokin' like a Rasta\nFuckin′ with me, call up on a Uzi\nAnd show up, man, them the shottas\nWhen my homies pull up on your block\nThey make that thing go grrra-ta-ta-ta (ta, pow, pow, pow)\nI've been in the Hills fuckin' superstars\nFeelin′ like a popstar (21, 21, 21)\nDrinkin′ Henny, bad bitches jumpin' in the pool\nAnd they ain′t got on no bra (bra)\nHit her from the back, pullin' on her tracks\nAnd now she screamin′ out, \"¡No más!\" (yeah, yeah, yeah)\nThey like, \"Savage, why you got a twelve car garage\nAnd you only got six cars?\" (21)\nI ain't with the cakin′, how you kiss that? (kiss that?)\nYour wifey say I'm lookin' like a whole snack (big snack)\nGreen hundreds in my safe, I got old racks (old racks)\nL.A. bitches always askin′, \"Where the coke at?\" (21, 21)\nLivin′ like a rockstar, smash out on a cop car\nSweeter than a Pop-Tart, you know you are not hard\nI done made the hot chart, 'member I used to trap hard\nLivin′ like a rockstar, I'm livin′ like a rockstar (ayy)\nI've been fuckin′ hoes and poppin' pillies\nMan, I feel just like a rockstar (ayy, ayy)\nAll my brothers got that gas\nAnd they always be smokin' like a Rasta (yeah, yeah, yeah, yeah)\nFuckin′ with me, call up on a Uzi\nAnd show up, man, them the shottas\nWhen my homies pull up on your block\nThey make that thing go grrra-ta-ta-ta (ta, grrra-ta-ta-ta-ta)\nStar, star, rockstar, rockstar, star\nRockstar\nRockstar, feel just like a-\nRockstar\nRockstar\nRockstar\nFeel just like a",
-      "selector_used": "__NEXT_DATA__:props.pageProps.data.trackInfo.data.lyrics.body",
+      "musixmatch_url": "https://www.musixmatch.com/lyrics/Post-Malone-21-Savage/rockstar-feat-21-Savage",
+      "status": "fallback",
+      "lyrics": "",
+      "selector_used": "",
       "rating_label": "",
       "rating_code": "",
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T06:00:48.058775Z",
-      "error": "",
+      "updated_at": "2026-04-14T07:59:06.539232Z",
+      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Post-Malone-21-Savage/rockstar-feat-21-Savage",
         "https://www.musixmatch.com/lyrics/Post-Malone-21-Savage/rockstar",
-        "https://www.musixmatch.com/lyrics/Post-Malone/rockstar-feat-21-Savage"
+        "https://www.musixmatch.com/lyrics/Post-Malone/rockstar-feat-21-Savage",
+        "https://www.musixmatch.com/lyrics/Post-Malone/rockstar"
       ],
       "request_ids": [
         "||https://open.spotify.com/track/0e7ipj03S05BNilyu5bRzt"
@@ -590,7 +613,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T06:00:49.587359Z",
+      "updated_at": "2026-04-14T07:59:09.205345Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -612,8 +635,8 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T06:00:50.207476Z",
-      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Green-Day/Brain-Stew",
+      "updated_at": "2026-04-14T07:59:09.965898Z",
+      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Green-Day/Brain-Stew"
       ],
@@ -628,17 +651,20 @@
       "song": "One Dance",
       "song_key": "drake, wizkid, kyla|one dance",
       "musixmatch_url": "https://www.musixmatch.com/lyrics/Drake-Wizkid-Kyla/One-Dance",
-      "status": "success",
-      "lyrics": "Baby, I like your style\nGrips on your waist, front way, back way\nYou know that I don′t play\nStreets not safe, but I never run away\nEven when I'm away\nOti, oti\nThere′s never much love when we go OT\nI pray to make it back in one piece\nI pray, I pray\nThat's why I need a one dance\nGot a Hennessy in my hand\nOne more time 'fore I go\nHigher powers taking a hold on me\nI need a one dance\nGot a Hennessy in my hand\nOne more time ′fore I go\nHigher powers taking a hold on me\nBaby, I like your style\nStrength and guidance\nAll that I′m wishing for my friends\nNobody makes it from my ends\nI had to bust up the silence\nYou know you gotta stick by me\nSoon as you see the text, reply me\nI don't wanna spend time fighting\nWe′ve got no time, and that's why\nI need a one dance\nGot a Hennessy in my hand\nOne more time ′fore I go\nHigher powers taking a hold on me\nI need a one dance\nGot a Hennessy in my hand\nOne more time 'fore I go\nHigher powers taking a hold on me\nGot a pretty girl, and she love me long time\nFine like a wine, and she love me every time\nOh, yes, steady and fine\nBack up, back up, back up and whine am\nBack up, back up and whine am\nGirl, just back up, back up, back up and whine am\nOh, yes, steady and fine\nBack up, back up and whine am, girl\nTell me, I need to know\nWhere do you wanna go?\n′Cause if you're down, I'll take it slow\nMake you lose control\nWhere, where, where?\nWhere, where, where, where?\nOh, yes, steady and fine (where, where, where?)\nBack up, back up and whine am, girl (where, where, where, where?)\n′Cause if you′re down (back up, back up and-)\n'Cause if you′re down (back up, back up and-)\n'Cause if you′re down (back up, back up and-)\nI need a one dance (where, where, where?)\nGot a Hennessy in my hand (where, where?)\nOne more time 'fore I go (where, where, where?)\nHigher powers taking a hold on me (where, where, where, where?)\nI need a one dance\nGot a Hennessy in my hand\nOne more time ′fore I go\nHigher powers taking a hold on me",
-      "selector_used": "__NEXT_DATA__:props.pageProps.data.trackInfo.data.lyrics.body",
+      "status": "fallback",
+      "lyrics": "",
+      "selector_used": "",
       "rating_label": "",
       "rating_code": "",
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T06:00:51.678474Z",
-      "error": "",
-      "attempted_urls": [],
+      "updated_at": "2026-04-14T07:59:14.096685Z",
+      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "attempted_urls": [
+        "https://www.musixmatch.com/lyrics/Drake-Wizkid-Kyla/One-Dance",
+        "https://www.musixmatch.com/lyrics/Drake/One-Dance"
+      ],
       "request_ids": [
         "||https://open.spotify.com/track/1zi7xx7UVEFkmKfv06H8x0"
       ]
@@ -658,7 +684,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T06:00:52.534579Z",
+      "updated_at": "2026-04-14T07:59:16.004439Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -680,8 +706,8 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T06:00:53.150514Z",
-      "error": "Lyrics element not found or extracted text was too short.",
+      "updated_at": "2026-04-14T07:59:17.012979Z",
+      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Eminem/The-Real-Slim-Shady"
       ],
@@ -696,17 +722,20 @@
       "song": "Dance Monkey",
       "song_key": "tones and i|dance monkey",
       "musixmatch_url": "https://www.musixmatch.com/lyrics/Tones-And-I/Dance-Monkey",
-      "status": "success",
-      "lyrics": "They say, \"Oh my God, I see the way you shine\nTake your hand, my dear, and place them both in mine\"\nYou know you stopped me dead while I was passing by\nAnd now I beg to see you dance just one more time\nOoh, I see you, see you, see you every time\nAnd oh my, I, I, I like your style\nYou, you make me, make me, make me wanna cry\nAnd now I beg to see you dance just one more time\nSo they say, \"Dance for me, dance for me, dance for me, oh\nI′ve never seen anybody do the things you do before\"\nThey say, \"Move for me, move for me, move for me, ay\nAnd when you're done, I′ll make you do it all again\"\nI said, \"Oh my God, I see you walking by\nTake my hands, my dear, and look me in my eyes\"\nJust like a monkey, I've been dancin' my whole life\nBut you just beg to see me dance just one more time\nOoh, I see you, see you, see you every time\nAnd oh my, I, I, I like your style\nYou, you make me, make me, make me wanna cry\nAnd now I beg to see you dance just one more time\nSo they say, \"Dance for me, dance for me, dance for me, oh\nI′ve never seen anybody do the things you do before\"\nThey say, \"Move for me, move for me, move for me, ay\nAnd when you′re done, I'll make you do it all again\"\nThey say, \"Dance for me, dance for me, dance for me, oh, oh, oh\nI′ve never seen anybody do the things you do before\"\nThey say, \"Move for me, move for me, move for me, ay\nAnd when you're done, I′ll make you do it all again\"\nOoh, ooh, ooh, ooh, ooh (do it all again, do it all again, do it all again)\nWhoa, whoa, oh\nOoh, ooh, ooh, ooh, ooh-ooh (do it all again, do it all again, do it all again)\nWhoa, ah\nThey say, \"Dance for me, dance for me, dance for me, oh\nI've never seen anybody do the things you do before\"\nThey say, \"Move for me, move for me, move for me, ay\nAnd when you′re done, I'll make you do it all again\"\nThey say, \"Dance for me, dance for me, dance for me, oh, oh, oh\nI've never seen anybody do the things you do before\"\nThey say, \"Move for me, move for me, move for me, ay (ooh)\nAnd when you′re done, I′ll make you do it all again\"\nAll again",
-      "selector_used": "__NEXT_DATA__:props.pageProps.data.trackInfo.data.lyrics.body",
+      "status": "fallback",
+      "lyrics": "",
+      "selector_used": "",
       "rating_label": "",
       "rating_code": "",
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T06:00:53.725278Z",
-      "error": "",
-      "attempted_urls": [],
+      "updated_at": "2026-04-14T07:59:18.361345Z",
+      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "attempted_urls": [
+        "https://www.musixmatch.com/lyrics/Tones-And-I/Dance-Monkey",
+        "https://www.musixmatch.com/lyrics/Tones/Dance-Monkey"
+      ],
       "request_ids": [
         "||https://open.spotify.com/track/2XU0oxnq2qxCpomAAuJY8K"
       ]
@@ -718,17 +747,19 @@
       "song": "Time is Running Out",
       "song_key": "muse|time is running out",
       "musixmatch_url": "https://www.musixmatch.com/lyrics/Muse/Time-is-Running-Out",
-      "status": "success",
-      "lyrics": "I think I′m drowning, asphyxiated\nI wanna break this spell that you've created\nYou′re something beautiful, a contradiction\nI wanna play the game, I want the friction\nAnd you will be the death of me\nYeah, you will be the death of me\nBury it\nI won't let you bury it\nI won't let you smother it\nI won′t let you murder it\nAnd our time is running out\nBut our time is running out\nYou can′t push it underground\nYou can't stop it screaming out\nI wanted freedom, bound and restricted\nI tried to give you up, but I′m addicted\nNow that you know I'm trapped, sense of elation\nYou′d never dream of breaking this fixation\nAnd you will squeeze the life out of me\nAnd bury it\nI won't let you bury it\nI won′t let you smother it\nI won't let you murder it\nAnd our time is running out\nBut our time is running out\nYou can't push it underground\nYou can′t stop it screaming out\nHow did it come to this?\nOoh, yeah, yeah, yeah, yeah, yeah\nOoh, yeah, yeah, yeah, yeah, yeah\nOoh, yeah, yeah, yeah, yeah, yeah\nYeah, you will suck the life out of me\nBury it\nI won′t let you bury it\nI won't let you smother it\nI won′t let you murder it\nAnd our time is running out\nAnd our time is running out\nYou can't push it underground\nYou can′t stop it screaming out\nHow did it come to this?\nOoh, yeah, yeah, yeah, yeah, yeah\nOoh, yeah, yeah, yeah, yeah, yeah\nOoh, yeah, yeah, yeah, yeah, yeah",
-      "selector_used": "__NEXT_DATA__:props.pageProps.data.trackInfo.data.lyrics.body",
+      "status": "fallback",
+      "lyrics": "",
+      "selector_used": "",
       "rating_label": "",
       "rating_code": "",
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T06:00:54.371628Z",
-      "error": "",
-      "attempted_urls": [],
+      "updated_at": "2026-04-14T07:59:19.864704Z",
+      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "attempted_urls": [
+        "https://www.musixmatch.com/lyrics/Muse/Time-is-Running-Out"
+      ],
       "request_ids": [
         "||https://open.spotify.com/track/2takcwOaAZWiXQijPHIx7B"
       ]
@@ -748,7 +779,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T06:00:55.219161Z",
+      "updated_at": "2026-04-14T07:59:20.773542Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -770,8 +801,8 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T06:00:55.880017Z",
-      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Cardi-B/WAP",
+      "updated_at": "2026-04-14T07:59:21.443617Z",
+      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Cardi-B-Megan-Thee-Stallion/WAP-feat-Megan-Thee-Stallion",
         "https://www.musixmatch.com/lyrics/Cardi-B-Megan-Thee-Stallion/WAP",
@@ -789,17 +820,19 @@
       "song": "Happier Than Ever",
       "song_key": "billie eilish|happier than ever",
       "musixmatch_url": "https://www.musixmatch.com/lyrics/Billie-Eilish/Happier-Than-Ever",
-      "status": "success",
-      "lyrics": "When I′m away from you\nI'm happier than ever\nWish I could explain it better\nI wish it wasn′t true\nGive me a day or two\nTo think of something clever\nTo write myself a letter\nTo tell me what to do, mm-mm\nDo you read my interviews?\nOr do you skip my avenue? (My avenue)\nWhen you (when you) said you were passing through\nWas I even on your way?\nI knew when I asked you to (when I asked you to)\nBe cool about what I was telling you\nYou'd do the opposite of what you said you'd do (what you said you′d do)\nAnd I′d end up more afraid\nDon't say it isn′t fair\nYou clearly weren't aware that you made me miserable\nSo if you really wanna know\nWhen I′m away from you (when I'm away from you)\nI′m happier than ever (happier than ever)\nWish I could explain it better (wish I could explain it better)\nI wish it wasn't true (wish it wasn't true), mm-hm\nYou call me again, drunk in your Benz\nDriving home under the influence\nYou scared me to death, but I′m wasting my breath\n′Cause you only listen to your fucking friends\nI don't relate to you\nI don′t relate to you, no\n'Cause I′d never treat me this shitty\nYou made me hate this city\nAnd I don't talk shit about you on the internet\nNever told anyone anything bad\n′Cause that shit's embarrassing, you were my everything\nAnd all that you did was make me fucking sad\nSo don't waste the time I don′t have\nAnd don′t try to make me feel bad\nI could talk about every time that you showed up on time\nBut I'd have an empty line ′cause you never did\nNever paid any mind to my mother or friends\nSo I shut 'em all out for you ′cause I was a kid\nYou ruined everything good\nAlways said you were misunderstood\nMade all my moments your own\nJust fucking leave me alone, whoa, yeah",
-      "selector_used": "__NEXT_DATA__:props.pageProps.data.trackInfo.data.lyrics.body",
+      "status": "fallback",
+      "lyrics": "",
+      "selector_used": "",
       "rating_label": "",
       "rating_code": "",
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T06:00:56.978484Z",
-      "error": "",
-      "attempted_urls": [],
+      "updated_at": "2026-04-14T07:59:23.843373Z",
+      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "attempted_urls": [
+        "https://www.musixmatch.com/lyrics/Billie-Eilish/Happier-Than-Ever"
+      ],
       "request_ids": [
         "||https://open.spotify.com/track/4RVwu0g32PAqgUiJoXsdF8"
       ]
@@ -819,8 +852,8 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T06:00:57.519077Z",
-      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Eduard-Abramyan/Prelude-for-Piano-No-11-in-F-Sharp-Minor",
+      "updated_at": "2026-04-14T07:59:24.870609Z",
+      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Eduard-Abramyan-Sona-Shaboyan/Prelude-for-Piano-No-11-in-F-Sharp-Minor",
         "https://www.musixmatch.com/lyrics/Eduard-Abramyan/Prelude-for-Piano-No-11-in-F-Sharp-Minor"
@@ -836,17 +869,19 @@
       "song": "God's Plan",
       "song_key": "drake|god's plan",
       "musixmatch_url": "https://www.musixmatch.com/lyrics/Drake/God-s-Plan",
-      "status": "success",
-      "lyrics": "Yeah, they wishin′ and wishin' and wishin′ and wishin'\nThey wishin' on me, yeah\nI been movin′ calm, don′t start no trouble with me\nTryna keep it peaceful is a struggle for me\nDon't pull up at 6 a.m. to cuddle with me\nYou know how I like it when you lovin′ on me\nI don't wanna die for them to miss me\nYes, I see the things that they wishin′ on me\nHope I got some brothers that outlive me\nThey gon' tell the story, shit was different with me\nGod′s plan, God's plan\nI hold back, sometimes I won't, yeah\nI feel good, sometimes I don′t, ay, don′t\nI finessed down Weston Road, ay, 'nessed\nMight go down a G-O-D, yeah, wait\nI go hard on Southside G, yeah, wait\nI make sure that north-side eat\nAnd still\nBad things, it′s a lot of bad things\nThat they wishin' and wishin′ and wishin' and wishin′\nThey wishin' on me\nBad things, it's a lot of bad things\nThat they wishin′ and wishin′ and wishin' and wishin′\nThey wishin' on me, yeah, ay, ay\nShe said, \"Do you love me?\" I tell her, \"Only partly\"\nI only love Mahbed and my momma, I′m sorry\nFifty Dub, I even got it tatted on me\n81, they'll bring the crashers to the party\nAnd you know me\nTurn the O2 into the O3, dog\nWithout 40, Oli, there′d be no me\nImagine if I never met the broskies\nGod's plan, God's plan\nI can′t do this on my own, ay, no, ay\nSomeone watchin′ this shit close, yep, close\nI've been me since Scarlett Road, ay, road, ay\nMight go down as G-O-D, yeah, wait\nI go hard on Southside G, ay, wait\nI make sure that north-side eat, yeah\nAnd still\nBad things, it′s a lot of bad things\nThat they wishin' and wishin′ and wishin' and wishin′\nThey wishin' on me, yeah, yeah\nBad things, it's a lot of bad things\nThat they wishin′ and wishin′ and wishin' and wishin′\nThey wishin' on me, yeah",
-      "selector_used": "__NEXT_DATA__:props.pageProps.data.trackInfo.data.lyrics.body",
+      "status": "fallback",
+      "lyrics": "",
+      "selector_used": "",
       "rating_label": "",
       "rating_code": "",
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T06:00:58.609131Z",
-      "error": "",
-      "attempted_urls": [],
+      "updated_at": "2026-04-14T07:59:26.409975Z",
+      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "attempted_urls": [
+        "https://www.musixmatch.com/lyrics/Drake/God-s-Plan"
+      ],
       "request_ids": [
         "||https://open.spotify.com/track/6DCZcSspjsKoFjzjrWoCdn"
       ]
@@ -866,7 +901,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T06:00:59.355466Z",
+      "updated_at": "2026-04-14T07:59:27.445095Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -880,17 +915,19 @@
       "song": "24K Magic",
       "song_key": "bruno mars|24k magic",
       "musixmatch_url": "https://www.musixmatch.com/lyrics/Bruno-Mars/24K-Magic",
-      "status": "success",
-      "lyrics": "Tonight\nI just want to take you higher\nThrow your hands up in the sky\nLet′s set this party off right\nPlayers\nPut your pinky rings up to the moon\nGirls, what y'all trying to do?\n24-karat magic in the air\nHead to toe, so player, uh, look out, uh\nPop-pop, it′s showtime (showtime)\nShow time (show time)\nGuess who's back again?\nOh, they don't know? (Go on, tell ′em)\nOh, they don′t know? (Go on, tell 'em)\nI bet they know soon as we walk in (sure ′nough)\nI'm wearing Cuban links (yeah)\nDesigner minks (yeah)\nInglewood′s finest shoes (whoop, whoop)\nDon't look too hard, might hurt yourself\nKnown to give the colour red the blues\nOoh, shit\nI′m a dangerous man\nWith some money in my pocket (keep up, whoop)\nSo many pretty girls around me\nAnd they waking up the rocket (keep up, whoop)\nWhy you mad? Fix your face\nAin't my fault that y'all be jocking (keep up, whoop)\nPlayers only, come on\nPut your pinky rings up to the moon\nGirls, what y′all trying to do?\n24-karat magic in the air\nHead to toe, so player, uh, look out, uh\nSecond verse for the hustlas (hustlas)\nGangstas (gangstas)\nBad bitches and your ugly ass friends (haha)\nCan I preach? (Uh-oh)\nCan I preach? (Uh-oh)\nI gotta show ′em how a pimp get it in\nFirst, take your sip (sip)\nDo your dip (dip)\nSpend your money like money ain't shit\nOoh-ooh (we too fresh)\nGot to blame in on Jesus (hashtag blessed)\nThey ain′t ready for me, uh (whoo)\nI'm a dangerous man\nWith some money in my pocket (keep up, whoop)\nSo many pretty girls around me\nAnd they waking up the rocket (keep up, whoop)\nWhy you mad? Fix your face\nAin′t my fault that y'all be jocking (keep up, whoop)\nPlayers only, come on\nPut your pinky rings up to the moon (whoo)\nHey girls, what y′all tryin' to do? (What y'all tryin′ to do?)\n24-karat magic in the air (air, air)\nHead to toe, so player, ooh, ooh, look out, uh\n(Whoop!) Everywhere I go they be like, \"Ooh, so player\"\n(Whoop!) Everywhere I go they be like, \"Ooh, so player\" (ah)\n(Whoop!) Everywhere I go they be like, \"Ooh, so player, ooh\"\nNow, now, now, now watch me break it down like, ugh\n24-karat (whoop), 24-karat magic (what′s that sound?)\n24-karat, 24-karat magic (come on now)\n24-karat, 24-karat magic (ooh)\nDon't fight the feelin′, invite the feeling\nJust put your pinky rings up to the moon (whoo)\nGirls, what y'all trying to do? (Tell me what y′all trying to do)\n24-karat magic in the air (c'mon)\nHead to toe, so player (hands up)\nPut your pinky rings up to the moon (24-karat, 24-karat magic)\nGirls, what y′all trying to do? (24-karat, 24-karat magic)\n24-karat magic in the air (24-karat magic)\nHead to toe so player (24-karat), uh, look out (24-karat magic...)",
-      "selector_used": "__NEXT_DATA__:props.pageProps.data.trackInfo.data.lyrics.body",
+      "status": "fallback",
+      "lyrics": "",
+      "selector_used": "",
       "rating_label": "",
       "rating_code": "",
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T06:00:59.982596Z",
-      "error": "",
-      "attempted_urls": [],
+      "updated_at": "2026-04-14T07:59:28.216769Z",
+      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "attempted_urls": [
+        "https://www.musixmatch.com/lyrics/Bruno-Mars/24K-Magic"
+      ],
       "request_ids": [
         "|nb72258@stu.alaschools.org|https://open.spotify.com/track/6b8Be6ljOzmkOmFslEb23P?si=4674576dc0f44430"
       ]
@@ -902,17 +939,19 @@
       "song": "XO Tour Llif3",
       "song_key": "lil uzi vert|xo tour llif3",
       "musixmatch_url": "https://www.musixmatch.com/lyrics/Lil-Uzi-Vert/XO-Tour-Llif3",
-      "status": "success",
-      "lyrics": "Are you alright? I′m alright\nI'm quite alright and my money′s right\n(8) yeah\n(Countin' them bands all way to the top 'til they be fallin′ over)\n(Countin′ them bands, on my way to the top 'til we fallin′ over)\nI don't really care if you cry\nOn the real, you should′ve never lied\nShould've saw the way she looked me in my eyes\nShe said, \"Baby, I am not afraid to die\"\nPush me to the edge\nAll my friends are dead, push me to the edge\nAll my friends are dead, push me to the edge\nAll my friends are dead, push me to the edge\nPhantom that′s all red, inside all white\nLike something you ride a sled down, I just want that head\nMy Brittany got mad, I'm barely her man now\nEverybody got the same swag now, watch the way that I tear it down\nStackin' my bands all the way to the top, all the way ′til my bands fallin′ over\nEvery time that you leave your spot, your girlfriend call me like, \"Come on over\"\nI like the way that she treat me, gon' leave you, won′t leave me, I call it that Casanova\nShe say I'm insane, yeah, I might blow my brain out\n(Hey) Xanny help the pain, yeah, please, Xanny make it go away\nI′m committed, not addicted, but it keep control of me\nAll the pain, now I can't feel it, I swear that it′s slowin' me, yeah\nI don't really care if you cry\nOn the real, you should′ve never lied\nSaw the way she looked me in my eyes\nShe said, \"I am not afraid to die\"\nYeah, all my friends are dead\nPush me to the edge, all my friends are dead\nYeah, ooh, push me to the edge\nAll my friends are dead, yeah, all my friends are dead, yeah\nThat is not your swag, I swear you fake hard\nNow these niggas wanna take my cadence (yeah)\nRain on ′em, thunderstorm, rain on 'em (ooh, yeah)\nMedicine, lil′ nigga take some (yeah, yeah)\nFast car, Nascar, race on 'em\nIn the club, ain′t got no ones, then we would beg them (yeah)\nClothes from overseas, got them racks and they all C-Notes\nYou is not a G, though\nLookin' at you stackin′ all your money, it all green though\nI was countin' that and these all twenties, that's a G-roll\nShe say, \"You′re the worst, you′re the worst\"\nI cannot die because this my universe\nI don't really care if you cry\nOn the real, you should′ve never lied\nShould've saw the way she looked me in my eyes\nShe said, \"Baby, I am not afraid to die\"\nPush me to the edge\nAll my friends are dead, push me to the edge\nAll my friends are dead, push me to the edge\nAll my friends are dead, push me to the edge",
-      "selector_used": "__NEXT_DATA__:props.pageProps.data.trackInfo.data.lyrics.body",
+      "status": "fallback",
+      "lyrics": "",
+      "selector_used": "",
       "rating_label": "",
       "rating_code": "",
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T06:01:00.564154Z",
-      "error": "",
-      "attempted_urls": [],
+      "updated_at": "2026-04-14T07:59:29.324913Z",
+      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "attempted_urls": [
+        "https://www.musixmatch.com/lyrics/Lil-Uzi-Vert/XO-Tour-Llif3"
+      ],
       "request_ids": [
         "||https://open.spotify.com/track/7GX5flRQZVHRAGd6B4TmDO"
       ]
@@ -932,7 +971,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T06:01:01.312275Z",
+      "updated_at": "2026-04-14T07:59:30.680353Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -954,7 +993,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T06:01:01.936307Z",
+      "updated_at": "2026-04-14T07:59:31.284515Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -976,7 +1015,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T06:01:02.574476Z",
+      "updated_at": "2026-04-14T07:59:32.091661Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -990,17 +1029,19 @@
       "song": "When I Look At You",
       "song_key": "miley cyrus|when i look at you",
       "musixmatch_url": "https://www.musixmatch.com/lyrics/Miley-Cyrus/When-I-Look-At-You",
-      "status": "success",
-      "lyrics": "Everybody needs inspiration\nEverybody needs a song\nA beautiful melody\nWhen the night′s so long\n'Cause there is no guarantee\nThat this life is easy\nYeah, when my world is falling apart\nWhen there′s no light to break up the dark\nThat's when I, I\nI look at you\nWhen the waves\nAre flooding the shore and I can't\nFind my way home anymore\nThat′s when I, I\nI look at you\nWhen I look at you, I see forgiveness\nI see the truth\nYou love me for who I am\nLike the stars hold the moon\nRight there where they belong\nAnd I know I′m not alone\nYeah, when my world is falling apart\nWhen there's no light to break up the dark\nThat′s when I, I\nI look at you\nWhen the waves\nAre flooding the shore and I can't\nFind my way home anymore\nThat′s when I, I\nI look at you\nYou appear just like a dream to me\nJust like Kaleidoscope colors that\nCover me, all I need\nEvery breath that I breathe\nDon't you know you′re beautiful?\nYeah, yeah, yeah\nWhen the waves\nAre flooding the shore and I can't\nFind my way home anymore\nThat's when I, I\nI look at you\nI look at you\nYou appear just like a dream\nTo me",
-      "selector_used": "__NEXT_DATA__:props.pageProps.data.trackInfo.data.lyrics.body",
+      "status": "fallback",
+      "lyrics": "",
+      "selector_used": "",
       "rating_label": "",
       "rating_code": "",
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T06:01:03.175788Z",
-      "error": "",
-      "attempted_urls": [],
+      "updated_at": "2026-04-14T07:59:32.815229Z",
+      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "attempted_urls": [
+        "https://www.musixmatch.com/lyrics/Miley-Cyrus/When-I-Look-At-You"
+      ],
       "request_ids": [
         "4/6/2026 15:08:22|noahmathmaster@gmail.com|https://open.spotify.com/track/7ywzEdEuVG1lsjsRCGJfLy?si=75ae6370785b4fe7"
       ]
