@@ -583,7 +583,16 @@ function analyzeThemeModeration(request) {
     };
   }
 
-  if (reviewHits.length || fallbackReviewTerms.length) {
+  const uniqueReviewTerms = new Set([
+    ...reviewHits.map((hit) => hit.normalizedMatch).filter(Boolean),
+    ...fallbackReviewTerms.map((term) => normalizeModerationText(term)).filter(Boolean)
+  ]);
+  const reviewTermCount = uniqueReviewTerms.size;
+  const hasLyricsReviewHit = reviewHits.some((hit) => hit.field === "lyrics");
+
+  // Avoid over-flagging on a single mild hit in theme/title/artist/album.
+  // Flag when multiple unique review terms appear, or when the review term comes from lyrics.
+  if (reviewTermCount >= 2 || hasLyricsReviewHit) {
     const categories = [...new Set(reviewHits.map((hit) => hit.category))];
     const fallbackCategory = fallbackReviewTerms.length ? ["Legacy Theme Review"] : [];
     return {
@@ -606,10 +615,53 @@ function analyzeThemeModeration(request) {
   };
 }
 
+function normalizeLyricsRatingCode(value) {
+  return String(value || "")
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9-]+/g, "");
+}
+
+function getLyricsRatingForRequest(request) {
+  const ratingLabel = String(request?.lyricsData?.ratingLabel || "").trim();
+  const ratingCode = normalizeLyricsRatingCode(request?.lyricsData?.ratingCode || "");
+  const ratingReason = String(request?.lyricsData?.ratingReason || "").trim();
+
+  if (!ratingLabel && !ratingCode) return null;
+
+  const label = ratingCode
+    ? `Lyrics Rating: ${ratingCode}`
+    : ratingLabel.startsWith("Rating:")
+      ? `Lyrics ${ratingLabel}`
+      : `Lyrics Rating: ${ratingLabel}`;
+
+  return {
+    label,
+    code: ratingCode,
+    reason: ratingReason
+  };
+}
+
+function statusTagToneForLyricsRating(ratingCode) {
+  const code = normalizeLyricsRatingCode(ratingCode);
+  if (!code) return "neutral";
+
+  const danger = new Set(["EXPLICIT", "R", "NC-17", "TV-MA", "MA"]);
+  if (danger.has(code)) return "danger";
+
+  const ok = new Set(["CLEAN", "OK", "G", "PG", "PG-13"]);
+  if (ok.has(code)) return "ok";
+
+  if (code === "NR") return "neutral";
+  return "info";
+}
+
 function buildModerationMetadata(request) {
   const explicitFlag = request?.spotify?.explicit;
   const themeEvaluation = analyzeThemeModeration(request);
   const policyHits = Array.isArray(themeEvaluation.hits) ? themeEvaluation.hits : [];
+
+  const lyricsRating = getLyricsRatingForRequest(request);
 
   const hardHitCount = policyHits.filter((hit) => hit.severity === "block").length;
   const reviewHitCount = policyHits.filter((hit) => hit.severity === "review").length;
@@ -617,15 +669,29 @@ function buildModerationMetadata(request) {
   let explicitStatus = "unknown";
   let explicitLabel = "Unknown";
   let explicitReason = "Spotify track metadata was unavailable for explicit classification.";
+  let explicitSource = "Spotify track metadata";
 
   if (explicitFlag === true) {
     explicitStatus = "explicit";
     explicitLabel = "Explicit";
     explicitReason = "Spotify marks this track explicit (explicit=true).";
+    explicitSource = "Spotify track metadata";
+  } else if (lyricsRating?.code && statusTagToneForLyricsRating(lyricsRating.code) === "danger") {
+    // Use scraped lyrics rating as a stronger signal when Spotify says non-explicit or is missing.
+    explicitStatus = "explicit";
+    explicitLabel = "Explicit";
+    explicitReason = `Lyrics rating indicates explicit content${lyricsRating.reason ? ` (${lyricsRating.reason})` : ""}.`;
+    explicitSource = "Musixmatch rating";
   } else if (explicitFlag === false) {
     explicitStatus = "clean";
     explicitLabel = "Clean";
     explicitReason = "Spotify marks this track non-explicit (explicit=false).";
+    explicitSource = "Spotify track metadata";
+  } else if (lyricsRating?.code && statusTagToneForLyricsRating(lyricsRating.code) === "ok") {
+    explicitStatus = "clean";
+    explicitLabel = "Clean";
+    explicitReason = `Lyrics rating indicates non-explicit content${lyricsRating.reason ? ` (${lyricsRating.reason})` : ""}.`;
+    explicitSource = "Musixmatch rating";
   }
 
   let recommendation = "pass";
@@ -637,7 +703,7 @@ function buildModerationMetadata(request) {
     recommendationLabel = "Block";
     recommendationReason =
       explicitStatus === "explicit"
-        ? "Track is marked explicit by Spotify metadata."
+        ? (explicitReason || "Track is marked explicit.")
         : "Theme or metadata triggered blocked policy categories. Review required before any approval.";
   } else if (themeEvaluation.status === "flagged") {
     recommendation = "review";
@@ -645,13 +711,16 @@ function buildModerationMetadata(request) {
     recommendationReason = "Theme, metadata, or lyrics passed hard blocks but matched review categories that need manual review.";
   }
 
-  const compactReason = `${explicitLabel} by Spotify metadata | ${themeEvaluation.label} (${hardHitCount} hard, ${reviewHitCount} review hits)`;
+  const compactReason = `${explicitLabel} by ${explicitSource || "metadata"} | ${themeEvaluation.label} (${hardHitCount} hard, ${reviewHitCount} review hits)`;
 
   return {
     explicitStatus,
     explicitLabel,
     explicitReason,
-    explicitSource: "Spotify track metadata",
+    explicitSource,
+    lyricsRatingLabel: lyricsRating?.label || "",
+    lyricsRatingCode: lyricsRating?.code || "",
+    lyricsRatingReason: lyricsRating?.reason || "",
     themeStatus: themeEvaluation.status,
     themeLabel: themeEvaluation.label,
     themeReason: themeEvaluation.reason,
@@ -679,7 +748,7 @@ function refreshModerationRecommendation(moderation) {
     recommendationLabel = "Block";
     recommendationReason =
       moderation.explicitStatus === "explicit"
-        ? "Track is marked explicit by Spotify metadata."
+        ? (moderation.explicitReason || "Track is marked explicit.")
         : "Theme status is blocked. Manual override is required to approve.";
   } else if (moderation.themeStatus === "flagged") {
     recommendation = "review";
@@ -694,7 +763,8 @@ function refreshModerationRecommendation(moderation) {
   moderation.recommendation = recommendation;
   moderation.recommendationLabel = recommendationLabel;
   moderation.recommendationReason = recommendationReason;
-  moderation.compactReason = `${moderation.explicitLabel || "Unknown"} by Spotify metadata | ${moderation.themeLabel || "No Theme"} (${hardHitCount} hard, ${reviewHitCount} review hits)`;
+  const sourceLabel = String(moderation.explicitSource || "metadata");
+  moderation.compactReason = `${moderation.explicitLabel || "Unknown"} by ${sourceLabel} | ${moderation.themeLabel || "No Theme"} (${hardHitCount} hard, ${reviewHitCount} review hits)`;
 
   return moderation;
 }
@@ -1443,7 +1513,11 @@ async function fetchLyricsFromApi(artist, song) {
       ok: true,
       lyrics,
       selectorUsed: String(json?.selector_used || ""),
-      source: String(json?.source || "Lyrics API")
+      source: String(json?.source || "Lyrics API"),
+      ratingLabel: String(json?.rating_label || ""),
+      ratingCode: String(json?.rating_code || ""),
+      ratingReason: String(json?.rating_reason || ""),
+      ratingSelectorUsed: String(json?.rating_selector_used || "")
     };
   } catch (error) {
     return {
@@ -3764,7 +3838,11 @@ function getStoredLyricsDataForRequest(request) {
       lyrics: sanitizeLyricsText(requestLyrics.lyrics),
       source: String(requestLyrics.source || "request-cache"),
       selectorUsed: String(requestLyrics.selectorUsed || ""),
-      status: String(requestLyrics.status || "success")
+      status: String(requestLyrics.status || "success"),
+      ratingLabel: String(requestLyrics.ratingLabel || ""),
+      ratingCode: String(requestLyrics.ratingCode || ""),
+      ratingReason: String(requestLyrics.ratingReason || ""),
+      ratingSelectorUsed: String(requestLyrics.ratingSelectorUsed || "")
     };
   }
 
@@ -3775,7 +3853,11 @@ function getStoredLyricsDataForRequest(request) {
         lyrics: sanitizeLyricsText(state.lyrics),
         source: String(state.source || "runtime"),
         selectorUsed: String(state.selectorUsed || ""),
-        status: String(state.state || "success")
+        status: String(state.state || "success"),
+        ratingLabel: String(state.ratingLabel || ""),
+        ratingCode: String(state.ratingCode || ""),
+        ratingReason: String(state.ratingReason || ""),
+        ratingSelectorUsed: String(state.ratingSelectorUsed || "")
       };
     }
   }
@@ -3786,7 +3868,11 @@ function getStoredLyricsDataForRequest(request) {
       lyrics: sanitizeLyricsText(cacheEntry.lyrics),
       source: String(cacheEntry.source || "github-actions-cache"),
       selectorUsed: String(cacheEntry.selector_used || ""),
-      status: String(cacheEntry.status || "success")
+      status: String(cacheEntry.status || "success"),
+      ratingLabel: String(cacheEntry.rating_label || ""),
+      ratingCode: String(cacheEntry.rating_code || ""),
+      ratingReason: String(cacheEntry.rating_reason || ""),
+      ratingSelectorUsed: String(cacheEntry.rating_selector_used || "")
     };
   }
 
@@ -4223,6 +4309,10 @@ async function prefetchLyricsForLoadedRequests(requests) {
           lyrics: result.lyrics,
           source: result.source || "Lyrics API",
           selectorUsed: result.selectorUsed || "",
+          ratingLabel: result.ratingLabel || "",
+          ratingCode: result.ratingCode || "",
+          ratingReason: result.ratingReason || "",
+          ratingSelectorUsed: result.ratingSelectorUsed || "",
           status: "success",
           updatedAt: new Date().toISOString()
         });
@@ -4287,6 +4377,12 @@ function buildRequestStatusTags(request, moderation) {
     ? statusTagHtml("Spotify: Found", "ok")
     : statusTagHtml("Spotify: Missing", "danger");
 
+  const spotifyExplicitLabel = moderation?.explicitStatus === "explicit"
+    ? "Explicit"
+    : moderation?.explicitStatus === "clean"
+      ? "Clean"
+      : "Unknown";
+
   const explicitTone = moderation?.explicitStatus === "explicit"
     ? "danger"
     : moderation?.explicitStatus === "clean"
@@ -4294,10 +4390,15 @@ function buildRequestStatusTags(request, moderation) {
       : "neutral";
 
   const explicitTag = statusTagHtml(
-    `Explicit: ${moderation?.explicitLabel || "Unknown"}`,
+    `Spotify: ${spotifyExplicitLabel}`,
     explicitTone,
     { requestId: request?.requestId, editField: "explicit" }
   );
+
+  const lyricsRating = getLyricsRatingForRequest(request);
+  const ratingTag = lyricsRating
+    ? statusTagHtml(lyricsRating.label, statusTagToneForLyricsRating(lyricsRating.code))
+    : "";
   const themeTag = statusTagHtml(
     `Theme: ${moderation?.themeLabel || "No Theme"}`,
     statusTagToneForTheme(moderation?.themeStatus),
@@ -4307,7 +4408,7 @@ function buildRequestStatusTags(request, moderation) {
   const lyricsStatus = getLyricsFetchStatusTag(request?.requestId);
   const lyricsTag = statusTagHtml(lyricsStatus.label, lyricsStatus.tone);
 
-  return `${spotifyTag}${explicitTag}${themeTag}${lyricsTag}`;
+  return `${spotifyTag}${explicitTag}${ratingTag}${themeTag}${lyricsTag}`;
 }
 
 function moderationReasonHtml(request, moderation) {
@@ -4317,6 +4418,7 @@ function moderationReasonHtml(request, moderation) {
   const themePolicyHits = Array.isArray(moderation?.themePolicyHits) ? moderation.themePolicyHits : [];
   const policySummary = Array.isArray(moderation?.themePolicySummary) ? moderation.themePolicySummary : [];
   const lyricsStatus = getLyricsFetchStatusTag(request?.requestId);
+  const lyricsRating = getLyricsRatingForRequest(request);
   const ratingLabel = String(request?.lyricsData?.ratingLabel || "").trim();
   const ratingReason = String(request?.lyricsData?.ratingReason || "").trim();
   const matchedTerms = Array.isArray(moderation?.themeTerms) && moderation.themeTerms.length
@@ -4327,10 +4429,13 @@ function moderationReasonHtml(request, moderation) {
     statusTagHtml(`Recommendation: ${moderation?.recommendationLabel || "Manual Review"}`, statusTagToneForRecommendation(moderation?.recommendation)),
     statusTagHtml(`Spotify: ${request?.spotify ? "Found" : "Missing"}`, request?.spotify ? "ok" : "danger"),
     statusTagHtml(
-      `Explicit: ${moderation?.explicitLabel || "Unknown"}`,
+      `Spotify: ${moderation?.explicitStatus === "explicit" ? "Explicit" : moderation?.explicitStatus === "clean" ? "Clean" : "Unknown"}`,
       moderation?.explicitStatus === "explicit" ? "danger" : moderation?.explicitStatus === "clean" ? "ok" : "neutral",
       { requestId: request?.requestId, editField: "explicit" }
     ),
+    ...(lyricsRating
+      ? [statusTagHtml(lyricsRating.label, statusTagToneForLyricsRating(lyricsRating.code))]
+      : []),
     statusTagHtml(
       `Theme: ${moderation?.themeLabel || "No Theme"}`,
       statusTagToneForTheme(moderation?.themeStatus),
@@ -4600,7 +4705,11 @@ async function openLyricsModal({ artist, song, fallbackUrl, requestId = "" }) {
       cachedLyrics = {
         lyrics: sanitizeLyricsText(cacheEntry.lyrics || ""),
         source: cacheEntry.source || "github-actions-cache",
-        selectorUsed: cacheEntry.selector_used || ""
+        selectorUsed: cacheEntry.selector_used || "",
+        ratingLabel: cacheEntry.rating_label || "",
+        ratingCode: cacheEntry.rating_code || "",
+        ratingReason: cacheEntry.rating_reason || "",
+        ratingSelectorUsed: cacheEntry.rating_selector_used || ""
       };
     }
   }
@@ -4611,6 +4720,10 @@ async function openLyricsModal({ artist, song, fallbackUrl, requestId = "" }) {
         lyrics: cachedLyrics.lyrics,
         source: cachedLyrics.source || "github-actions-cache",
         selectorUsed: cachedLyrics.selectorUsed || "",
+        ratingLabel: cachedLyrics.ratingLabel || "",
+        ratingCode: cachedLyrics.ratingCode || "",
+        ratingReason: cachedLyrics.ratingReason || "",
+        ratingSelectorUsed: cachedLyrics.ratingSelectorUsed || "",
         status: "success",
         updatedAt: new Date().toISOString()
       });
@@ -4661,6 +4774,10 @@ async function openLyricsModal({ artist, song, fallbackUrl, requestId = "" }) {
       lyrics: result.lyrics,
       source: result.source || "Lyrics API",
       selectorUsed: result.selectorUsed || "",
+      ratingLabel: result.ratingLabel || "",
+      ratingCode: result.ratingCode || "",
+      ratingReason: result.ratingReason || "",
+      ratingSelectorUsed: result.ratingSelectorUsed || "",
       status: "success",
       updatedAt: new Date().toISOString()
     });

@@ -47,7 +47,10 @@ FALLBACK_SELECTORS = (
 
 RATING_FALLBACK_SELECTORS = (
     '[data-testid*="rating"]',
+    '[data-testid*="explicit"]',
+    '[aria-label*="explicit"]',
     '#ritmo-portal div[class*="rating"]',
+    '#ritmo-portal div[class*="explicit"]',
     '#ritmo-portal section[class*="rating"]',
     '#ritmo-portal article[class*="rating"]',
 )
@@ -246,6 +249,34 @@ def parse_rating_text(text: str) -> tuple[str, str, str] | None:
         re.IGNORECASE,
     )
     if not match:
+        lower = compact.lower()
+
+        # Musixmatch often shows an "Explicit" badge without a "Rating:" prefix.
+        # Only treat it as a rating signal when it appears in a short/badge-like string
+        # or alongside other rating-ish words (to avoid matching lyrics content).
+        rating_context = bool(re.search(r"\b(rating|content|advisory|parental|badge|lyrics)\b", lower))
+        badge_like = len(lower) <= 40
+
+        if re.search(r"\b(not\s+explicit|non\s*-?explicit)\b", lower):
+            rating_code = "CLEAN"
+            rating_label = "Rating: CLEAN"
+            return rating_label, rating_code, "Detected non-explicit label"
+
+        if re.search(r"\bexplicit\b", lower) and (rating_context or badge_like):
+            rating_code = "EXPLICIT"
+            rating_label = "Rating: EXPLICIT"
+            return rating_label, rating_code, "Detected explicit badge"
+
+        if re.search(r"\bclean\b", lower) and (rating_context or badge_like):
+            rating_code = "CLEAN"
+            rating_label = "Rating: CLEAN"
+            return rating_label, rating_code, "Detected clean label"
+
+        if re.search(r"\bok\b", lower) and "rating" in lower:
+            rating_code = "OK"
+            rating_label = "Rating: OK"
+            return rating_label, rating_code, "Detected OK rating"
+
         return None
 
     rating_code = normalize_rating_code(match.group(1))
@@ -269,8 +300,33 @@ def extract_rating_from_html(html: str, primary_selector: str = RATING_SELECTOR)
             return rating_label, rating_code, rating_reason, selector
 
     root = soup.select_one("#ritmo-portal") or soup
+
+    def _attr_blob(tag: Tag) -> str:
+        parts: list[str] = []
+        for key in ("id", "class", "data-testid", "aria-label"):
+            value = tag.get(key)
+            if not value:
+                continue
+            if isinstance(value, list):
+                parts.append(" ".join(str(item) for item in value))
+            else:
+                parts.append(str(value))
+        return " ".join(parts).lower()
+
     for node in root.find_all(["div", "section", "article", "p", "span"]):
-        parsed = parse_rating_text(inline_text_from_tag(node))
+        inline = inline_text_from_tag(node)
+        if not inline:
+            continue
+
+        lower_inline = inline.lower()
+        if not re.search(r"\b(rating|explicit|clean|parental|advisory)\b", lower_inline):
+            continue
+
+        attrs = _attr_blob(node)
+        if "rating" not in attrs and "explicit" not in attrs and "clean" not in attrs and "rating" not in lower_inline:
+            continue
+
+        parsed = parse_rating_text(inline)
         if parsed:
             rating_label, rating_code, rating_reason = parsed
             return rating_label, rating_code, rating_reason, "heuristic:rating-text"
