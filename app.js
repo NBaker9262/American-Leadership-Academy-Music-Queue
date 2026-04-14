@@ -823,7 +823,19 @@ function wait(ms) {
   return new Promise((resolve) => window.setTimeout(resolve, ms));
 }
 
+function getSpotifyRetryAfterMs(response) {
+  const raw = String(response?.headers?.get("Retry-After") || "").trim();
+  const seconds = Number(raw);
+  if (Number.isFinite(seconds) && seconds > 0) {
+    return Math.min(30000, Math.max(250, Math.round(seconds * 1000)));
+  }
+
+  return 1250;
+}
+
 function getErrorStatusCode(error) {
+  const directStatus = Number(error?.status);
+  if (Number.isFinite(directStatus)) return directStatus;
   const message = String(error?.message || "");
   const match = message.match(/^(\d{3})\b/);
   if (!match) return null;
@@ -1621,7 +1633,9 @@ async function getTrackByIdWithRetry(trackId) {
       const isLastAttempt = attempt === maxAttempts;
 
       if (statusCode === 429 && !isLastAttempt) {
-        await wait(CONFIG.trackLookupRetryDelayMs * attempt);
+        const retryAfterMs = Math.max(250, Number(error?.retryAfterMs || 0) || 0);
+        const fallbackDelay = CONFIG.trackLookupRetryDelayMs * attempt;
+        await wait(retryAfterMs ? retryAfterMs : fallbackDelay);
         continue;
       }
 
@@ -1653,29 +1667,78 @@ async function spotifyFetch(path, options = {}) {
   if (response.status === 204) return null;
 
   if (!response.ok) {
+    if (response.status === 429) {
+      const error = new Error("429 Rate limited by Spotify.");
+      error.status = 429;
+      error.retryAfterMs = getSpotifyRetryAfterMs(response);
+      throw error;
+    }
+
     const text = await response.text();
-    throw new Error(`${response.status} ${text}`);
+    const error = new Error(`${response.status} ${text}`);
+    error.status = response.status;
+    throw error;
   }
 
   return response.json();
+}
+
+async function spotifyFetchWithRetry(path, options = {}, config = {}) {
+  const maxAttempts = Math.max(1, Number(config.maxAttempts || 4));
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await spotifyFetch(path, options);
+    } catch (error) {
+      const status = getErrorStatusCode(error);
+      const isLastAttempt = attempt === maxAttempts;
+
+      if (status === 429 && !isLastAttempt) {
+        const retryAfterMs = Math.max(250, Number(error?.retryAfterMs || 0) || 0);
+        const jitterMs = 120 + attempt * 80;
+        logConsoleEvent("Spotify", "Rate limited (429). Backing off...", { attempt, retryAfterMs, path }, "warn");
+        await wait(retryAfterMs + jitterMs);
+        continue;
+      }
+
+      throw error;
+    }
+  }
+
+  throw new Error("Spotify request failed unexpectedly.");
 }
 
 async function spotifyNoContent(path, options = {}) {
   const token = await getAccessToken();
   if (!token) throw new Error("Spotify login required.");
 
-  const response = await fetch(`https://api.spotify.com/v1${path}`, {
-    ...options,
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-      ...(options.headers || {})
-    }
-  });
+  const maxAttempts = 4;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    const response = await fetch(`https://api.spotify.com/v1${path}`, {
+      ...options,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+        ...(options.headers || {})
+      }
+    });
 
-  if (!response.ok && response.status !== 204) {
+    if (response.ok || response.status === 204) {
+      return true;
+    }
+
+    if (response.status === 429 && attempt < maxAttempts) {
+      const retryAfterMs = getSpotifyRetryAfterMs(response);
+      const jitterMs = 120 + attempt * 80;
+      logConsoleEvent("Spotify", "Rate limited (429) on request. Backing off...", { attempt, retryAfterMs, path }, "warn");
+      await wait(retryAfterMs + jitterMs);
+      continue;
+    }
+
     const text = await response.text();
-    throw new Error(`${response.status} ${text}`);
+    const error = new Error(`${response.status} ${text}`);
+    error.status = response.status;
+    throw error;
   }
 
   return true;
@@ -1686,7 +1749,47 @@ async function getCurrentUserProfile() {
 }
 
 async function getTrackById(trackId) {
-  return spotifyFetch(`/tracks/${trackId}`);
+  return spotifyFetchWithRetry(`/tracks/${trackId}`);
+}
+
+const trackCacheById = new Map();
+
+function getCachedSpotifyTrack(trackId) {
+  const key = String(trackId || "").trim();
+  if (!key) return null;
+  const entry = trackCacheById.get(key);
+  return entry?.track || null;
+}
+
+function setCachedSpotifyTrack(trackId, track) {
+  const key = String(trackId || "").trim();
+  if (!key || !track) return;
+
+  trackCacheById.set(key, { track, fetchedAtMs: Date.now() });
+
+  if (trackCacheById.size > 2000) {
+    const firstKey = trackCacheById.keys().next().value;
+    if (firstKey) trackCacheById.delete(firstKey);
+  }
+}
+
+async function getTracksByIds(trackIds) {
+  const ids = [...new Set((trackIds || []).map((id) => String(id || "").trim()).filter(Boolean))];
+  const results = new Map();
+
+  for (let i = 0; i < ids.length; i += 50) {
+    const chunk = ids.slice(i, i + 50);
+    if (!chunk.length) continue;
+
+    const response = await spotifyFetchWithRetry(`/tracks?ids=${encodeURIComponent(chunk.join(","))}`);
+    const tracks = Array.isArray(response?.tracks) ? response.tracks : [];
+    for (const track of tracks) {
+      const id = String(track?.id || "").trim();
+      if (id) results.set(id, track);
+    }
+  }
+
+  return results;
 }
 
 async function getCurrentlyPlaying() {
@@ -1751,33 +1854,21 @@ async function startFunPlaylist() {
 }
 
 async function startPlaylistById(playlistId) {
-  const token = await getAccessToken();
-  if (!token) throw new Error("Spotify login required.");
-
   if (!playlistId) {
     throw new Error("Missing playlist ID in app configuration.");
   }
 
   const device = await ensureActiveDevice();
 
-  const response = await fetch(
-    `https://api.spotify.com/v1/me/player/play?device_id=${encodeURIComponent(device.id)}`,
-    {
-      method: "PUT",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        context_uri: `spotify:playlist:${playlistId}`
-      })
-    }
-  );
-
-  if (!response.ok && response.status !== 204) {
-    const text = await response.text();
-    throw new Error(`${response.status} ${text}`);
-  }
+  await spotifyNoContent(`/me/player/play?device_id=${encodeURIComponent(device.id)}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      context_uri: `spotify:playlist:${playlistId}`
+    })
+  });
 }
 
 async function addTrackToPlaylist(playlistId, trackUri) {
@@ -1789,25 +1880,10 @@ async function addTrackToPlaylist(playlistId, trackUri) {
     throw new Error("Missing track URI for playlist add.");
   }
 
-  const token = await getAccessToken();
-  if (!token) throw new Error("Spotify login required.");
-
-  const response = await fetch(
-    `https://api.spotify.com/v1/playlists/${encodeURIComponent(playlistId)}/tracks`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ uris: [trackUri] })
-    }
-  );
-
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error(`${response.status} ${text}`);
-  }
+  await spotifyFetchWithRetry(`/playlists/${encodeURIComponent(playlistId)}/tracks`, {
+    method: "POST",
+    body: JSON.stringify({ uris: [trackUri] })
+  });
 }
 
 async function addTrackToSpotifyQueue(trackUri) {
@@ -1987,57 +2063,85 @@ async function fetchStudentRequestRows() {
 
 async function enrichRequestRows(rows) {
   const rejected = getRejectedIds();
-  const enriched = new Array(rows.length);
-  let cursor = 0;
 
-  async function worker() {
-    while (true) {
-      const index = cursor;
-      cursor += 1;
+  const enriched = rows.map((row) => {
+    const requestId = buildRequestId(row);
+    const trackId = extractSpotifyTrackId(row.spotifyLink);
 
-      if (index >= rows.length) return;
+    const result = {
+      ...row,
+      requestId,
+      trackId,
+      rejected: rejected.has(requestId),
+      source: row.source || "request",
+      spotify: null,
+      error: null,
+      moderation: null
+    };
 
-      const row = rows[index];
-      const requestId = buildRequestId(row);
-      const trackId = extractSpotifyTrackId(row.spotifyLink);
+    if (!trackId) {
+      result.error = "Invalid or missing Spotify track link";
+    }
 
-      const result = {
-        ...row,
-        requestId,
-        trackId,
-        rejected: rejected.has(requestId),
-        source: row.source || "request",
-        spotify: null,
-        error: null,
-        moderation: null
-      };
+    return result;
+  });
 
-      if (!trackId) {
-        result.error = "Invalid or missing Spotify track link";
-        result.moderation = buildModerationMetadata(result);
-        enriched[index] = result;
+  const idsToFetch = [];
+  for (const item of enriched) {
+    if (!item.trackId) continue;
+
+    const cached = getCachedSpotifyTrack(item.trackId);
+    if (cached) {
+      item.spotify = normalizeSpotifyTrack(cached);
+      continue;
+    }
+
+    idsToFetch.push(item.trackId);
+  }
+
+  const uniqueIdsToFetch = [...new Set(idsToFetch)];
+  if (uniqueIdsToFetch.length) {
+    logConsoleEvent(
+      "Spotify",
+      "Bulk fetching track metadata for moderation...",
+      { requested: uniqueIdsToFetch.length },
+      "info"
+    );
+
+    let fetchedById = new Map();
+    try {
+      fetchedById = await getTracksByIds(uniqueIdsToFetch);
+    } catch (error) {
+      console.warn("Bulk Spotify track fetch failed; falling back to per-track retries:", error);
+      fetchedById = new Map();
+    }
+
+    for (const id of uniqueIdsToFetch) {
+      const track = fetchedById.get(id);
+      if (track) {
+        setCachedSpotifyTrack(id, track);
+      }
+    }
+
+    for (const item of enriched) {
+      if (!item.trackId || item.spotify) continue;
+
+      const fromBulk = fetchedById.get(item.trackId) || getCachedSpotifyTrack(item.trackId);
+      if (fromBulk) {
+        item.spotify = normalizeSpotifyTrack(fromBulk);
         continue;
       }
 
-      try {
-        const track = await getTrackByIdWithRetry(trackId);
-        result.spotify = normalizeSpotifyTrack(track);
-      } catch (error) {
-        result.error = error?.message || "Spotify lookup failed";
+      if (!item.error) {
+        item.error = "Spotify lookup failed";
       }
-
-      result.moderation = buildModerationMetadata(result);
-
-      enriched[index] = result;
     }
   }
 
-  const workers = Array.from(
-    { length: Math.max(1, Math.min(CONFIG.trackLookupConcurrency, rows.length || 1)) },
-    () => worker()
-  );
+  for (const item of enriched) {
+    item.moderation = buildModerationMetadata(item);
+  }
 
-  await Promise.all(workers);
   return enriched;
 }
 
