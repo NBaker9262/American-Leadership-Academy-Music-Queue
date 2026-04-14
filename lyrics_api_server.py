@@ -29,11 +29,27 @@ DEFAULT_SELECTOR = (
     "div.css-g5y9jx.r-13awgt0.r-eqz5dr.r-1v1z2uz"
 )
 
+RATING_SELECTOR = (
+    "#ritmo-portal > div:nth-child(1) > div > div:nth-child(1) > div:nth-child(1) > "
+    "div.css-g5y9jx.r-1smwm8v > div > div > div.css-g5y9jx.r-1xidu1v.r-11c0sde > "
+    "div > div.css-g5y9jx.r-150rngu.r-18u37iz.r-16y2uox.r-1wbh5a2.r-lltvgl.r-buy8e9."
+    "r-agouwx.r-2eszeu > div > div.css-g5y9jx.r-13awgt0.r-is05cd.r-1jnqxx1.r-6koalj."
+    "r-eqz5dr.r-f4gmv6.r-y54riw > div > div.css-g5y9jx.r-1otgn73.r-3s8xde.r-1867qdf."
+    "r-1rd2zbf.r-13qz1uu"
+)
+
 FALLBACK_SELECTORS = (
     '[data-testid="lyrics-track"]',
     '[data-testid="lyrics-container"]',
     '#ritmo-portal div[class*="lyrics"]',
     'article[class*="lyrics"]',
+)
+
+RATING_FALLBACK_SELECTORS = (
+    '[data-testid*="rating"]',
+    '#ritmo-portal div[class*="rating"]',
+    '#ritmo-portal section[class*="rating"]',
+    '#ritmo-portal article[class*="rating"]',
 )
 
 REQUEST_HEADERS = {
@@ -54,6 +70,10 @@ class LyricsResult:
     url: str
     selector_used: str
     lyrics: str
+    rating_label: str = ""
+    rating_code: str = ""
+    rating_reason: str = ""
+    rating_selector_used: str = ""
 
 
 def slugify_for_musixmatch(value: str) -> str:
@@ -79,6 +99,10 @@ def clean_lyrics_text(text: str) -> str:
     return "\n".join(lines)
 
 
+def clean_inline_text(text: str) -> str:
+    return re.sub(r"\s+", " ", str(text or "")).strip()
+
+
 def looks_like_lyrics(text: str) -> bool:
     if not text:
         return False
@@ -91,6 +115,11 @@ def looks_like_lyrics(text: str) -> bool:
 def text_from_tag(node: Tag) -> str:
     raw = node.get_text("\n", strip=True)
     return clean_lyrics_text(raw)
+
+
+def inline_text_from_tag(node: Tag) -> str:
+    raw = node.get_text(" ", strip=True)
+    return clean_inline_text(raw)
 
 
 def normalize_embedded_lyrics(value: str) -> str:
@@ -182,6 +211,73 @@ def selector_candidates(primary_selector: str) -> Iterable[str]:
             yield selector
 
 
+def rating_selector_candidates(primary_selector: str) -> Iterable[str]:
+    yield primary_selector
+    for selector in RATING_FALLBACK_SELECTORS:
+        if selector != primary_selector:
+            yield selector
+
+
+def normalize_rating_code(value: str) -> str:
+    raw = re.sub(r"[^A-Za-z0-9-]+", "", str(value or "").strip().upper())
+    if not raw:
+        return ""
+
+    aliases = {
+        "PG13": "PG-13",
+        "NC17": "NC-17",
+        "TVMA": "TV-MA",
+        "NOTRATED": "NR",
+        "UNRATED": "NR",
+        "EXPLICIT": "EXPLICIT",
+        "MA": "TV-MA",
+    }
+    return aliases.get(raw, raw)
+
+
+def parse_rating_text(text: str) -> tuple[str, str, str] | None:
+    compact = clean_inline_text(text)
+    if not compact:
+        return None
+
+    match = re.search(
+        r"\brating\s*:\s*(G|PG-13|PG13|PG|R|NC-17|NC17|TV-MA|TVMA|MA|EXPLICIT|NR|NOT RATED|UNRATED)\b",
+        compact,
+        re.IGNORECASE,
+    )
+    if not match:
+        return None
+
+    rating_code = normalize_rating_code(match.group(1))
+    tail = compact[match.end() :].strip(" :-")
+    tail = re.split(r"\bshow more\b", tail, maxsplit=1, flags=re.IGNORECASE)[0].strip(" :-")
+    rating_label = f"Rating: {rating_code}" if rating_code else ""
+    return rating_label, rating_code, tail
+
+
+def extract_rating_from_html(html: str, primary_selector: str = RATING_SELECTOR) -> tuple[str, str, str, str]:
+    soup = BeautifulSoup(html, "html.parser")
+
+    for selector in rating_selector_candidates(primary_selector):
+        node = soup.select_one(selector)
+        if not node:
+            continue
+
+        parsed = parse_rating_text(inline_text_from_tag(node))
+        if parsed:
+            rating_label, rating_code, rating_reason = parsed
+            return rating_label, rating_code, rating_reason, selector
+
+    root = soup.select_one("#ritmo-portal") or soup
+    for node in root.find_all(["div", "section", "article", "p", "span"]):
+        parsed = parse_rating_text(inline_text_from_tag(node))
+        if parsed:
+            rating_label, rating_code, rating_reason = parsed
+            return rating_label, rating_code, rating_reason, "heuristic:rating-text"
+
+    return "", "", "", ""
+
+
 def extract_lyrics_from_html(html: str, primary_selector: str = DEFAULT_SELECTOR) -> tuple[str, str]:
     soup = BeautifulSoup(html, "html.parser")
 
@@ -229,11 +325,20 @@ def fetch_musixmatch_lyrics(url: str, selector: str = DEFAULT_SELECTOR) -> Lyric
         raise LyricsFetchError("Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.")
 
     lyrics, selector_used = extract_lyrics_from_html(html, primary_selector=selector)
-    return LyricsResult(url=url, selector_used=selector_used, lyrics=lyrics)
+    rating_label, rating_code, rating_reason, rating_selector_used = extract_rating_from_html(html)
+    return LyricsResult(
+        url=url,
+        selector_used=selector_used,
+        lyrics=lyrics,
+        rating_label=rating_label,
+        rating_code=rating_code,
+        rating_reason=rating_reason,
+        rating_selector_used=rating_selector_used,
+    )
 
 
 class LyricsApiHandler(BaseHTTPRequestHandler):
-    server_version = "ALALyricsAPI/2.0"
+    server_version = "ALALyricsAPI/2.1"
 
     def _send_json(self, status_code: int, payload: dict) -> None:
         body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
@@ -332,6 +437,10 @@ class LyricsApiHandler(BaseHTTPRequestHandler):
                 "url": result.url,
                 "selector_used": result.selector_used,
                 "lyrics": result.lyrics,
+                "rating_label": result.rating_label,
+                "rating_code": result.rating_code,
+                "rating_reason": result.rating_reason,
+                "rating_selector_used": result.rating_selector_used,
                 "source": "lyrics_api_server.py",
             },
         )

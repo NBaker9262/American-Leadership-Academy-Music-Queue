@@ -481,6 +481,10 @@ def build_cache(
             "status": "fallback",
             "lyrics": "",
             "selector_used": "",
+            "rating_label": "",
+            "rating_code": "",
+            "rating_reason": "",
+            "rating_selector_used": "",
             "source": "github-actions-cache",
             "updated_at": now_iso(),
             "error": "",
@@ -499,6 +503,10 @@ def build_cache(
                 entry["musixmatch_url"] = str(fetch_result.get("resolved_url") or primary_url)
                 entry["lyrics"] = result.lyrics
                 entry["selector_used"] = result.selector_used
+                entry["rating_label"] = result.rating_label
+                entry["rating_code"] = result.rating_code
+                entry["rating_reason"] = result.rating_reason
+                entry["rating_selector_used"] = result.rating_selector_used
                 scrape_success_count += 1
             else:
                 entry["status"] = "fallback"

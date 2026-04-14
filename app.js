@@ -148,6 +148,7 @@ const LS = {
   accessToken: "ala_dash_access_token",
   refreshToken: "ala_dash_refresh_token",
   expiresAt: "ala_dash_expires_at",
+  spotifyScopesFingerprint: "ala_dash_spotify_scopes_fingerprint",
   approvedQueue: "ala_approved_queue",
   rejectedIds: "ala_rejected_ids",
   queuePointer: "ala_queue_pointer",
@@ -178,6 +179,36 @@ function clearLegacyAuthStorage() {
   persistentStorage.removeItem(LS.accessToken);
   persistentStorage.removeItem(LS.refreshToken);
   persistentStorage.removeItem(LS.expiresAt);
+}
+
+function getRequiredSpotifyScopesFingerprint() {
+  return `${CONFIG.clientId}::${CONFIG.scopes.join(" ")}`;
+}
+
+function enforceSpotifyScopesFingerprint() {
+  const required = getRequiredSpotifyScopesFingerprint();
+  const stored = String(persistentStorage.getItem(LS.spotifyScopesFingerprint) || "");
+
+  if (stored === required) {
+    return;
+  }
+
+  persistentStorage.setItem(LS.spotifyScopesFingerprint, required);
+
+  const hasAuth = !!authGet(LS.accessToken) || !!authGet(LS.refreshToken);
+  if (hasAuth) {
+    authRemove(LS.accessToken);
+    authRemove(LS.refreshToken);
+    authRemove(LS.expiresAt);
+    authRemove(LS.pkceVerifier);
+    authRemove(LS.oauthState);
+    stopPlaybackPolling();
+    stopLocalProgressTimer();
+    stopRequestAutoSyncTimer();
+    setRequestAutoSyncStatus("Permissions updated. Please Login again.", "warn");
+    setNextRequestSyncStatus("Next sync: login required");
+    setStatus("Spotify permissions updated. Click Login to continue.");
+  }
 }
 
 // --------------------
@@ -710,7 +741,25 @@ function setModerationOverride(requestId, patch) {
 function clearModerationOverride(requestId) {
   const key = String(requestId || "").trim();
   if (!key) return false;
-  return moderationOverrideByRequestId.delete(key);
+  const removed = moderationOverrideByRequestId.delete(key);
+  if (removed) {
+    persistModerationOverridesToStorage();
+  }
+  return removed;
+}
+
+let requestAutoSyncStatusText = "";
+let nextRequestSyncText = "";
+
+function renderRequestAutoSyncHeaderStatus(tone = "neutral") {
+  if (!el.modAutoSyncStatus) return;
+
+  const base = String(requestAutoSyncStatusText || "").trim();
+  const next = String(nextRequestSyncText || "").trim();
+  const combined = next ? `${base} | ${next}` : base;
+
+  el.modAutoSyncStatus.textContent = combined || base || "Request sync pending...";
+  el.modAutoSyncStatus.dataset.tone = tone;
 }
 
 function applyModerationOverrides(request, moderation) {
@@ -948,8 +997,11 @@ function formatCountdownShort(milliseconds) {
 }
 
 function setNextRequestSyncStatus(message) {
-  if (!el.modNextSyncStatus) return;
-  el.modNextSyncStatus.textContent = message;
+  nextRequestSyncText = String(message || "");
+  if (el.modNextSyncStatus) {
+    el.modNextSyncStatus.textContent = nextRequestSyncText;
+  }
+  renderRequestAutoSyncHeaderStatus(el.modAutoSyncStatus?.dataset?.tone || "neutral");
 }
 
 function updateAutoSyncToggleButton() {
@@ -1481,6 +1533,7 @@ async function handleSpotifyCallback() {
     LS.expiresAt,
     String(Date.now() + json.expires_in * 1000 - 30000)
   );
+  persistentStorage.setItem(LS.spotifyScopesFingerprint, getRequiredSpotifyScopesFingerprint());
   authRemove(LS.pkceVerifier);
 
   url.searchParams.delete("code");
@@ -3334,6 +3387,10 @@ function setRequestLyricsData(request, payload = {}) {
     ...previous,
     ...payload,
     lyrics: sanitizeLyricsText(payload.lyrics ?? previous.lyrics ?? ""),
+    ratingLabel: String(payload.ratingLabel ?? previous.ratingLabel ?? "").trim(),
+    ratingCode: String(payload.ratingCode ?? previous.ratingCode ?? "").trim(),
+    ratingReason: String(payload.ratingReason ?? previous.ratingReason ?? "").trim(),
+    ratingSelectorUsed: String(payload.ratingSelectorUsed ?? previous.ratingSelectorUsed ?? "").trim(),
     updatedAt: payload.updatedAt || new Date().toISOString()
   };
 
@@ -3352,6 +3409,10 @@ function setLyricsFetchStatus(requestId, state, detail = "", payload = {}) {
     source: String(payload.source ?? previous.source ?? "").trim(),
     selectorUsed: String(payload.selectorUsed ?? previous.selectorUsed ?? "").trim(),
     status: String(payload.status ?? previous.status ?? "").trim(),
+    ratingLabel: String(payload.ratingLabel ?? previous.ratingLabel ?? "").trim(),
+    ratingCode: String(payload.ratingCode ?? previous.ratingCode ?? "").trim(),
+    ratingReason: String(payload.ratingReason ?? previous.ratingReason ?? "").trim(),
+    ratingSelectorUsed: String(payload.ratingSelectorUsed ?? previous.ratingSelectorUsed ?? "").trim(),
     updatedAt: payload.updatedAt || new Date().toISOString()
   };
 
@@ -3369,6 +3430,10 @@ function setLyricsFetchStatus(requestId, state, detail = "", payload = {}) {
       source: nextState.source,
       selectorUsed: nextState.selectorUsed,
       detail: nextState.detail,
+      ratingLabel: nextState.ratingLabel,
+      ratingCode: nextState.ratingCode,
+      ratingReason: nextState.ratingReason,
+      ratingSelectorUsed: nextState.ratingSelectorUsed,
       updatedAt: nextState.updatedAt
     });
   }
@@ -3735,6 +3800,10 @@ function applyLyricsCacheEntriesFromCache(requests, cacheData) {
         lyrics: lyricsText,
         source: entry?.source || "github-actions-cache",
         selectorUsed: entry?.selector_used || "",
+        ratingLabel: entry?.rating_label || "",
+        ratingCode: entry?.rating_code || "",
+        ratingReason: entry?.rating_reason || "",
+        ratingSelectorUsed: entry?.rating_selector_used || "",
         status: entry?.status || "success",
         updatedAt: entry?.updated_at || cacheData?.generated_at || new Date().toISOString()
       });
@@ -3750,6 +3819,10 @@ function applyLyricsCacheEntriesFromCache(requests, cacheData) {
         lyrics: "",
         source: entry?.source || "github-actions-cache",
         selectorUsed: entry?.selector_used || "",
+        ratingLabel: entry?.rating_label || "",
+        ratingCode: entry?.rating_code || "",
+        ratingReason: entry?.rating_reason || "",
+        ratingSelectorUsed: entry?.rating_selector_used || "",
         status: entry?.status || "fallback",
         updatedAt: entry?.updated_at || cacheData?.generated_at || new Date().toISOString()
       }
@@ -3988,6 +4061,8 @@ function moderationReasonHtml(request, moderation) {
   const themePolicyHits = Array.isArray(moderation?.themePolicyHits) ? moderation.themePolicyHits : [];
   const policySummary = Array.isArray(moderation?.themePolicySummary) ? moderation.themePolicySummary : [];
   const lyricsStatus = getLyricsFetchStatusTag(request?.requestId);
+  const ratingLabel = String(request?.lyricsData?.ratingLabel || "").trim();
+  const ratingReason = String(request?.lyricsData?.ratingReason || "").trim();
   const matchedTerms = Array.isArray(moderation?.themeTerms) && moderation.themeTerms.length
     ? moderation.themeTerms.join(", ")
     : "None";
@@ -4008,14 +4083,17 @@ function moderationReasonHtml(request, moderation) {
     statusTagHtml(lyricsStatus.label, lyricsStatus.tone)
   ].join("");
 
-  const bypassActions = request?.requestId
+  const requestIdValue = String(request?.requestId || "").trim();
+  const showOverrides = requestIdValue && !requestIdValue.startsWith("preview|");
+
+  const bypassActions = showOverrides
     ? `
       <div class="moderation-bypass-actions">
-        <button class="btn btn-small moderation-bypass-btn" data-request-id="${escapeHtml(request.requestId)}" data-bypass-field="allow-all" type="button">
-          Allow Song Now
+        <button class="btn btn-small moderation-bypass-btn" data-request-id="${escapeHtml(requestIdValue)}" data-bypass-field="allow-all" type="button">
+          Allow Now (Clean/Clear)
         </button>
-        <button class="btn btn-small moderation-bypass-btn moderation-bypass-reset-btn" data-request-id="${escapeHtml(request.requestId)}" data-bypass-field="reset" type="button">
-          Reset Auto Rules
+        <button class="btn btn-small moderation-bypass-btn moderation-bypass-reset-btn" data-request-id="${escapeHtml(requestIdValue)}" data-bypass-field="reset" type="button">
+          Remove Override
         </button>
       </div>
     `
@@ -4085,6 +4163,7 @@ function moderationReasonHtml(request, moderation) {
         <li>${escapeHtml(moderation?.explicitReason || "No explicit reasoning available.")}</li>
         <li>${escapeHtml(moderation?.themeReason || "No theme reasoning available.")}</li>
         <li>${escapeHtml(lyricsStatus.detail || "Lyrics have not been fetched for this request.")}</li>
+        ${ratingLabel ? `<li>${escapeHtml(ratingLabel)}${ratingReason ? ` — ${escapeHtml(ratingReason)}` : ""}</li>` : ""}
       </ul>
     </div>
 
@@ -4401,10 +4480,8 @@ async function addManualSearchResultToQueue(trackId) {
 }
 
 function setRequestAutoSyncStatus(message, tone = "neutral") {
-  if (!el.modAutoSyncStatus) return;
-
-  el.modAutoSyncStatus.textContent = message;
-  el.modAutoSyncStatus.dataset.tone = tone;
+  requestAutoSyncStatusText = String(message || "");
+  renderRequestAutoSyncHeaderStatus(tone);
 }
 
 async function runRequestAutoSync(reason = "manual", options = {}) {
@@ -5082,6 +5159,7 @@ function stopPlaybackPolling() {
 async function init() {
   clearLegacyAuthStorage();
   ensureStorageDefaults();
+  enforceSpotifyScopesFingerprint();
   loadModerationOverridesFromStorage();
   loadRequestAutoSyncPreference();
   wireStaticEvents();
