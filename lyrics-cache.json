@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-04-14T05:22:12.496588Z",
-  "next_refresh_at": "2026-04-14T05:27:12.496605Z",
+  "generated_at": "2026-04-14T05:48:46.967356Z",
+  "next_refresh_at": "2026-04-14T05:53:46.967373Z",
   "refresh_interval_minutes": 5,
   "source": {
     "requests_csv_url": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQyc3RRDmjc-nN-XgMMDocbnn1tlxue5ynNoNnYSxnRKxgp2LRGNmYZXnVgAFLH7IViwTAtmIAkvDsK/pub?output=csv",
@@ -20,7 +20,7 @@
       "status": "fallback",
       "lyrics": "",
       "error": "Spotify metadata lookup failed: Spotify metadata lookup failed: 404 Client Error: Not Found for url: https://open.spotify.com/oembed?url=https%3A%2F%2Fopen.spotify.com%2Ftrack%2F0E7s6qk8zR2G6N3v9pR6Jh",
-      "updated_at": "2026-04-14T05:21:49.805321Z",
+      "updated_at": "2026-04-14T05:48:25.997245Z",
       "request_ids": [
         "||https://open.spotify.com/track/0E7s6qk8zR2G6N3v9pR6Jh"
       ]
@@ -40,7 +40,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T05:21:50.171040Z",
+      "updated_at": "2026-04-14T05:48:26.302779Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -62,7 +62,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T05:21:50.875212Z",
+      "updated_at": "2026-04-14T05:48:26.983706Z",
       "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Post-Malone-21-Savage/rockstar-feat-21-Savage",
@@ -89,7 +89,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T05:21:53.331458Z",
+      "updated_at": "2026-04-14T05:48:33.480817Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -111,7 +111,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T05:21:54.119154Z",
+      "updated_at": "2026-04-14T05:48:34.001727Z",
       "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Green-Day/Brain-Stew"
@@ -135,7 +135,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T05:21:55.457588Z",
+      "updated_at": "2026-04-14T05:48:34.774044Z",
       "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Drake-Wizkid-Kyla/One-Dance",
@@ -160,7 +160,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T05:21:56.820677Z",
+      "updated_at": "2026-04-14T05:48:35.465046Z",
       "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Drake-Wizkid-Kyla/One-Dance",
@@ -185,7 +185,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T05:21:58.210404Z",
+      "updated_at": "2026-04-14T05:48:36.410079Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -207,7 +207,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T05:21:59.257993Z",
+      "updated_at": "2026-04-14T05:48:37.121530Z",
       "error": "Lyrics element not found or extracted text was too short.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Eminem/The-Real-Slim-Shady"
@@ -231,7 +231,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T05:21:59.849771Z",
+      "updated_at": "2026-04-14T05:48:37.848010Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -253,7 +253,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T05:22:00.589736Z",
+      "updated_at": "2026-04-14T05:48:38.440162Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -275,7 +275,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T05:22:01.409442Z",
+      "updated_at": "2026-04-14T05:48:39.123741Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -297,7 +297,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T05:22:02.140219Z",
+      "updated_at": "2026-04-14T05:48:39.687258Z",
       "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Cardi-B-Megan-Thee-Stallion/WAP-feat-Megan-Thee-Stallion",
@@ -324,7 +324,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T05:22:04.411502Z",
+      "updated_at": "2026-04-14T05:48:40.797229Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -346,7 +346,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T05:22:05.064904Z",
+      "updated_at": "2026-04-14T05:48:41.347291Z",
       "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Eduard-Abramyan-Sona-Shaboyan/Prelude-for-Piano-No-11-in-F-Sharp-Minor",
@@ -371,7 +371,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T05:22:06.422348Z",
+      "updated_at": "2026-04-14T05:48:42.044288Z",
       "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Drake/God-s-Plan"
@@ -395,7 +395,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T05:22:07.658628Z",
+      "updated_at": "2026-04-14T05:48:42.664495Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -417,7 +417,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T05:22:08.299036Z",
+      "updated_at": "2026-04-14T05:48:43.170876Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -439,7 +439,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T05:22:09.262384Z",
+      "updated_at": "2026-04-14T05:48:44.056578Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -461,7 +461,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T05:22:09.970066Z",
+      "updated_at": "2026-04-14T05:48:44.568557Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -483,7 +483,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T05:22:10.867362Z",
+      "updated_at": "2026-04-14T05:48:45.219530Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -505,7 +505,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T05:22:11.827411Z",
+      "updated_at": "2026-04-14T05:48:46.087106Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -527,7 +527,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T05:22:12.376992Z",
+      "updated_at": "2026-04-14T05:48:46.922487Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -551,7 +551,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T05:21:50.171040Z",
+      "updated_at": "2026-04-14T05:48:26.302779Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -573,7 +573,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T05:21:50.875212Z",
+      "updated_at": "2026-04-14T05:48:26.983706Z",
       "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Post-Malone-21-Savage/rockstar-feat-21-Savage",
@@ -600,7 +600,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T05:21:53.331458Z",
+      "updated_at": "2026-04-14T05:48:33.480817Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -622,7 +622,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T05:21:54.119154Z",
+      "updated_at": "2026-04-14T05:48:34.001727Z",
       "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Green-Day/Brain-Stew"
@@ -646,7 +646,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T05:21:56.820677Z",
+      "updated_at": "2026-04-14T05:48:35.465046Z",
       "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Drake-Wizkid-Kyla/One-Dance",
@@ -671,7 +671,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T05:21:58.210404Z",
+      "updated_at": "2026-04-14T05:48:36.410079Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -693,7 +693,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T05:21:59.257993Z",
+      "updated_at": "2026-04-14T05:48:37.121530Z",
       "error": "Lyrics element not found or extracted text was too short.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Eminem/The-Real-Slim-Shady"
@@ -717,7 +717,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T05:21:59.849771Z",
+      "updated_at": "2026-04-14T05:48:37.848010Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -739,7 +739,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T05:22:00.589736Z",
+      "updated_at": "2026-04-14T05:48:38.440162Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -761,7 +761,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T05:22:01.409442Z",
+      "updated_at": "2026-04-14T05:48:39.123741Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -783,7 +783,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T05:22:02.140219Z",
+      "updated_at": "2026-04-14T05:48:39.687258Z",
       "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Cardi-B-Megan-Thee-Stallion/WAP-feat-Megan-Thee-Stallion",
@@ -810,7 +810,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T05:22:04.411502Z",
+      "updated_at": "2026-04-14T05:48:40.797229Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -832,7 +832,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T05:22:05.064904Z",
+      "updated_at": "2026-04-14T05:48:41.347291Z",
       "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Eduard-Abramyan-Sona-Shaboyan/Prelude-for-Piano-No-11-in-F-Sharp-Minor",
@@ -857,7 +857,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T05:22:06.422348Z",
+      "updated_at": "2026-04-14T05:48:42.044288Z",
       "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Drake/God-s-Plan"
@@ -881,7 +881,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T05:22:07.658628Z",
+      "updated_at": "2026-04-14T05:48:42.664495Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -903,7 +903,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T05:22:08.299036Z",
+      "updated_at": "2026-04-14T05:48:43.170876Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -925,7 +925,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T05:22:09.262384Z",
+      "updated_at": "2026-04-14T05:48:44.056578Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -947,7 +947,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T05:22:09.970066Z",
+      "updated_at": "2026-04-14T05:48:44.568557Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -969,7 +969,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T05:22:10.867362Z",
+      "updated_at": "2026-04-14T05:48:45.219530Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -991,7 +991,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T05:22:11.827411Z",
+      "updated_at": "2026-04-14T05:48:46.087106Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -1013,7 +1013,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T05:22:12.376992Z",
+      "updated_at": "2026-04-14T05:48:46.922487Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
