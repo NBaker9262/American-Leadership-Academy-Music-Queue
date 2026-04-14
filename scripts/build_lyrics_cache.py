@@ -156,7 +156,6 @@ def parse_artist_from_spotify_description(description: str) -> str:
         return ""
 
     normalized = re.sub(r"\s+", " ", value)
-    normalized = normalized.replace("??", "?")
 
     # Common Spotify patterns:
     # - "Listen to Song on Spotify. Artist ? Song ? 2024"
@@ -166,17 +165,17 @@ def parse_artist_from_spotify_description(description: str) -> str:
     if spotify_dot_match:
         tail = spotify_dot_match.group(1).strip()
         if tail:
-            tail = tail.split("?", 1)[0].strip().rstrip(" .|\t\r\n")
+            tail = re.split(r"\s+[??|?]\s+", tail, maxsplit=1)[0].strip().rstrip(" .|\t\r\n")
             if tail:
                 return tail
 
-    if "? Song" in normalized:
-        left = normalized.split("? Song", 1)[0].strip(" ?")
+    if re.search(r"[??|?]\s*Song", normalized, re.IGNORECASE):
+        left = re.split(r"[??|?]\s*Song", normalized, maxsplit=1, flags=re.IGNORECASE)[0].strip(" ??|?")
         listen_match = re.search(r"on\s+Spotify\.\s*(.+)$", left, flags=re.IGNORECASE)
         if listen_match:
-            left = listen_match.group(1).strip(" ?")
+            left = listen_match.group(1).strip(" ??|?")
 
-        parts = [part.strip() for part in left.split("?") if part.strip()]
+        parts = [part.strip() for part in re.split(r"\s*[??|?]\s*", left) if part.strip()]
         if parts:
             return parts[0]
 
@@ -189,7 +188,6 @@ def parse_artist_from_spotify_description(description: str) -> str:
         return artist
 
     return ""
-
 
 def resolve_track_meta_from_open_graph(track_url: str, timeout_seconds: int = 20) -> tuple[str, str]:
     # Spotify serves richer Open Graph metadata when this request looks non-automated.
@@ -274,6 +272,109 @@ def resolve_track_meta(track_id: str, timeout_seconds: int = 20) -> TrackMeta:
         song=song,
         artist=artist,
     )
+
+
+def build_artist_candidates(artist: str) -> list[str]:
+    raw = re.sub(r"\s+", " ", str(artist or "").strip())
+    if not raw:
+        return []
+
+    candidates: list[str] = [raw]
+
+    split_patterns = [
+        r"\s*,\s*",
+        r"\s*&\s*",
+        r"\s+x\s+",
+        r"\s+and\s+",
+        r"\s+feat\.?\s+",
+        r"\s+featuring\s+",
+        r"\s+ft\.?\s+",
+        r"\s+with\s+",
+    ]
+
+    for pattern in split_patterns:
+        first = re.split(pattern, raw, maxsplit=1, flags=re.IGNORECASE)[0].strip()
+        if first:
+            candidates.append(first)
+
+    unique: list[str] = []
+    seen: set[str] = set()
+    for candidate in candidates:
+        key = candidate.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        unique.append(candidate)
+    return unique
+
+
+def build_song_candidates(song: str) -> list[str]:
+    raw = re.sub(r"\s+", " ", str(song or "").strip())
+    if not raw:
+        return []
+
+    candidates: list[str] = [raw]
+
+    no_feat_round = re.sub(r"\s*\((?:feat|ft|featuring|with)\.?\s+[^)]*\)\s*", " ", raw, flags=re.IGNORECASE).strip()
+    no_feat_square = re.sub(r"\s*\[(?:feat|ft|featuring|with)\.?\s+[^]]*\]\s*", " ", raw, flags=re.IGNORECASE).strip()
+    no_version_dash = re.split(r"\s+-\s+", raw, maxsplit=1)[0].strip()
+    no_brackets = re.sub(r"\s*[\(\[].*?[\)\]]\s*", " ", raw).strip()
+
+    for variant in [no_feat_round, no_feat_square, no_version_dash, no_brackets]:
+        cleaned = re.sub(r"\s+", " ", variant).strip()
+        if cleaned:
+            candidates.append(cleaned)
+
+    unique: list[str] = []
+    seen: set[str] = set()
+    for candidate in candidates:
+        key = candidate.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        unique.append(candidate)
+    return unique
+
+
+def build_musixmatch_url_candidates(artist: str, song: str) -> list[str]:
+    artist_candidates = build_artist_candidates(artist)
+    song_candidates = build_song_candidates(song)
+
+    urls: list[str] = []
+    seen: set[str] = set()
+
+    for artist_candidate in artist_candidates:
+        for song_candidate in song_candidates:
+            url = build_musixmatch_url(artist_candidate, song_candidate)
+            if url in seen:
+                continue
+            seen.add(url)
+            urls.append(url)
+
+    return urls
+
+
+def fetch_lyrics_with_fallback_urls(artist: str, song: str) -> dict:
+    attempted: list[dict[str, str]] = []
+
+    for url in build_musixmatch_url_candidates(artist, song):
+        try:
+            result = fetch_musixmatch_lyrics(url=url)
+            return {
+                "ok": True,
+                "result": result,
+                "resolved_url": url,
+                "attempted": attempted,
+            }
+        except (LyricsFetchError, requests.RequestException) as error:
+            attempted.append({"url": url, "error": str(error)})
+
+    error_message = attempted[-1]["error"] if attempted else "No Musixmatch URL candidates were generated."
+    return {
+        "ok": False,
+        "error": error_message,
+        "attempted": attempted,
+    }
 
 
 def build_request_rows(csv_url: str, timeout_seconds: int = 30) -> list[RequestRow]:
@@ -367,7 +468,8 @@ def build_cache(
             }
             continue
 
-        musixmatch_url = build_musixmatch_url(track_meta.artist, track_meta.song)
+        musixmatch_urls = build_musixmatch_url_candidates(track_meta.artist, track_meta.song)
+        primary_url = musixmatch_urls[0] if musixmatch_urls else build_musixmatch_url(track_meta.artist, track_meta.song)
 
         entry = {
             "track_id": track_meta.track_id,
@@ -375,26 +477,33 @@ def build_cache(
             "artist": track_meta.artist,
             "song": track_meta.song,
             "song_key": normalize_cache_key(track_meta.artist, track_meta.song),
-            "musixmatch_url": musixmatch_url,
+            "musixmatch_url": primary_url,
             "status": "fallback",
             "lyrics": "",
             "selector_used": "",
             "source": "github-actions-cache",
             "updated_at": now_iso(),
             "error": "",
+            "attempted_urls": [],
             "request_ids": request_ids,
         }
 
         try:
-            result = fetch_musixmatch_lyrics(url=musixmatch_url)
-            entry["status"] = "success"
-            entry["lyrics"] = result.lyrics
-            entry["selector_used"] = result.selector_used
-            scrape_success_count += 1
-        except (LyricsFetchError, requests.RequestException) as error:
-            entry["status"] = "fallback"
-            entry["error"] = str(error)
-            scrape_failure_count += 1
+            fetch_result = fetch_lyrics_with_fallback_urls(track_meta.artist, track_meta.song)
+            attempted_urls = [item.get("url", "") for item in fetch_result.get("attempted", []) if item.get("url")]
+            entry["attempted_urls"] = attempted_urls[:8]
+
+            if fetch_result.get("ok"):
+                result = fetch_result["result"]
+                entry["status"] = "success"
+                entry["musixmatch_url"] = str(fetch_result.get("resolved_url") or primary_url)
+                entry["lyrics"] = result.lyrics
+                entry["selector_used"] = result.selector_used
+                scrape_success_count += 1
+            else:
+                entry["status"] = "fallback"
+                entry["error"] = str(fetch_result.get("error") or "Lyrics fetch fallback")
+                scrape_failure_count += 1
         except Exception as error:  # noqa: BLE001
             entry["status"] = "fallback"
             entry["error"] = f"Unexpected scrape error: {error}"

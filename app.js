@@ -41,7 +41,7 @@ const CONFIG = {
   manualSearchLimit: 8,
   userPlaylistFetchLimit: 50,
   playlistPickerCacheMs: 120000,
-  lyricsApiBaseUrl: "http://127.0.0.1:8787",
+  lyricsApiBaseUrl: "",
   lyricsApiTimeoutMs: 12000,
   lyricsCacheUseOnLoad: true,
   lyricsCacheUrl: "lyrics-cache.json",
@@ -152,7 +152,8 @@ const LS = {
   rejectedIds: "ala_rejected_ids",
   queuePointer: "ala_queue_pointer",
   djAssistedRequests: "ala_dj_assisted_requests",
-  moderationOverrides: "ala_moderation_overrides"
+  moderationOverrides: "ala_moderation_overrides",
+  requestAutoSyncEnabled: "ala_request_auto_sync_enabled"
 };
 
 const authStorage = window.sessionStorage;
@@ -206,6 +207,7 @@ const el = {
   btnCloseLyricsModal: document.getElementById("btnCloseLyricsModal"),
   btnRefreshPlaylistPicker: document.getElementById("btnRefreshPlaylistPicker"),
   btnClosePlaylistPicker: document.getElementById("btnClosePlaylistPicker"),
+  btnToggleAutoSync: document.getElementById("btnToggleAutoSync"),
   playPauseIcon: document.getElementById("playPauseIcon"),
 
   status: document.getElementById("status"),
@@ -244,6 +246,7 @@ const el = {
   lyricsModalBody: document.getElementById("lyricsModalBody"),
   lyricsModalExternalLink: document.getElementById("lyricsModalExternalLink"),
   modAutoSyncStatus: document.getElementById("modAutoSyncStatus"),
+  modNextSyncStatus: document.getElementById("modNextSyncStatus"),
   lyricsCacheCountdown: document.getElementById("lyricsCacheCountdown"),
   playlistPickerBackdrop: document.getElementById("playlistPickerBackdrop"),
   playlistPickerModal: document.getElementById("playlistPickerModal"),
@@ -285,6 +288,9 @@ let lyricsCacheAutoRefreshInFlight = false;
 let requestAutoSyncTimer = null;
 let requestAutoSyncInFlight = false;
 let lastRequestSyncAt = null;
+let requestAutoSyncEnabled = true;
+let requestAutoSyncCountdownTimer = null;
+let requestAutoSyncNextAtMs = 0;
 let playlistPickerContext = null;
 let playlistPickerCache = { items: [], fetchedAtMs: 0 };
 
@@ -405,12 +411,20 @@ function containsNormalizedPhrase(normalizedText, normalizedPhrase) {
 
 function getModerationSearchEntries(request) {
   const spotify = request?.spotify || null;
-  return [
+  const baseEntries = [
     { field: "theme", value: request?.theme || "" },
     { field: "title", value: spotify?.name || "" },
     { field: "artist", value: spotify?.artist || "" },
     { field: "album", value: spotify?.album || "" }
   ];
+
+  const storedLyrics = getStoredLyricsDataForRequest(request);
+  const lyricText = sanitizeLyricsText(storedLyrics?.lyrics || "");
+  if (lyricText) {
+    baseEntries.push({ field: "lyrics", value: lyricText });
+  }
+
+  return baseEntries;
 }
 
 function collectThemePolicyHits(request) {
@@ -517,7 +531,7 @@ function analyzeThemeModeration(request) {
     return {
       status: "none",
       label: "No Theme",
-      reason: "No theme was submitted and no risky keywords were detected in track metadata.",
+      reason: "No theme was submitted and no risky keywords were detected in metadata or lyrics.",
       matchedTerms: [],
       hits: [],
       summary: []
@@ -553,7 +567,7 @@ function analyzeThemeModeration(request) {
   return {
     status: "clear",
     label: "Theme Clear",
-    reason: "Theme and related track metadata passed current keyword and phrase policy checks.",
+    reason: "Theme, track metadata, and available lyrics passed current keyword and phrase policy checks.",
     matchedTerms: [],
     hits: policyHits,
     summary: summarizePolicyHits(policyHits)
@@ -596,7 +610,7 @@ function buildModerationMetadata(request) {
   } else if (themeEvaluation.status === "flagged") {
     recommendation = "review";
     recommendationLabel = "Manual Review";
-    recommendationReason = "Theme/metadata passed hard blocks but matched review categories that need manual review.";
+    recommendationReason = "Theme, metadata, or lyrics passed hard blocks but matched review categories that need manual review.";
   }
 
   const compactReason = `${explicitLabel} by Spotify metadata | ${themeEvaluation.label} (${hardHitCount} hard, ${reviewHitCount} review hits)`;
@@ -907,8 +921,114 @@ function ensureStorageDefaults() {
   if (!persistentStorage.getItem(LS.moderationOverrides)) {
     persistentStorage.setItem(LS.moderationOverrides, JSON.stringify({}));
   }
+  if (!persistentStorage.getItem(LS.requestAutoSyncEnabled)) {
+    persistentStorage.setItem(LS.requestAutoSyncEnabled, "1");
+  }
 }
 
+function loadRequestAutoSyncPreference() {
+  const stored = String(persistentStorage.getItem(LS.requestAutoSyncEnabled) || "1").trim();
+  requestAutoSyncEnabled = stored !== "0";
+}
+
+function persistRequestAutoSyncPreference() {
+  persistentStorage.setItem(LS.requestAutoSyncEnabled, requestAutoSyncEnabled ? "1" : "0");
+}
+
+function formatCountdownShort(milliseconds) {
+  const totalSeconds = Math.max(0, Math.floor(Number(milliseconds || 0) / 1000));
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+
+  if (minutes > 0) {
+    return `${minutes}m ${String(seconds).padStart(2, "0")}s`;
+  }
+
+  return `${seconds}s`;
+}
+
+function setNextRequestSyncStatus(message) {
+  if (!el.modNextSyncStatus) return;
+  el.modNextSyncStatus.textContent = message;
+}
+
+function updateAutoSyncToggleButton() {
+  if (!el.btnToggleAutoSync) return;
+  el.btnToggleAutoSync.textContent = requestAutoSyncEnabled ? "Auto Sync: On" : "Auto Sync: Off";
+  el.btnToggleAutoSync.dataset.active = requestAutoSyncEnabled ? "true" : "false";
+}
+
+function stopRequestAutoSyncCountdown() {
+  if (requestAutoSyncCountdownTimer) {
+    window.clearInterval(requestAutoSyncCountdownTimer);
+    requestAutoSyncCountdownTimer = null;
+  }
+}
+
+function updateRequestAutoSyncCountdown() {
+  if (!requestAutoSyncEnabled) {
+    setNextRequestSyncStatus("Next sync: paused");
+    return;
+  }
+
+  if (!requestAutoSyncNextAtMs) {
+    setNextRequestSyncStatus("Next sync: pending");
+    return;
+  }
+
+  const remainingMs = requestAutoSyncNextAtMs - Date.now();
+  if (remainingMs <= 0) {
+    setNextRequestSyncStatus("Next sync: running...");
+    return;
+  }
+
+  setNextRequestSyncStatus(`Next sync in ${formatCountdownShort(remainingMs)}`);
+}
+
+function scheduleNextRequestAutoSyncTick() {
+  if (!requestAutoSyncEnabled || !requestAutoSyncTimer) {
+    requestAutoSyncNextAtMs = 0;
+    updateRequestAutoSyncCountdown();
+    return;
+  }
+
+  const minutes = Math.max(1, Number(CONFIG.requestAutoSyncMinutes || 5));
+  requestAutoSyncNextAtMs = Date.now() + minutes * 60 * 1000;
+  updateRequestAutoSyncCountdown();
+
+  if (!requestAutoSyncCountdownTimer) {
+    requestAutoSyncCountdownTimer = window.setInterval(updateRequestAutoSyncCountdown, 1000);
+  }
+}
+
+function updateRequestSyncControlState() {
+  if (!el.btnLoadRequests) return;
+
+  if (requestAutoSyncInFlight) {
+    el.btnLoadRequests.disabled = true;
+    el.btnLoadRequests.textContent = "Syncing...";
+    return;
+  }
+
+  el.btnLoadRequests.disabled = false;
+  el.btnLoadRequests.textContent = "Sync Now";
+}
+
+function toggleRequestAutoSync() {
+  requestAutoSyncEnabled = !requestAutoSyncEnabled;
+  persistRequestAutoSyncPreference();
+  updateAutoSyncToggleButton();
+
+  if (requestAutoSyncEnabled) {
+    startRequestAutoSyncTimer();
+    setRequestAutoSyncStatus("Auto-sync resumed.", "info");
+    void runRequestAutoSync("resume", { silent: true });
+  } else {
+    stopRequestAutoSyncTimer();
+    setRequestAutoSyncStatus("Auto-sync paused by moderator.", "warn");
+    setNextRequestSyncStatus("Next sync: paused");
+  }
+}
 function getApprovedQueue() {
   const stored = persistentStorage.getItem(LS.approvedQueue);
   if (!stored) {
@@ -1948,6 +2068,7 @@ function approveRequest(request, options = {}) {
     studentName: request.studentName || "",
     theme: request.theme || "",
     spotify: request.spotify,
+    lyricsData: request.lyricsData || null,
     moderation
   });
 
@@ -3151,18 +3272,21 @@ function getLyricsFetchStatusTag(requestId) {
   }
 
   if (state.state === "success") {
+    const source = String(state.source || "").toLowerCase();
+    const label = source.includes("cache") ? "Lyrics: Cached" : "Lyrics: Fetched";
+
     return {
-      label: "Lyrics: Fetched",
+      label,
       tone: "ok",
-      detail: state.detail || "Live lyrics were fetched from the configured API."
+      detail: state.detail || "Lyrics were loaded successfully."
     };
   }
 
   if (state.state === "fallback") {
     return {
-      label: "Lyrics: API Fallback",
+      label: "Lyrics: Fallback",
       tone: "warn",
-      detail: state.detail || "Lyrics API fallback was used."
+      detail: state.detail || "Lyrics fallback was used."
     };
   }
 
@@ -3173,15 +3297,81 @@ function getLyricsFetchStatusTag(requestId) {
   };
 }
 
-function setLyricsFetchStatus(requestId, state, detail = "") {
+function maybeRepairMojibake(value) {
+  const text = String(value || "");
+  if (!text) return "";
+
+  if (!/[ÃƒÆ’Ãƒâ€šÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œÃƒÂ¢Ã¢â€šÂ¬]/.test(text)) {
+    return text;
+  }
+
+  try {
+    const bytes = Uint8Array.from(text, (char) => char.charCodeAt(0) & 0xff);
+    const decoded = new TextDecoder("utf-8", { fatal: false }).decode(bytes);
+    if (decoded && !decoded.includes("\uFFFD")) {
+      return decoded;
+    }
+  } catch {
+    // Keep original text when conversion fails.
+  }
+
+  return text;
+}
+
+function sanitizeLyricsText(value) {
+  const repaired = maybeRepairMojibake(value);
+  return String(repaired || "").replace(/\r\n/g, "\n").trim();
+}
+
+function setRequestLyricsData(request, payload = {}) {
+  if (!request || typeof request !== "object") return;
+
+  const previous = request.lyricsData && typeof request.lyricsData === "object"
+    ? request.lyricsData
+    : {};
+
+  const next = {
+    ...previous,
+    ...payload,
+    lyrics: sanitizeLyricsText(payload.lyrics ?? previous.lyrics ?? ""),
+    updatedAt: payload.updatedAt || new Date().toISOString()
+  };
+
+  request.lyricsData = next;
+}
+
+function setLyricsFetchStatus(requestId, state, detail = "", payload = {}) {
   const key = String(requestId || "").trim();
   if (!key) return;
 
-  lyricsFetchStateByRequestId.set(key, {
+  const previous = lyricsFetchStateByRequestId.get(key) || {};
+  const nextState = {
+    ...previous,
     state: String(state || "").trim() || "unknown",
     detail: String(detail || "").trim(),
-    updatedAt: new Date().toISOString()
-  });
+    source: String(payload.source ?? previous.source ?? "").trim(),
+    selectorUsed: String(payload.selectorUsed ?? previous.selectorUsed ?? "").trim(),
+    status: String(payload.status ?? previous.status ?? "").trim(),
+    updatedAt: payload.updatedAt || new Date().toISOString()
+  };
+
+  if (Object.prototype.hasOwnProperty.call(payload, "lyrics")) {
+    nextState.lyrics = sanitizeLyricsText(payload.lyrics);
+  }
+
+  lyricsFetchStateByRequestId.set(key, nextState);
+
+  const request = getRequestById(key);
+  if (request) {
+    setRequestLyricsData(request, {
+      lyrics: nextState.lyrics || "",
+      status: nextState.state,
+      source: nextState.source,
+      selectorUsed: nextState.selectorUsed,
+      detail: nextState.detail,
+      updatedAt: nextState.updatedAt
+    });
+  }
 }
 
 function normalizeLyricsCacheKey(artist, song) {
@@ -3196,6 +3386,92 @@ function normalizeLyricsCacheKey(artist, song) {
 
   if (!safeArtist || !safeSong) return "";
   return `${safeArtist}|${safeSong}`;
+}
+
+function buildLyricsLookupArtistCandidates(artist) {
+  const base = String(artist || "").trim();
+  if (!base) return [];
+
+  const candidates = new Set([base]);
+  candidates.add(base.split(",")[0]?.trim() || "");
+  candidates.add(base.split("&")[0]?.trim() || "");
+  candidates.add(base.split(/\bfeat\.?\b/i)[0]?.trim() || "");
+  return [...candidates].filter(Boolean);
+}
+
+function buildLyricsLookupSongCandidates(song) {
+  const base = String(song || "").trim();
+  if (!base) return [];
+
+  const candidates = new Set([base]);
+  candidates.add(base.replace(/\((feat|ft)\.?[^)]*\)/gi, "").trim());
+  candidates.add(base.replace(/\[(feat|ft)\.?[^\]]*\]/gi, "").trim());
+  candidates.add(base.replace(/\s+-\s+(radio edit|explicit|clean|remaster(ed)?|version)$/i, "").trim());
+  return [...candidates].filter(Boolean);
+}
+
+function getLyricsCacheEntryByArtistSong(artist, song, cacheData = lyricsCacheSnapshot) {
+  if (!cacheData || typeof cacheData !== "object") return null;
+
+  const bySongKey = cacheData?.by_song_key && typeof cacheData.by_song_key === "object"
+    ? cacheData.by_song_key
+    : {};
+
+  const artistCandidates = buildLyricsLookupArtistCandidates(artist);
+  const songCandidates = buildLyricsLookupSongCandidates(song);
+
+  for (const artistCandidate of artistCandidates) {
+    for (const songCandidate of songCandidates) {
+      const key = normalizeLyricsCacheKey(artistCandidate, songCandidate);
+      if (key && bySongKey[key]) {
+        return bySongKey[key];
+      }
+    }
+  }
+
+  return null;
+}
+
+function getStoredLyricsDataForRequest(request) {
+  if (!request || typeof request !== "object") return null;
+
+  const requestId = String(request.requestId || "").trim();
+  const requestLyrics = request.lyricsData && typeof request.lyricsData === "object"
+    ? request.lyricsData
+    : null;
+
+  if (requestLyrics && String(requestLyrics.lyrics || "").trim()) {
+    return {
+      lyrics: sanitizeLyricsText(requestLyrics.lyrics),
+      source: String(requestLyrics.source || "request-cache"),
+      selectorUsed: String(requestLyrics.selectorUsed || ""),
+      status: String(requestLyrics.status || "success")
+    };
+  }
+
+  if (requestId) {
+    const state = lyricsFetchStateByRequestId.get(requestId);
+    if (state && String(state.lyrics || "").trim()) {
+      return {
+        lyrics: sanitizeLyricsText(state.lyrics),
+        source: String(state.source || "runtime"),
+        selectorUsed: String(state.selectorUsed || ""),
+        status: String(state.state || "success")
+      };
+    }
+  }
+
+  const cacheEntry = getLyricsCacheEntryForRequest(request, lyricsCacheSnapshot);
+  if (cacheEntry && String(cacheEntry.lyrics || "").trim()) {
+    return {
+      lyrics: sanitizeLyricsText(cacheEntry.lyrics),
+      source: String(cacheEntry.source || "github-actions-cache"),
+      selectorUsed: String(cacheEntry.selector_used || ""),
+      status: String(cacheEntry.status || "success")
+    };
+  }
+
+  return null;
 }
 
 function formatElapsedShort(milliseconds) {
@@ -3416,9 +3692,14 @@ function getLyricsCacheEntryForRequest(request, cacheData) {
     return byTrackId[trackId];
   }
 
-  const songKey = normalizeLyricsCacheKey(request?.spotify?.artist, request?.spotify?.name);
-  if (songKey && bySongKey[songKey]) {
-    return bySongKey[songKey];
+  const directSongKey = normalizeLyricsCacheKey(request?.spotify?.artist, request?.spotify?.name);
+  if (directSongKey && bySongKey[directSongKey]) {
+    return bySongKey[directSongKey];
+  }
+
+  const candidateMatch = getLyricsCacheEntryByArtistSong(request?.spotify?.artist, request?.spotify?.name, cacheData);
+  if (candidateMatch) {
+    return candidateMatch;
   }
 
   return null;
@@ -3445,11 +3726,18 @@ function applyLyricsCacheEntriesFromCache(requests, cacheData) {
 
     matched += 1;
 
-    const hasLyrics = String(entry?.lyrics || "").trim().length > 0;
+    const lyricsText = sanitizeLyricsText(entry?.lyrics || "");
+    const hasLyrics = lyricsText.length > 0;
     if (hasLyrics && String(entry?.status || "").toLowerCase() === "success") {
       success += 1;
       const cachedAt = formatTimestamp(entry?.updated_at || cacheData?.generated_at || "") || "latest cache run";
-      setLyricsFetchStatus(requestId, "success", `Cached lyrics from ${cachedAt}.`);
+      setLyricsFetchStatus(requestId, "success", `Cached lyrics from ${cachedAt}.`, {
+        lyrics: lyricsText,
+        source: entry?.source || "github-actions-cache",
+        selectorUsed: entry?.selector_used || "",
+        status: entry?.status || "success",
+        updatedAt: entry?.updated_at || cacheData?.generated_at || new Date().toISOString()
+      });
       continue;
     }
 
@@ -3457,10 +3745,18 @@ function applyLyricsCacheEntriesFromCache(requests, cacheData) {
     setLyricsFetchStatus(
       requestId,
       "fallback",
-      String(entry?.error || "Lyrics not found in current cache for this song.")
+      String(entry?.error || "Lyrics not found in current cache for this song."),
+      {
+        lyrics: "",
+        source: entry?.source || "github-actions-cache",
+        selectorUsed: entry?.selector_used || "",
+        status: entry?.status || "fallback",
+        updatedAt: entry?.updated_at || cacheData?.generated_at || new Date().toISOString()
+      }
     );
   }
 
+  buildRequestSummary(currentRequests);
   renderRequests(currentRequests);
   renderApprovedQueue();
   if (moderationDetailContext?.requestId) {
@@ -3561,9 +3857,9 @@ async function prefetchLyricsForLoadedRequests(requests) {
   let cursor = 0;
   let processed = 0;
 
-  const applyStateToGroup = (group, state, detail) => {
+  const applyStateToGroup = (group, state, detail, payload = {}) => {
     for (const request of group.requests) {
-      setLyricsFetchStatus(request.requestId, state, detail);
+      setLyricsFetchStatus(request.requestId, state, detail, payload);
     }
   };
 
@@ -3572,6 +3868,7 @@ async function prefetchLyricsForLoadedRequests(requests) {
     applyStateToGroup(group, "loading", "Bulk lyrics fetch in progress from Load Requests.");
   }
 
+  buildRequestSummary(currentRequests);
   renderRequests(currentRequests);
   renderApprovedQueue();
   if (moderationDetailContext?.requestId) {
@@ -3593,7 +3890,13 @@ async function prefetchLyricsForLoadedRequests(requests) {
 
       if (result.ok) {
         stats.success += 1;
-        applyStateToGroup(group, "success", `Live lyrics fetched from ${result.source || "Lyrics API"}.`);
+        applyStateToGroup(group, "success", `Live lyrics fetched from ${result.source || "Lyrics API"}.`, {
+          lyrics: result.lyrics,
+          source: result.source || "Lyrics API",
+          selectorUsed: result.selectorUsed || "",
+          status: "success",
+          updatedAt: new Date().toISOString()
+        });
       } else {
         const fallbackState =
           result.status === "api-error" || result.status === "empty" || result.status === "not-configured"
@@ -3606,12 +3909,19 @@ async function prefetchLyricsForLoadedRequests(requests) {
           stats.failed += 1;
         }
 
-        applyStateToGroup(group, fallbackState, result.reason || "Lyrics API did not return live lyrics.");
+        applyStateToGroup(group, fallbackState, result.reason || "Lyrics API did not return live lyrics.", {
+          lyrics: "",
+          source: result.source || "Lyrics API",
+          selectorUsed: result.selectorUsed || "",
+          status: result.status || fallbackState,
+          updatedAt: new Date().toISOString()
+        });
       }
 
       processed += 1;
 
       if (processed % 4 === 0 || processed === groups.length) {
+        buildRequestSummary(currentRequests);
         renderRequests(currentRequests);
         renderApprovedQueue();
         if (moderationDetailContext?.requestId) {
@@ -3632,6 +3942,7 @@ async function prefetchLyricsForLoadedRequests(requests) {
   const workers = Array.from({ length: workerCount }, () => worker());
   await Promise.all(workers);
 
+  buildRequestSummary(currentRequests);
   renderRequests(currentRequests);
   renderApprovedQueue();
   if (moderationDetailContext?.requestId) {
@@ -3902,7 +4213,7 @@ function renderLyricsSuccess({ lyrics, selectorUsed, source }) {
 
   el.lyricsModalBody.innerHTML = `
     <div class="lyrics-success-wrap">
-      <pre class="lyrics-text-pre">${escapeHtml(lyrics)}</pre>
+      <pre class="lyrics-text-pre">${escapeHtml(sanitizeLyricsText(lyrics))}</pre>
       <p class="lyrics-fallback-copy">Source: ${escapeHtml(source || "Lyrics API")} ${selectorUsed ? `- Selector: ${escapeHtml(selectorUsed)}` : ""}</p>
     </div>
   `;
@@ -3920,7 +4231,7 @@ async function openLyricsModal({ artist, song, fallbackUrl, requestId = "" }) {
   const safeRequestId = String(requestId || "").trim();
 
   if (safeRequestId) {
-    setLyricsFetchStatus(safeRequestId, "loading");
+    setLyricsFetchStatus(safeRequestId, "loading", "Preparing lyrics...");
     renderRequests(currentRequests);
     renderApprovedQueue();
   }
@@ -3935,13 +4246,65 @@ async function openLyricsModal({ artist, song, fallbackUrl, requestId = "" }) {
   el.lyricsBackdrop.classList.add("lyrics-is-open");
   el.lyricsModal.classList.add("lyrics-is-open");
 
+  let cachedLyrics = null;
+  if (safeRequestId) {
+    const request = getRequestById(safeRequestId);
+    cachedLyrics = getStoredLyricsDataForRequest(request);
+  }
+
+  if (!cachedLyrics && !lyricsCacheSnapshot) {
+    await fetchLyricsCacheSnapshot({ quiet: true });
+  }
+
+  if (!cachedLyrics) {
+    const cacheEntry = safeRequestId
+      ? getLyricsCacheEntryForRequest(getRequestById(safeRequestId), lyricsCacheSnapshot)
+      : getLyricsCacheEntryByArtistSong(safeArtist, safeSong, lyricsCacheSnapshot);
+
+    if (cacheEntry && sanitizeLyricsText(cacheEntry?.lyrics || "")) {
+      cachedLyrics = {
+        lyrics: sanitizeLyricsText(cacheEntry.lyrics || ""),
+        source: cacheEntry.source || "github-actions-cache",
+        selectorUsed: cacheEntry.selector_used || ""
+      };
+    }
+  }
+
+  if (cachedLyrics?.lyrics) {
+    if (safeRequestId) {
+      setLyricsFetchStatus(safeRequestId, "success", "Lyrics loaded from cache.", {
+        lyrics: cachedLyrics.lyrics,
+        source: cachedLyrics.source || "github-actions-cache",
+        selectorUsed: cachedLyrics.selectorUsed || "",
+        status: "success",
+        updatedAt: new Date().toISOString()
+      });
+      buildRequestSummary(currentRequests);
+      renderRequests(currentRequests);
+      renderApprovedQueue();
+      if (moderationDetailContext?.requestId === safeRequestId) {
+        openModerationReasonModal(moderationDetailContext);
+      }
+    }
+
+    renderLyricsSuccess(cachedLyrics);
+    return;
+  }
+
   const result = await fetchLyricsFromApi(safeArtist, safeSong);
   if (!result.ok) {
     if (safeRequestId) {
       const fallbackState = result.status === "api-error" || result.status === "empty" || result.status === "not-configured"
         ? "fallback"
         : "error";
-      setLyricsFetchStatus(safeRequestId, fallbackState, result.reason || "Lyrics API did not return live lyrics.");
+      setLyricsFetchStatus(safeRequestId, fallbackState, result.reason || "Lyrics API did not return live lyrics.", {
+        lyrics: "",
+        source: result.source || "Lyrics API",
+        selectorUsed: result.selectorUsed || "",
+        status: result.status || fallbackState,
+        updatedAt: new Date().toISOString()
+      });
+      buildRequestSummary(currentRequests);
       renderRequests(currentRequests);
       renderApprovedQueue();
       if (moderationDetailContext?.requestId === safeRequestId) {
@@ -3953,13 +4316,20 @@ async function openLyricsModal({ artist, song, fallbackUrl, requestId = "" }) {
       artist: safeArtist,
       song: safeSong,
       fallbackUrl: safeFallbackUrl,
-      reason: result.reason
+      reason: result.reason || "No cache entry was found and live lyrics API failed."
     });
     return;
   }
 
   if (safeRequestId) {
-    setLyricsFetchStatus(safeRequestId, "success", `Live lyrics fetched from ${result.source || "Lyrics API"}.`);
+    setLyricsFetchStatus(safeRequestId, "success", `Live lyrics fetched from ${result.source || "Lyrics API"}.`, {
+      lyrics: result.lyrics,
+      source: result.source || "Lyrics API",
+      selectorUsed: result.selectorUsed || "",
+      status: "success",
+      updatedAt: new Date().toISOString()
+    });
+    buildRequestSummary(currentRequests);
     renderRequests(currentRequests);
     renderApprovedQueue();
     if (moderationDetailContext?.requestId === safeRequestId) {
@@ -4048,6 +4418,7 @@ async function runRequestAutoSync(reason = "manual", options = {}) {
   }
 
   requestAutoSyncInFlight = true;
+  updateRequestSyncControlState();
   setRequestAutoSyncStatus(reason === "manual" ? "Syncing requests now..." : "Auto-sync in progress...", "info");
 
   try {
@@ -4056,6 +4427,7 @@ async function runRequestAutoSync(reason = "manual", options = {}) {
     const timeText = lastRequestSyncAt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
     const sourceLabel = reason === "manual" ? "manual" : "auto";
     setRequestAutoSyncStatus(`Last sync ${timeText} (${sourceLabel})`, "ok");
+    scheduleNextRequestAutoSyncTick();
     return true;
   } catch (error) {
     const message = error?.message || "Request sync failed.";
@@ -4067,6 +4439,7 @@ async function runRequestAutoSync(reason = "manual", options = {}) {
     return false;
   } finally {
     requestAutoSyncInFlight = false;
+    updateRequestSyncControlState();
   }
 }
 
@@ -4075,10 +4448,19 @@ function stopRequestAutoSyncTimer() {
     window.clearInterval(requestAutoSyncTimer);
     requestAutoSyncTimer = null;
   }
+  requestAutoSyncNextAtMs = 0;
+  stopRequestAutoSyncCountdown();
 }
 
 function startRequestAutoSyncTimer() {
   stopRequestAutoSyncTimer();
+  updateAutoSyncToggleButton();
+
+  if (!requestAutoSyncEnabled) {
+    setRequestAutoSyncStatus("Auto-sync paused by moderator.", "warn");
+    setNextRequestSyncStatus("Next sync: paused");
+    return;
+  }
 
   const minutes = Math.max(1, Number(CONFIG.requestAutoSyncMinutes || 5));
   setRequestAutoSyncStatus(`Auto-sync every ${minutes} minute(s).`, "neutral");
@@ -4086,6 +4468,8 @@ function startRequestAutoSyncTimer() {
   requestAutoSyncTimer = window.setInterval(() => {
     void runRequestAutoSync("auto", { silent: true });
   }, minutes * 60 * 1000);
+
+  scheduleNextRequestAutoSyncTick();
 }
 
 // ======================================================
@@ -4219,6 +4603,9 @@ function wireStaticEvents() {
     }
   });
 
+  el.btnToggleAutoSync?.addEventListener("click", () => {
+    toggleRequestAutoSync();
+  });
   el.btnRefreshPlayback?.addEventListener("click", async () => {
     try {
       await refreshPlayback();
@@ -4696,7 +5083,11 @@ async function init() {
   clearLegacyAuthStorage();
   ensureStorageDefaults();
   loadModerationOverridesFromStorage();
+  loadRequestAutoSyncPreference();
   wireStaticEvents();
+  updateAutoSyncToggleButton();
+  updateRequestSyncControlState();
+  updateRequestAutoSyncCountdown();
   renderApprovedQueue();
   renderApprovedPreview();
   renderManualSearchResults();
@@ -4740,6 +5131,7 @@ async function init() {
   } else {
     stopRequestAutoSyncTimer();
     setRequestAutoSyncStatus("Login to enable request sync.", "warn");
+    setNextRequestSyncStatus("Next sync: login required");
   }
 }
 
