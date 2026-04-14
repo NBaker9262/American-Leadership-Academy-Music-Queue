@@ -347,6 +347,24 @@ h2 {
     0 4px 14px rgba(0, 0, 0, 0.2);
 }
 
+.site-timer-bar {
+  margin-top: 10px;
+  padding: 10px 14px;
+  border-radius: 18px;
+  border: 1px solid var(--m3-outline);
+  background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.04));
+  color: var(--text);
+  font-size: 0.92rem;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+
+.site-timer-bar:empty {
+  display: none;
+}
+
 .btn,
 button,
 .ghost-btn {
@@ -1220,12 +1238,14 @@ body.mod-panel-open {
   min-height: 32px;
   padding: 7px 10px;
   border-radius: 999px;
-  border: 1px solid rgba(70, 184, 255, 0.35);
-  background: rgba(70, 184, 255, 0.12);
-  color: #d8efff;
-  font-size: 11px;
+  border: 1px solid rgba(70, 184, 255, 0.5);
+  background: rgba(70, 184, 255, 0.2);
+  color: var(--text);
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.01em;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
@@ -1235,33 +1255,33 @@ body.mod-panel-open {
 }
 
 .lyrics-sync-pill[data-tone="neutral"] {
-  border-color: rgba(150, 175, 215, 0.34);
-  background: rgba(130, 152, 190, 0.12);
-  color: #d9e4fb;
+  border-color: rgba(187, 200, 224, 0.42);
+  background: rgba(130, 152, 190, 0.22);
+  color: var(--text);
 }
 
 .lyrics-sync-pill[data-tone="info"] {
-  border-color: rgba(104, 183, 255, 0.45);
-  background: rgba(86, 166, 244, 0.18);
-  color: #d8eeff;
+  border-color: rgba(104, 183, 255, 0.6);
+  background: rgba(86, 166, 244, 0.26);
+  color: var(--text);
 }
 
 .lyrics-sync-pill[data-tone="ok"] {
-  border-color: rgba(118, 214, 156, 0.44);
-  background: rgba(76, 173, 122, 0.18);
-  color: #d5ffe4;
+  border-color: rgba(118, 214, 156, 0.62);
+  background: rgba(76, 173, 122, 0.26);
+  color: var(--text);
 }
 
 .lyrics-sync-pill[data-tone="warn"] {
-  border-color: rgba(255, 204, 118, 0.46);
-  background: rgba(199, 141, 55, 0.24);
-  color: #ffeab7;
+  border-color: rgba(255, 204, 118, 0.66);
+  background: rgba(199, 141, 55, 0.32);
+  color: var(--text);
 }
 
 .lyrics-sync-pill[data-tone="error"] {
-  border-color: rgba(255, 128, 152, 0.48);
-  background: rgba(170, 56, 82, 0.24);
-  color: #ffd4dd;
+  border-color: rgba(255, 128, 152, 0.7);
+  background: rgba(170, 56, 82, 0.32);
+  color: var(--text);
 }
 
 .mod-overlay-body {

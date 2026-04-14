@@ -242,6 +242,7 @@ const el = {
   playPauseIcon: document.getElementById("playPauseIcon"),
 
   status: document.getElementById("status"),
+  siteTimerBar: document.getElementById("siteTimerBar"),
   nowPlaying: document.getElementById("nowPlaying"),
   nowPlayingMeta: document.getElementById("nowPlayingMeta"),
   nowPlayingArt: document.getElementById("nowPlayingArt"),
@@ -750,6 +751,28 @@ function clearModerationOverride(requestId) {
 
 let requestAutoSyncStatusText = "";
 let nextRequestSyncText = "";
+let lyricsCacheCountdownText = "";
+let lastSiteTimerBarText = "";
+
+function renderSiteTimerBar() {
+  if (!el.siteTimerBar) return;
+
+  const requestBase = String(requestAutoSyncStatusText || "").trim();
+  const requestNext = String(nextRequestSyncText || "").trim();
+  const requestCombined = requestNext ? `${requestBase} | ${requestNext}` : requestBase;
+
+  const lyricsText = String(lyricsCacheCountdownText || el.lyricsCacheCountdown?.textContent || "").trim();
+
+  const parts = [];
+  if (requestCombined) parts.push(`Requests: ${requestCombined}`);
+  if (lyricsText) parts.push(lyricsText);
+
+  const combinedText = parts.join(" • ");
+  if (combinedText === lastSiteTimerBarText) return;
+
+  lastSiteTimerBarText = combinedText;
+  el.siteTimerBar.textContent = combinedText;
+}
 
 function renderRequestAutoSyncHeaderStatus(tone = "neutral") {
   if (!el.modAutoSyncStatus) return;
@@ -1014,6 +1037,7 @@ function setNextRequestSyncStatus(message) {
     el.modNextSyncStatus.textContent = nextRequestSyncText;
   }
   renderRequestAutoSyncHeaderStatus(el.modAutoSyncStatus?.dataset?.tone || "neutral");
+  renderSiteTimerBar();
 }
 
 function updateAutoSyncToggleButton() {
@@ -3660,7 +3684,9 @@ function formatElapsedShort(milliseconds) {
 
 function setLyricsCacheCountdownLabel(message) {
   if (!el.lyricsCacheCountdown) return;
-  el.lyricsCacheCountdown.textContent = message;
+  lyricsCacheCountdownText = String(message || "");
+  el.lyricsCacheCountdown.textContent = lyricsCacheCountdownText;
+  renderSiteTimerBar();
 }
 
 function updateLyricsCacheCountdownLabel() {
@@ -4586,6 +4612,7 @@ async function addManualSearchResultToQueue(trackId) {
 function setRequestAutoSyncStatus(message, tone = "neutral") {
   requestAutoSyncStatusText = String(message || "");
   renderRequestAutoSyncHeaderStatus(tone);
+  renderSiteTimerBar();
 }
 
 async function runRequestAutoSync(reason = "manual", options = {}) {
