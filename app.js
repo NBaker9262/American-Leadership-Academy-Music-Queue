@@ -1836,7 +1836,7 @@ async function getCurrentUserProfile() {
 }
 
 async function getTrackById(trackId) {
-  return spotifyFetchWithRetry(`/tracks/${trackId}`);
+  return spotifyFetchWithRetry(`/tracks/${encodeURIComponent(trackId)}?market=from_token`);
 }
 
 const trackCacheById = new Map();
@@ -1868,7 +1868,38 @@ async function getTracksByIds(trackIds) {
     const chunk = ids.slice(i, i + 50);
     if (!chunk.length) continue;
 
-    const response = await spotifyFetchWithRetry(`/tracks?ids=${encodeURIComponent(chunk.join(","))}`);
+    // Note: Spotify expects comma-separated IDs. Encode each ID, but keep commas unescaped.
+    const idsParam = chunk.map((id) => encodeURIComponent(id)).join(",");
+
+    let response;
+    try {
+      response = await spotifyFetchWithRetry(`/tracks?ids=${idsParam}&market=from_token`);
+    } catch (error) {
+      const status = getErrorStatusCode(error);
+      if (status === 403 || status === 400) {
+        logConsoleEvent(
+          "Spotify",
+          "Bulk track lookup failed; falling back to per-track fetch.",
+          { status, chunkSize: chunk.length },
+          "warn"
+        );
+
+        for (const trackId of chunk) {
+          try {
+            const track = await getTrackByIdWithRetry(trackId);
+            const id = String(track?.id || "").trim();
+            if (id) results.set(id, track);
+          } catch (innerError) {
+            console.warn("Per-track Spotify lookup failed:", { trackId, error: innerError });
+          }
+        }
+
+        continue;
+      }
+
+      throw error;
+    }
+
     const tracks = Array.isArray(response?.tracks) ? response.tracks : [];
     for (const track of tracks) {
       const id = String(track?.id || "").trim();
