@@ -108,6 +108,61 @@ def extract_spotify_track_id(url: str) -> str:
     return ""
 
 
+def resolve_spotify_track_id(url: str, timeout_seconds: int = 20) -> str:
+    """Resolve a Spotify track ID from a variety of share links.
+
+    Supports:
+    - https://open.spotify.com/track/<id>
+    - spotify:track:<id>
+    - https://spotify.link/<code> (redirect)
+    - https://spoti.fi/<code> (redirect)
+    """
+
+    value = str(url or "").strip()
+    if not value:
+        return ""
+
+    direct = extract_spotify_track_id(value)
+    if direct:
+        return direct
+
+    # Try Spotify oEmbed with the original URL (works for many share links).
+    try:
+        resp = requests.get(
+            "https://open.spotify.com/oembed",
+            params={"url": value},
+            timeout=timeout_seconds,
+            headers=REQUEST_HEADERS,
+        )
+        resp.raise_for_status()
+        payload = resp.json()
+        for candidate in (
+            payload.get("uri"),
+            payload.get("url"),
+            payload.get("provider_url"),
+            payload.get("html"),
+            payload.get("thumbnail_url"),
+            payload.get("title"),
+        ):
+            found = extract_spotify_track_id(str(candidate or ""))
+            if found:
+                return found
+    except Exception:  # noqa: BLE001
+        pass
+
+    # Follow redirects as a last resort.
+    try:
+        resp = requests.get(value, timeout=timeout_seconds, allow_redirects=True, headers=REQUEST_HEADERS)
+        final_url = str(resp.url or "").strip()
+        found = extract_spotify_track_id(final_url)
+        if found:
+            return found
+    except Exception:  # noqa: BLE001
+        pass
+
+    return ""
+
+
 def spotify_track_url(track_id: str) -> str:
     return f"https://open.spotify.com/track/{track_id}"
 
@@ -435,7 +490,7 @@ def build_cache(
     grouped_request_ids: dict[str, list[str]] = {}
 
     for row in request_rows:
-        track_id = extract_spotify_track_id(row.spotify_link)
+        track_id = resolve_spotify_track_id(row.spotify_link)
         if not track_id:
             continue
         grouped_request_ids.setdefault(track_id, []).append(row.request_id)

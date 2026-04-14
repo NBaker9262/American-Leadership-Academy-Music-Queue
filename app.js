@@ -1278,9 +1278,72 @@ function extractSpotifyTrackId(url) {
   const trackUrlMatch = trimmed.match(/spotify\.com\/track\/([A-Za-z0-9]+)/i);
   if (trackUrlMatch) return trackUrlMatch[1];
 
+  const embedMatch = trimmed.match(/spotify\.com\/embed\/track\/([A-Za-z0-9]+)/i);
+  if (embedMatch) return embedMatch[1];
+
   const spotifyUriMatch = trimmed.match(/spotify:track:([A-Za-z0-9]+)/i);
   if (spotifyUriMatch) return spotifyUriMatch[1];
 
+  return null;
+}
+
+const spotifyOembedResolveCache = new Map();
+
+async function resolveSpotifyTrackIdFromLink(spotifyLink) {
+  const trimmed = String(spotifyLink || "").trim();
+  if (!trimmed) return null;
+
+  const direct = extractSpotifyTrackId(trimmed);
+  if (direct) return direct;
+
+  if (spotifyOembedResolveCache.has(trimmed)) {
+    return spotifyOembedResolveCache.get(trimmed);
+  }
+
+  try {
+    const response = await fetch(`https://open.spotify.com/oembed?url=${encodeURIComponent(trimmed)}`, {
+      method: "GET",
+      headers: {
+        Accept: "application/json"
+      }
+    });
+
+    if (!response.ok) {
+      spotifyOembedResolveCache.set(trimmed, null);
+      return null;
+    }
+
+    const json = await response.json();
+
+    const candidateStrings = [
+      json?.uri,
+      json?.url,
+      json?.provider_url,
+      json?.html,
+      json?.thumbnail_url,
+      json?.title
+    ]
+      .map((value) => String(value || "").trim())
+      .filter(Boolean);
+
+    for (const candidate of candidateStrings) {
+      const found = extractSpotifyTrackId(candidate);
+      if (found) {
+        spotifyOembedResolveCache.set(trimmed, found);
+        return found;
+      }
+
+      const embedFound = candidate.match(/open\.spotify\.com\/embed\/track\/([A-Za-z0-9]+)/i);
+      if (embedFound) {
+        spotifyOembedResolveCache.set(trimmed, embedFound[1]);
+        return embedFound[1];
+      }
+    }
+  } catch {
+    // Ignore and fall through.
+  }
+
+  spotifyOembedResolveCache.set(trimmed, null);
   return null;
 }
 
@@ -2109,6 +2172,38 @@ async function enrichRequestRows(rows) {
 
     return result;
   });
+
+  const itemsNeedingResolve = enriched.filter((item) => !item.trackId && item.spotifyLink);
+  if (itemsNeedingResolve.length) {
+    logConsoleEvent(
+      "Spotify",
+      "Resolving Spotify share links...",
+      { count: itemsNeedingResolve.length },
+      "info"
+    );
+
+    const concurrency = 4;
+    let idx = 0;
+
+    const worker = async () => {
+      while (idx < itemsNeedingResolve.length) {
+        const current = itemsNeedingResolve[idx];
+        idx += 1;
+
+        try {
+          const resolved = await resolveSpotifyTrackIdFromLink(current.spotifyLink);
+          if (resolved) {
+            current.trackId = resolved;
+            current.error = null;
+          }
+        } catch {
+          // Keep existing error.
+        }
+      }
+    };
+
+    await Promise.all(Array.from({ length: Math.min(concurrency, itemsNeedingResolve.length) }, () => worker()));
+  }
 
   const idsToFetch = [];
   for (const item of enriched) {
