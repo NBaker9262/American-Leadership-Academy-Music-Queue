@@ -1745,7 +1745,7 @@ async function spotifyNoContent(path, options = {}) {
 }
 
 async function getCurrentUserProfile() {
-  return spotifyFetch("/me");
+  return spotifyFetchWithRetry("/me");
 }
 
 async function getTrackById(trackId) {
@@ -1794,7 +1794,7 @@ async function getTracksByIds(trackIds) {
 
 async function getCurrentlyPlaying() {
   try {
-    return await spotifyFetch("/me/player");
+    return await spotifyFetchWithRetry("/me/player");
   } catch (error) {
     console.warn("Currently playing unavailable:", error);
     return null;
@@ -1802,11 +1802,11 @@ async function getCurrentlyPlaying() {
 }
 
 async function getAvailableDevices() {
-  return spotifyFetch("/me/player/devices");
+  return spotifyFetchWithRetry("/me/player/devices");
 }
 
 async function getSpotifyQueue() {
-  return spotifyFetch("/me/player/queue");
+  return spotifyFetchWithRetry("/me/player/queue");
 }
 
 async function searchSpotifyTracks(query) {
@@ -1816,7 +1816,7 @@ async function searchSpotifyTracks(query) {
     limit: String(CONFIG.manualSearchLimit)
   });
 
-  const response = await spotifyFetch(`/search?${params.toString()}`);
+  const response = await spotifyFetchWithRetry(`/search?${params.toString()}`);
   return Array.isArray(response?.tracks?.items) ? response.tracks.items : [];
 }
 
