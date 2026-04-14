@@ -1286,7 +1286,7 @@ body.mod-panel-open {
 
 .mod-overlay-body {
   flex: 1;
-  overflow: hidden;
+  overflow: auto;
   padding: 10px 14px 14px;
   display: flex;
   flex-direction: column;
@@ -1295,10 +1295,17 @@ body.mod-panel-open {
 }
 
 .mod-top-search-card {
-  grid-column: 2;
+  grid-column: 3;
   grid-row: 1;
   flex-shrink: 0;
   padding: 14px;
+}
+
+.mod-top-search-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: auto;
 }
 
 .mod-top-search-card .search-controls {
@@ -1311,7 +1318,8 @@ body.mod-panel-open {
 }
 
 .search-card #manualSearchResults {
-  max-height: 200px;
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
   padding-right: 4px;
 }
@@ -1319,8 +1327,8 @@ body.mod-panel-open {
 .mod-grid {
   flex: 1;
   display: grid;
-  grid-template-columns: minmax(0, 2fr) minmax(380px, 1fr);
-  grid-template-rows: minmax(0, auto) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1.7fr) minmax(360px, 1fr) minmax(320px, 0.9fr);
+  grid-template-rows: minmax(0, 1fr);
   gap: 10px;
   align-items: stretch;
   min-height: 0;
@@ -1328,7 +1336,7 @@ body.mod-panel-open {
 
 .mod-overlay .requests-card {
   grid-column: 1;
-  grid-row: 1 / span 2;
+  grid-row: 1;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -1347,7 +1355,7 @@ body.mod-panel-open {
 
 .mod-right-stack {
   grid-column: 2;
-  grid-row: 2;
+  grid-row: 1;
   display: grid;
   grid-template-rows: minmax(320px, 1.2fr) minmax(250px, 0.9fr);
   gap: 12px;
@@ -2612,11 +2620,10 @@ body.mod-panel-open {
 }
 
 .mod-overlay {
-  right: 12px;
-  bottom: 12px;
-  width: min(1640px, calc(100vw - 16px));
-  max-height: calc(100dvh - 24px);
+  inset: 8px;
+  width: auto;
   height: auto;
+  max-height: none;
 }
 
 .mod-overlay-header {
@@ -2635,32 +2642,35 @@ body.mod-panel-open {
 }
 
 .mod-overlay-body {
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding: 18px 24px 24px;
+  overflow: auto;
+  padding: 10px 14px 14px;
   scrollbar-gutter: stable;
-  gap: 20px;
+  gap: 10px;
 }
 
 .mod-grid {
-  grid-template-columns: minmax(0, 1.35fr) minmax(500px, 1fr);
-  gap: 20px;
+  grid-template-columns: minmax(0, 1.7fr) minmax(360px, 1fr) minmax(320px, 0.9fr);
+  grid-template-rows: minmax(0, 1fr);
+  gap: 10px;
+  align-items: stretch;
   align-content: start;
 }
 
 .mod-overlay .requests-card {
-  overflow: visible;
-  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 16px;
 }
 
 .mod-top-search-card,
 .mod-right-stack .approved-card,
 .mod-right-stack .up-next-card {
-  padding: 20px;
+  padding: 16px;
 }
 
 .mod-right-stack {
-  gap: 18px;
+  gap: 12px;
 }
 
 .request-actions,
@@ -2669,31 +2679,29 @@ body.mod-panel-open {
   align-items: center;
 }
 
-#requestTableBody,
-#manualSearchResults,
-#approvedQueueList,
-#approvedPreviewTable {
+.mod-overlay #requestTableBody,
+.mod-overlay #manualSearchResults,
+.mod-overlay #approvedQueueList,
+.mod-overlay #approvedPreviewTable {
   overflow-y: auto;
   overflow-x: hidden;
   padding-right: 4px;
 }
 
-#requestTableBody {
-  max-height: min(48dvh, 560px);
+.mod-overlay #requestTableBody {
+  flex: 1;
+  min-height: 0;
 }
 
-#manualSearchResults {
-  max-height: min(28dvh, 280px);
+.mod-overlay #manualSearchResults {
+  flex: 1;
+  min-height: 0;
 }
 
-#approvedQueueList {
-  max-height: min(34dvh, 420px);
-  min-height: 220px;
-}
-
-#approvedPreviewTable {
-  max-height: min(30dvh, 360px);
-  min-height: 160px;
+.mod-overlay #approvedQueueList,
+.mod-overlay #approvedPreviewTable {
+  flex: 1;
+  min-height: 0;
 }
 
 @media (max-width: 900px) {
@@ -2723,12 +2731,12 @@ body.mod-panel-open {
     padding: 14px;
   }
 
-  #requestTableBody,
-  #manualSearchResults,
-  #approvedQueueList,
-  #approvedPreviewTable {
-    max-height: none;
-    min-height: 0;
+  .mod-overlay #requestTableBody,
+  .mod-overlay #manualSearchResults,
+  .mod-overlay #approvedQueueList,
+  .mod-overlay #approvedPreviewTable {
+    overflow: visible;
+    padding-right: 0;
   }
 }
 
