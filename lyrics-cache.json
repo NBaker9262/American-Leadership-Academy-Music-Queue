@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-04-14T12:46:32.215895Z",
-  "next_refresh_at": "2026-04-14T12:51:32.215909Z",
+  "generated_at": "2026-04-14T14:26:47.872030Z",
+  "next_refresh_at": "2026-04-14T14:31:47.872042Z",
   "refresh_interval_minutes": 5,
   "source": {
     "requests_csv_url": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQyc3RRDmjc-nN-XgMMDocbnn1tlxue5ynNoNnYSxnRKxgp2LRGNmYZXnVgAFLH7IViwTAtmIAkvDsK/pub?output=csv",
@@ -20,7 +20,7 @@
       "status": "fallback",
       "lyrics": "",
       "error": "Spotify metadata lookup failed: Spotify metadata lookup failed: 404 Client Error: Not Found for url: https://open.spotify.com/oembed?url=https%3A%2F%2Fopen.spotify.com%2Ftrack%2F0E7s6qk8zR2G6N3v9pR6Jh",
-      "updated_at": "2026-04-14T12:46:08.697236Z",
+      "updated_at": "2026-04-14T14:26:28.056374Z",
       "request_ids": [
         "||https://open.spotify.com/track/0E7s6qk8zR2G6N3v9pR6Jh"
       ]
@@ -40,7 +40,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T12:46:09.021952Z",
+      "updated_at": "2026-04-14T14:26:28.537355Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -62,7 +62,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T12:46:09.740067Z",
+      "updated_at": "2026-04-14T14:26:29.621321Z",
       "error": "",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Post-Malone-21-Savage/rockstar-feat-21-Savage",
@@ -88,7 +88,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T12:46:11.733473Z",
+      "updated_at": "2026-04-14T14:26:30.944439Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -110,7 +110,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T12:46:12.244580Z",
+      "updated_at": "2026-04-14T14:26:31.646164Z",
       "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Green-Day/Brain-Stew",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Green-Day/Brain-Stew"
@@ -134,7 +134,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T12:46:13.092578Z",
+      "updated_at": "2026-04-14T14:26:32.769982Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -156,7 +156,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T12:46:13.728354Z",
+      "updated_at": "2026-04-14T14:26:33.571137Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -178,7 +178,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T12:46:14.360852Z",
+      "updated_at": "2026-04-14T14:26:34.412103Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -200,7 +200,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T12:46:15.210765Z",
+      "updated_at": "2026-04-14T14:26:35.587780Z",
       "error": "Lyrics element not found or extracted text was too short.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Eminem/The-Real-Slim-Shady"
@@ -224,7 +224,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T12:46:16.189763Z",
+      "updated_at": "2026-04-14T14:26:36.240247Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -246,7 +246,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T12:46:16.954601Z",
+      "updated_at": "2026-04-14T14:26:37.186019Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -268,7 +268,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T12:46:17.915781Z",
+      "updated_at": "2026-04-14T14:26:38.005455Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -290,7 +290,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T12:46:18.707262Z",
+      "updated_at": "2026-04-14T14:26:38.716646Z",
       "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Cardi-B/WAP",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Cardi-B-Megan-Thee-Stallion/WAP-feat-Megan-Thee-Stallion",
@@ -317,7 +317,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T12:46:19.822389Z",
+      "updated_at": "2026-04-14T14:26:40.107342Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -339,7 +339,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T12:46:20.817518Z",
+      "updated_at": "2026-04-14T14:26:40.955871Z",
       "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Eduard-Abramyan/Prelude-for-Piano-No-11-in-F-Sharp-Minor",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Eduard-Abramyan-Sona-Shaboyan/Prelude-for-Piano-No-11-in-F-Sharp-Minor",
@@ -364,7 +364,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T12:46:26.755548Z",
+      "updated_at": "2026-04-14T14:26:42.014219Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -386,7 +386,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T12:46:27.566885Z",
+      "updated_at": "2026-04-14T14:26:42.991103Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -408,7 +408,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T12:46:28.541645Z",
+      "updated_at": "2026-04-14T14:26:43.837682Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -430,7 +430,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T12:46:29.403494Z",
+      "updated_at": "2026-04-14T14:26:44.662665Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -452,7 +452,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T12:46:29.976991Z",
+      "updated_at": "2026-04-14T14:26:45.467651Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -474,7 +474,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T12:46:30.599598Z",
+      "updated_at": "2026-04-14T14:26:46.161904Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -496,7 +496,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T12:46:31.440367Z",
+      "updated_at": "2026-04-14T14:26:47.117962Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -518,7 +518,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T12:46:32.114122Z",
+      "updated_at": "2026-04-14T14:26:47.744764Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -542,7 +542,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T12:46:09.021952Z",
+      "updated_at": "2026-04-14T14:26:28.537355Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -564,7 +564,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T12:46:09.740067Z",
+      "updated_at": "2026-04-14T14:26:29.621321Z",
       "error": "",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Post-Malone-21-Savage/rockstar-feat-21-Savage",
@@ -590,7 +590,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T12:46:11.733473Z",
+      "updated_at": "2026-04-14T14:26:30.944439Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -612,7 +612,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T12:46:12.244580Z",
+      "updated_at": "2026-04-14T14:26:31.646164Z",
       "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Green-Day/Brain-Stew",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Green-Day/Brain-Stew"
@@ -636,7 +636,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T12:46:13.728354Z",
+      "updated_at": "2026-04-14T14:26:33.571137Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -658,7 +658,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T12:46:14.360852Z",
+      "updated_at": "2026-04-14T14:26:34.412103Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -680,7 +680,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T12:46:15.210765Z",
+      "updated_at": "2026-04-14T14:26:35.587780Z",
       "error": "Lyrics element not found or extracted text was too short.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Eminem/The-Real-Slim-Shady"
@@ -704,7 +704,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T12:46:16.189763Z",
+      "updated_at": "2026-04-14T14:26:36.240247Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -726,7 +726,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T12:46:16.954601Z",
+      "updated_at": "2026-04-14T14:26:37.186019Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -748,7 +748,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T12:46:17.915781Z",
+      "updated_at": "2026-04-14T14:26:38.005455Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -770,7 +770,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T12:46:18.707262Z",
+      "updated_at": "2026-04-14T14:26:38.716646Z",
       "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Cardi-B/WAP",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Cardi-B-Megan-Thee-Stallion/WAP-feat-Megan-Thee-Stallion",
@@ -797,7 +797,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T12:46:19.822389Z",
+      "updated_at": "2026-04-14T14:26:40.107342Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -819,7 +819,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T12:46:20.817518Z",
+      "updated_at": "2026-04-14T14:26:40.955871Z",
       "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Eduard-Abramyan/Prelude-for-Piano-No-11-in-F-Sharp-Minor",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Eduard-Abramyan-Sona-Shaboyan/Prelude-for-Piano-No-11-in-F-Sharp-Minor",
@@ -844,7 +844,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T12:46:26.755548Z",
+      "updated_at": "2026-04-14T14:26:42.014219Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -866,7 +866,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T12:46:27.566885Z",
+      "updated_at": "2026-04-14T14:26:42.991103Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -888,7 +888,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T12:46:28.541645Z",
+      "updated_at": "2026-04-14T14:26:43.837682Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -910,7 +910,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T12:46:29.403494Z",
+      "updated_at": "2026-04-14T14:26:44.662665Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -932,7 +932,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T12:46:29.976991Z",
+      "updated_at": "2026-04-14T14:26:45.467651Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -954,7 +954,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T12:46:30.599598Z",
+      "updated_at": "2026-04-14T14:26:46.161904Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -976,7 +976,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T12:46:31.440367Z",
+      "updated_at": "2026-04-14T14:26:47.117962Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -998,7 +998,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T12:46:32.114122Z",
+      "updated_at": "2026-04-14T14:26:47.744764Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
