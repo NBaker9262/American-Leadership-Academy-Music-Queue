@@ -1319,7 +1319,7 @@ body.mod-panel-open {
 .mod-grid {
   flex: 1;
   display: grid;
-  grid-template-columns: minmax(0, 1.7fr) minmax(420px, 1fr);
+  grid-template-columns: minmax(0, 2fr) minmax(380px, 1fr);
   grid-template-rows: minmax(0, auto) minmax(0, 1fr);
   gap: 10px;
   align-items: stretch;
@@ -1329,10 +1329,20 @@ body.mod-panel-open {
 .mod-overlay .requests-card {
   grid-column: 1;
   grid-row: 1 / span 2;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   overflow-x: hidden;
   min-height: 0;
   padding: 16px;
+}
+
+.mod-overlay #requestTableBody {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 4px;
 }
 
 .mod-right-stack {
@@ -1347,11 +1357,17 @@ body.mod-panel-open {
 
 .mod-right-stack .approved-card {
   min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   padding: 16px;
 }
 
 .mod-right-stack .up-next-card {
   min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   padding: 16px;
 }
 
@@ -1360,8 +1376,26 @@ body.mod-panel-open {
   align-content: start;
 }
 
+.mod-overlay #approvedQueueList {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding-right: 4px;
+}
+
 .approved-preview-large {
   min-height: 210px;
+}
+
+.mod-overlay #approvedPreviewTable {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.mod-overlay .playlist-routing-panel {
+  flex-shrink: 0;
 }
 
 /* LYRICS MODAL */
@@ -1539,6 +1573,13 @@ body.mod-panel-open {
   .mod-right-stack {
     overflow-y: visible;
     min-height: auto;
+  }
+
+  .mod-overlay #requestTableBody,
+  .mod-overlay #approvedQueueList,
+  .mod-overlay #approvedPreviewTable {
+    overflow: visible;
+    padding-right: 0;
   }
 
   .lyrics-modal {
@@ -2960,6 +3001,13 @@ body.mod-panel-open {
 .mod-overlay .request-art-wrap,
 .mod-overlay .queue-item-art-wrap {
   grid-row: 1 / span 2;
+}
+
+.mod-overlay .request-art,
+.mod-overlay .queue-item-art {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
 }
 
 .mod-overlay .request-main,
