@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-04-14T17:55:07.070220Z",
-  "next_refresh_at": "2026-04-14T18:00:07.070233Z",
+  "generated_at": "2026-04-14T19:00:15.710883Z",
+  "next_refresh_at": "2026-04-14T19:05:15.710890Z",
   "refresh_interval_minutes": 5,
   "source": {
     "requests_csv_url": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQyc3RRDmjc-nN-XgMMDocbnn1tlxue5ynNoNnYSxnRKxgp2LRGNmYZXnVgAFLH7IViwTAtmIAkvDsK/pub?output=csv",
@@ -10,8 +10,8 @@
     "request_rows": 25,
     "tracks_considered": 25,
     "spotify_meta_resolved": 24,
-    "lyrics_success": 14,
-    "lyrics_fallback": 11
+    "lyrics_success": 18,
+    "lyrics_fallback": 7
   },
   "by_track_id": {
     "0E7s6qk8zR2G6N3v9pR6Jh": {
@@ -20,7 +20,7 @@
       "status": "fallback",
       "lyrics": "",
       "error": "Spotify metadata lookup failed: Spotify metadata lookup failed: 404 Client Error: Not Found for url: https://open.spotify.com/oembed?url=https%3A%2F%2Fopen.spotify.com%2Ftrack%2F0E7s6qk8zR2G6N3v9pR6Jh",
-      "updated_at": "2026-04-14T17:54:40.608931Z",
+      "updated_at": "2026-04-14T18:59:51.871573Z",
       "request_ids": [
         "||https://open.spotify.com/track/0E7s6qk8zR2G6N3v9pR6Jh"
       ]
@@ -40,7 +40,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T17:54:41.104735Z",
+      "updated_at": "2026-04-14T18:59:52.222744Z",
       "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/sombr/back-to-friends",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/sombr/back-to-friends"
@@ -64,7 +64,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T17:54:41.741988Z",
+      "updated_at": "2026-04-14T18:59:52.975739Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -77,22 +77,21 @@
       "artist": "Post Malone, 21 Savage",
       "song": "rockstar (feat. 21 Savage)",
       "song_key": "post malone, 21 savage|rockstar (feat. 21 savage)",
-      "musixmatch_url": "https://www.musixmatch.com/lyrics/Post-Malone-21-Savage/rockstar-feat-21-Savage",
-      "status": "fallback",
-      "lyrics": "",
-      "selector_used": "",
+      "musixmatch_url": "https://www.musixmatch.com/lyrics/Post-Malone/rockstar",
+      "status": "success",
+      "lyrics": "Hahahahaha\nTank God\nAyy, ayy\nI′ve been fuckin' hoes and poppin′ pillies\nMan, I feel just like a rockstar (ayy, ayy)\nAll my brothers got that gas\nAnd they always be smokin' like a Rasta\nFuckin' with me, call up on a Uzi\nAnd show up, man, them the shottas\nWhen my homies pull up on your block\nThey make that thing go grrra-ta-ta-ta (ta, pow, pow, pow, ayy, ayy)\nSwitch my whip, came back in black\nI′m startin′ sayin', \"Rest in peace to Bon Scott\" (Scott, ayy)\nClose that door, we blowin′ smoke\nShe ask me light a fire like I'm Morrison (′son, ayy)\nAct a fool on stage\nProlly leave my fuckin' show in a cop car (car, ayy)\nShit was legendary\nThrew a TV out the window of the Montage\nCocaine on the table, liquor pourin′, don't give a damn\nDude, your girlfriend is a groupie, she just tryna get in\nSayin', \"I′m with the band\" (ayy, ayy)\nNow she actin′ outta pocket, tryna grab up on my pants\nHundred bitches in my trailer say they ain't got a man\nAnd they all brought a friend (yeah, ayy, ayy, ayy)\nI′ve been fuckin' hoes and poppin′ pillies\nMan, I feel just like a rockstar (ayy, ayy)\nAll my brothers got that gas\nAnd they always be smokin' like a Rasta\nFuckin′ with me, call up on a Uzi\nAnd show up, man, them the shottas\nWhen my homies pull up on your block\nThey make that thing go grrra-ta-ta-ta (ta, pow, pow, pow)\nI've been in the Hills fuckin' superstars\nFeelin′ like a popstar (21, 21, 21)\nDrinkin′ Henny, bad bitches jumpin' in the pool\nAnd they ain′t got on no bra (bra)\nHit her from the back, pullin' on her tracks\nAnd now she screamin′ out, \"¡No más!\" (yeah, yeah, yeah)\nThey like, \"Savage, why you got a twelve car garage\nAnd you only got six cars?\" (21)\nI ain't with the cakin′, how you kiss that? (kiss that?)\nYour wifey say I'm lookin' like a whole snack (big snack)\nGreen hundreds in my safe, I got old racks (old racks)\nL.A. bitches always askin′, \"Where the coke at?\" (21, 21)\nLivin′ like a rockstar, smash out on a cop car\nSweeter than a Pop-Tart, you know you are not hard\nI done made the hot chart, 'member I used to trap hard\nLivin′ like a rockstar, I'm livin′ like a rockstar (ayy)\nI've been fuckin′ hoes and poppin' pillies\nMan, I feel just like a rockstar (ayy, ayy)\nAll my brothers got that gas\nAnd they always be smokin' like a Rasta (yeah, yeah, yeah, yeah)\nFuckin′ with me, call up on a Uzi\nAnd show up, man, them the shottas\nWhen my homies pull up on your block\nThey make that thing go grrra-ta-ta-ta (ta, grrra-ta-ta-ta-ta)\nStar, star, rockstar, rockstar, star\nRockstar\nRockstar, feel just like a-\nRockstar\nRockstar\nRockstar\nFeel just like a",
+      "selector_used": "__NEXT_DATA__:props.pageProps.data.trackInfo.data.lyrics.body",
       "rating_label": "",
       "rating_code": "",
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T17:54:42.392995Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-14T18:59:53.784928Z",
+      "error": "",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Post-Malone-21-Savage/rockstar-feat-21-Savage",
         "https://www.musixmatch.com/lyrics/Post-Malone-21-Savage/rockstar",
-        "https://www.musixmatch.com/lyrics/Post-Malone/rockstar-feat-21-Savage",
-        "https://www.musixmatch.com/lyrics/Post-Malone/rockstar"
+        "https://www.musixmatch.com/lyrics/Post-Malone/rockstar-feat-21-Savage"
       ],
       "request_ids": [
         "||https://open.spotify.com/track/0e7ipj03S05BNilyu5bRzt"
@@ -113,7 +112,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T17:54:44.645390Z",
+      "updated_at": "2026-04-14T18:59:57.756810Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -135,8 +134,8 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T17:54:45.360597Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-14T18:59:58.421286Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Green-Day/Brain-Stew",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Green-Day/Brain-Stew"
       ],
@@ -151,20 +150,17 @@
       "song": "One Dance",
       "song_key": "drake, wizkid, kyla|one dance",
       "musixmatch_url": "https://www.musixmatch.com/lyrics/Drake-Wizkid-Kyla/One-Dance",
-      "status": "fallback",
-      "lyrics": "",
-      "selector_used": "",
+      "status": "success",
+      "lyrics": "Baby, I like your style\nGrips on your waist, front way, back way\nYou know that I don′t play\nStreets not safe, but I never run away\nEven when I'm away\nOti, oti\nThere′s never much love when we go OT\nI pray to make it back in one piece\nI pray, I pray\nThat's why I need a one dance\nGot a Hennessy in my hand\nOne more time 'fore I go\nHigher powers taking a hold on me\nI need a one dance\nGot a Hennessy in my hand\nOne more time ′fore I go\nHigher powers taking a hold on me\nBaby, I like your style\nStrength and guidance\nAll that I′m wishing for my friends\nNobody makes it from my ends\nI had to bust up the silence\nYou know you gotta stick by me\nSoon as you see the text, reply me\nI don't wanna spend time fighting\nWe′ve got no time, and that's why\nI need a one dance\nGot a Hennessy in my hand\nOne more time ′fore I go\nHigher powers taking a hold on me\nI need a one dance\nGot a Hennessy in my hand\nOne more time 'fore I go\nHigher powers taking a hold on me\nGot a pretty girl, and she love me long time\nFine like a wine, and she love me every time\nOh, yes, steady and fine\nBack up, back up, back up and whine am\nBack up, back up and whine am\nGirl, just back up, back up, back up and whine am\nOh, yes, steady and fine\nBack up, back up and whine am, girl\nTell me, I need to know\nWhere do you wanna go?\n′Cause if you're down, I'll take it slow\nMake you lose control\nWhere, where, where?\nWhere, where, where, where?\nOh, yes, steady and fine (where, where, where?)\nBack up, back up and whine am, girl (where, where, where, where?)\n′Cause if you′re down (back up, back up and-)\n'Cause if you′re down (back up, back up and-)\n'Cause if you′re down (back up, back up and-)\nI need a one dance (where, where, where?)\nGot a Hennessy in my hand (where, where?)\nOne more time 'fore I go (where, where, where?)\nHigher powers taking a hold on me (where, where, where, where?)\nI need a one dance\nGot a Hennessy in my hand\nOne more time ′fore I go\nHigher powers taking a hold on me",
+      "selector_used": "__NEXT_DATA__:props.pageProps.data.trackInfo.data.lyrics.body",
       "rating_label": "",
       "rating_code": "",
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T17:54:47.699554Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
-      "attempted_urls": [
-        "https://www.musixmatch.com/lyrics/Drake-Wizkid-Kyla/One-Dance",
-        "https://www.musixmatch.com/lyrics/Drake/One-Dance"
-      ],
+      "updated_at": "2026-04-14T18:59:59.454573Z",
+      "error": "",
+      "attempted_urls": [],
       "request_ids": [
         "||https://open.spotify.com/track/1xznGGDReH1oQq0xzbwXa3"
       ]
@@ -176,20 +172,17 @@
       "song": "One Dance",
       "song_key": "drake, wizkid, kyla|one dance",
       "musixmatch_url": "https://www.musixmatch.com/lyrics/Drake-Wizkid-Kyla/One-Dance",
-      "status": "fallback",
-      "lyrics": "",
-      "selector_used": "",
+      "status": "success",
+      "lyrics": "Baby, I like your style\nGrips on your waist, front way, back way\nYou know that I don′t play\nStreets not safe, but I never run away\nEven when I'm away\nOti, oti\nThere′s never much love when we go OT\nI pray to make it back in one piece\nI pray, I pray\nThat's why I need a one dance\nGot a Hennessy in my hand\nOne more time 'fore I go\nHigher powers taking a hold on me\nI need a one dance\nGot a Hennessy in my hand\nOne more time ′fore I go\nHigher powers taking a hold on me\nBaby, I like your style\nStrength and guidance\nAll that I′m wishing for my friends\nNobody makes it from my ends\nI had to bust up the silence\nYou know you gotta stick by me\nSoon as you see the text, reply me\nI don't wanna spend time fighting\nWe′ve got no time, and that's why\nI need a one dance\nGot a Hennessy in my hand\nOne more time ′fore I go\nHigher powers taking a hold on me\nI need a one dance\nGot a Hennessy in my hand\nOne more time 'fore I go\nHigher powers taking a hold on me\nGot a pretty girl, and she love me long time\nFine like a wine, and she love me every time\nOh, yes, steady and fine\nBack up, back up, back up and whine am\nBack up, back up and whine am\nGirl, just back up, back up, back up and whine am\nOh, yes, steady and fine\nBack up, back up and whine am, girl\nTell me, I need to know\nWhere do you wanna go?\n′Cause if you're down, I'll take it slow\nMake you lose control\nWhere, where, where?\nWhere, where, where, where?\nOh, yes, steady and fine (where, where, where?)\nBack up, back up and whine am, girl (where, where, where, where?)\n′Cause if you′re down (back up, back up and-)\n'Cause if you′re down (back up, back up and-)\n'Cause if you′re down (back up, back up and-)\nI need a one dance (where, where, where?)\nGot a Hennessy in my hand (where, where?)\nOne more time 'fore I go (where, where, where?)\nHigher powers taking a hold on me (where, where, where, where?)\nI need a one dance\nGot a Hennessy in my hand\nOne more time ′fore I go\nHigher powers taking a hold on me",
+      "selector_used": "__NEXT_DATA__:props.pageProps.data.trackInfo.data.lyrics.body",
       "rating_label": "",
       "rating_code": "",
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T17:54:49.291926Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
-      "attempted_urls": [
-        "https://www.musixmatch.com/lyrics/Drake-Wizkid-Kyla/One-Dance",
-        "https://www.musixmatch.com/lyrics/Drake/One-Dance"
-      ],
+      "updated_at": "2026-04-14T19:00:00.235208Z",
+      "error": "",
+      "attempted_urls": [],
       "request_ids": [
         "||https://open.spotify.com/track/1zi7xx7UVEFkmKfv06H8x0"
       ]
@@ -209,7 +202,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T17:54:50.878782Z",
+      "updated_at": "2026-04-14T19:00:01.336116Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -231,7 +224,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T17:54:51.744154Z",
+      "updated_at": "2026-04-14T19:00:02.429093Z",
       "error": "Lyrics element not found or extracted text was too short.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Eminem/The-Real-Slim-Shady"
@@ -255,7 +248,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T17:54:52.624062Z",
+      "updated_at": "2026-04-14T19:00:03.010794Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -277,7 +270,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T17:54:53.356582Z",
+      "updated_at": "2026-04-14T19:00:03.839572Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -299,7 +292,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T17:54:54.240995Z",
+      "updated_at": "2026-04-14T19:00:04.513184Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -321,8 +314,8 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T17:54:54.894186Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-14T19:00:05.651325Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Cardi-B/WAP",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Cardi-B-Megan-Thee-Stallion/WAP-feat-Megan-Thee-Stallion",
         "https://www.musixmatch.com/lyrics/Cardi-B-Megan-Thee-Stallion/WAP",
@@ -348,7 +341,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T17:54:57.289396Z",
+      "updated_at": "2026-04-14T19:00:07.170123Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -370,8 +363,8 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T17:54:57.973579Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-14T19:00:07.984457Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Eduard-Abramyan/Prelude-for-Piano-No-11-in-F-Sharp-Minor",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Eduard-Abramyan-Sona-Shaboyan/Prelude-for-Piano-No-11-in-F-Sharp-Minor",
         "https://www.musixmatch.com/lyrics/Eduard-Abramyan/Prelude-for-Piano-No-11-in-F-Sharp-Minor"
@@ -395,8 +388,8 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T17:54:59.519982Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-14T19:00:08.771917Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Skit/Paul",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Skit/Paul"
       ],
@@ -411,19 +404,17 @@
       "song": "God's Plan",
       "song_key": "drake|god's plan",
       "musixmatch_url": "https://www.musixmatch.com/lyrics/Drake/God-s-Plan",
-      "status": "fallback",
-      "lyrics": "",
-      "selector_used": "",
+      "status": "success",
+      "lyrics": "Yeah, they wishin′ and wishin' and wishin′ and wishin'\nThey wishin' on me, yeah\nI been movin′ calm, don′t start no trouble with me\nTryna keep it peaceful is a struggle for me\nDon't pull up at 6 a.m. to cuddle with me\nYou know how I like it when you lovin′ on me\nI don't wanna die for them to miss me\nYes, I see the things that they wishin′ on me\nHope I got some brothers that outlive me\nThey gon' tell the story, shit was different with me\nGod′s plan, God's plan\nI hold back, sometimes I won't, yeah\nI feel good, sometimes I don′t, ay, don′t\nI finessed down Weston Road, ay, 'nessed\nMight go down a G-O-D, yeah, wait\nI go hard on Southside G, yeah, wait\nI make sure that north-side eat\nAnd still\nBad things, it′s a lot of bad things\nThat they wishin' and wishin′ and wishin' and wishin′\nThey wishin' on me\nBad things, it's a lot of bad things\nThat they wishin′ and wishin′ and wishin' and wishin′\nThey wishin' on me, yeah, ay, ay\nShe said, \"Do you love me?\" I tell her, \"Only partly\"\nI only love Mahbed and my momma, I′m sorry\nFifty Dub, I even got it tatted on me\n81, they'll bring the crashers to the party\nAnd you know me\nTurn the O2 into the O3, dog\nWithout 40, Oli, there′d be no me\nImagine if I never met the broskies\nGod's plan, God's plan\nI can′t do this on my own, ay, no, ay\nSomeone watchin′ this shit close, yep, close\nI've been me since Scarlett Road, ay, road, ay\nMight go down as G-O-D, yeah, wait\nI go hard on Southside G, ay, wait\nI make sure that north-side eat, yeah\nAnd still\nBad things, it′s a lot of bad things\nThat they wishin' and wishin′ and wishin' and wishin′\nThey wishin' on me, yeah, yeah\nBad things, it's a lot of bad things\nThat they wishin′ and wishin′ and wishin' and wishin′\nThey wishin' on me, yeah",
+      "selector_used": "__NEXT_DATA__:props.pageProps.data.trackInfo.data.lyrics.body",
       "rating_label": "",
       "rating_code": "",
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T17:55:00.744733Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
-      "attempted_urls": [
-        "https://www.musixmatch.com/lyrics/Drake/God-s-Plan"
-      ],
+      "updated_at": "2026-04-14T19:00:09.866090Z",
+      "error": "",
+      "attempted_urls": [],
       "request_ids": [
         "||https://open.spotify.com/track/6DCZcSspjsKoFjzjrWoCdn"
       ]
@@ -443,7 +434,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T17:55:01.896039Z",
+      "updated_at": "2026-04-14T19:00:10.904255Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -465,7 +456,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T17:55:02.772269Z",
+      "updated_at": "2026-04-14T19:00:11.698462Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -487,7 +478,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T17:55:03.654212Z",
+      "updated_at": "2026-04-14T19:00:12.653867Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -509,7 +500,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T17:55:04.325023Z",
+      "updated_at": "2026-04-14T19:00:13.420548Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -531,7 +522,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T17:55:05.244666Z",
+      "updated_at": "2026-04-14T19:00:13.971851Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -553,7 +544,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T17:55:06.101564Z",
+      "updated_at": "2026-04-14T19:00:14.814074Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -575,7 +566,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T17:55:07.024785Z",
+      "updated_at": "2026-04-14T19:00:15.667817Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -599,7 +590,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T17:54:41.104735Z",
+      "updated_at": "2026-04-14T18:59:52.222744Z",
       "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/sombr/back-to-friends",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/sombr/back-to-friends"
@@ -623,7 +614,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T17:54:41.741988Z",
+      "updated_at": "2026-04-14T18:59:52.975739Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -636,22 +627,21 @@
       "artist": "Post Malone, 21 Savage",
       "song": "rockstar (feat. 21 Savage)",
       "song_key": "post malone, 21 savage|rockstar (feat. 21 savage)",
-      "musixmatch_url": "https://www.musixmatch.com/lyrics/Post-Malone-21-Savage/rockstar-feat-21-Savage",
-      "status": "fallback",
-      "lyrics": "",
-      "selector_used": "",
+      "musixmatch_url": "https://www.musixmatch.com/lyrics/Post-Malone/rockstar",
+      "status": "success",
+      "lyrics": "Hahahahaha\nTank God\nAyy, ayy\nI′ve been fuckin' hoes and poppin′ pillies\nMan, I feel just like a rockstar (ayy, ayy)\nAll my brothers got that gas\nAnd they always be smokin' like a Rasta\nFuckin' with me, call up on a Uzi\nAnd show up, man, them the shottas\nWhen my homies pull up on your block\nThey make that thing go grrra-ta-ta-ta (ta, pow, pow, pow, ayy, ayy)\nSwitch my whip, came back in black\nI′m startin′ sayin', \"Rest in peace to Bon Scott\" (Scott, ayy)\nClose that door, we blowin′ smoke\nShe ask me light a fire like I'm Morrison (′son, ayy)\nAct a fool on stage\nProlly leave my fuckin' show in a cop car (car, ayy)\nShit was legendary\nThrew a TV out the window of the Montage\nCocaine on the table, liquor pourin′, don't give a damn\nDude, your girlfriend is a groupie, she just tryna get in\nSayin', \"I′m with the band\" (ayy, ayy)\nNow she actin′ outta pocket, tryna grab up on my pants\nHundred bitches in my trailer say they ain't got a man\nAnd they all brought a friend (yeah, ayy, ayy, ayy)\nI′ve been fuckin' hoes and poppin′ pillies\nMan, I feel just like a rockstar (ayy, ayy)\nAll my brothers got that gas\nAnd they always be smokin' like a Rasta\nFuckin′ with me, call up on a Uzi\nAnd show up, man, them the shottas\nWhen my homies pull up on your block\nThey make that thing go grrra-ta-ta-ta (ta, pow, pow, pow)\nI've been in the Hills fuckin' superstars\nFeelin′ like a popstar (21, 21, 21)\nDrinkin′ Henny, bad bitches jumpin' in the pool\nAnd they ain′t got on no bra (bra)\nHit her from the back, pullin' on her tracks\nAnd now she screamin′ out, \"¡No más!\" (yeah, yeah, yeah)\nThey like, \"Savage, why you got a twelve car garage\nAnd you only got six cars?\" (21)\nI ain't with the cakin′, how you kiss that? (kiss that?)\nYour wifey say I'm lookin' like a whole snack (big snack)\nGreen hundreds in my safe, I got old racks (old racks)\nL.A. bitches always askin′, \"Where the coke at?\" (21, 21)\nLivin′ like a rockstar, smash out on a cop car\nSweeter than a Pop-Tart, you know you are not hard\nI done made the hot chart, 'member I used to trap hard\nLivin′ like a rockstar, I'm livin′ like a rockstar (ayy)\nI've been fuckin′ hoes and poppin' pillies\nMan, I feel just like a rockstar (ayy, ayy)\nAll my brothers got that gas\nAnd they always be smokin' like a Rasta (yeah, yeah, yeah, yeah)\nFuckin′ with me, call up on a Uzi\nAnd show up, man, them the shottas\nWhen my homies pull up on your block\nThey make that thing go grrra-ta-ta-ta (ta, grrra-ta-ta-ta-ta)\nStar, star, rockstar, rockstar, star\nRockstar\nRockstar, feel just like a-\nRockstar\nRockstar\nRockstar\nFeel just like a",
+      "selector_used": "__NEXT_DATA__:props.pageProps.data.trackInfo.data.lyrics.body",
       "rating_label": "",
       "rating_code": "",
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T17:54:42.392995Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-14T18:59:53.784928Z",
+      "error": "",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Post-Malone-21-Savage/rockstar-feat-21-Savage",
         "https://www.musixmatch.com/lyrics/Post-Malone-21-Savage/rockstar",
-        "https://www.musixmatch.com/lyrics/Post-Malone/rockstar-feat-21-Savage",
-        "https://www.musixmatch.com/lyrics/Post-Malone/rockstar"
+        "https://www.musixmatch.com/lyrics/Post-Malone/rockstar-feat-21-Savage"
       ],
       "request_ids": [
         "||https://open.spotify.com/track/0e7ipj03S05BNilyu5bRzt"
@@ -672,7 +662,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T17:54:44.645390Z",
+      "updated_at": "2026-04-14T18:59:57.756810Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -694,8 +684,8 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T17:54:45.360597Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-14T18:59:58.421286Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Green-Day/Brain-Stew",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Green-Day/Brain-Stew"
       ],
@@ -710,20 +700,17 @@
       "song": "One Dance",
       "song_key": "drake, wizkid, kyla|one dance",
       "musixmatch_url": "https://www.musixmatch.com/lyrics/Drake-Wizkid-Kyla/One-Dance",
-      "status": "fallback",
-      "lyrics": "",
-      "selector_used": "",
+      "status": "success",
+      "lyrics": "Baby, I like your style\nGrips on your waist, front way, back way\nYou know that I don′t play\nStreets not safe, but I never run away\nEven when I'm away\nOti, oti\nThere′s never much love when we go OT\nI pray to make it back in one piece\nI pray, I pray\nThat's why I need a one dance\nGot a Hennessy in my hand\nOne more time 'fore I go\nHigher powers taking a hold on me\nI need a one dance\nGot a Hennessy in my hand\nOne more time ′fore I go\nHigher powers taking a hold on me\nBaby, I like your style\nStrength and guidance\nAll that I′m wishing for my friends\nNobody makes it from my ends\nI had to bust up the silence\nYou know you gotta stick by me\nSoon as you see the text, reply me\nI don't wanna spend time fighting\nWe′ve got no time, and that's why\nI need a one dance\nGot a Hennessy in my hand\nOne more time ′fore I go\nHigher powers taking a hold on me\nI need a one dance\nGot a Hennessy in my hand\nOne more time 'fore I go\nHigher powers taking a hold on me\nGot a pretty girl, and she love me long time\nFine like a wine, and she love me every time\nOh, yes, steady and fine\nBack up, back up, back up and whine am\nBack up, back up and whine am\nGirl, just back up, back up, back up and whine am\nOh, yes, steady and fine\nBack up, back up and whine am, girl\nTell me, I need to know\nWhere do you wanna go?\n′Cause if you're down, I'll take it slow\nMake you lose control\nWhere, where, where?\nWhere, where, where, where?\nOh, yes, steady and fine (where, where, where?)\nBack up, back up and whine am, girl (where, where, where, where?)\n′Cause if you′re down (back up, back up and-)\n'Cause if you′re down (back up, back up and-)\n'Cause if you′re down (back up, back up and-)\nI need a one dance (where, where, where?)\nGot a Hennessy in my hand (where, where?)\nOne more time 'fore I go (where, where, where?)\nHigher powers taking a hold on me (where, where, where, where?)\nI need a one dance\nGot a Hennessy in my hand\nOne more time ′fore I go\nHigher powers taking a hold on me",
+      "selector_used": "__NEXT_DATA__:props.pageProps.data.trackInfo.data.lyrics.body",
       "rating_label": "",
       "rating_code": "",
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T17:54:49.291926Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
-      "attempted_urls": [
-        "https://www.musixmatch.com/lyrics/Drake-Wizkid-Kyla/One-Dance",
-        "https://www.musixmatch.com/lyrics/Drake/One-Dance"
-      ],
+      "updated_at": "2026-04-14T19:00:00.235208Z",
+      "error": "",
+      "attempted_urls": [],
       "request_ids": [
         "||https://open.spotify.com/track/1zi7xx7UVEFkmKfv06H8x0"
       ]
@@ -743,7 +730,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T17:54:50.878782Z",
+      "updated_at": "2026-04-14T19:00:01.336116Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -765,7 +752,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T17:54:51.744154Z",
+      "updated_at": "2026-04-14T19:00:02.429093Z",
       "error": "Lyrics element not found or extracted text was too short.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Eminem/The-Real-Slim-Shady"
@@ -789,7 +776,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T17:54:52.624062Z",
+      "updated_at": "2026-04-14T19:00:03.010794Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -811,7 +798,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T17:54:53.356582Z",
+      "updated_at": "2026-04-14T19:00:03.839572Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -833,7 +820,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T17:54:54.240995Z",
+      "updated_at": "2026-04-14T19:00:04.513184Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -855,8 +842,8 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T17:54:54.894186Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-14T19:00:05.651325Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Cardi-B/WAP",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Cardi-B-Megan-Thee-Stallion/WAP-feat-Megan-Thee-Stallion",
         "https://www.musixmatch.com/lyrics/Cardi-B-Megan-Thee-Stallion/WAP",
@@ -882,7 +869,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T17:54:57.289396Z",
+      "updated_at": "2026-04-14T19:00:07.170123Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -904,8 +891,8 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T17:54:57.973579Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-14T19:00:07.984457Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Eduard-Abramyan/Prelude-for-Piano-No-11-in-F-Sharp-Minor",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Eduard-Abramyan-Sona-Shaboyan/Prelude-for-Piano-No-11-in-F-Sharp-Minor",
         "https://www.musixmatch.com/lyrics/Eduard-Abramyan/Prelude-for-Piano-No-11-in-F-Sharp-Minor"
@@ -929,8 +916,8 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T17:54:59.519982Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-14T19:00:08.771917Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Skit/Paul",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Skit/Paul"
       ],
@@ -945,19 +932,17 @@
       "song": "God's Plan",
       "song_key": "drake|god's plan",
       "musixmatch_url": "https://www.musixmatch.com/lyrics/Drake/God-s-Plan",
-      "status": "fallback",
-      "lyrics": "",
-      "selector_used": "",
+      "status": "success",
+      "lyrics": "Yeah, they wishin′ and wishin' and wishin′ and wishin'\nThey wishin' on me, yeah\nI been movin′ calm, don′t start no trouble with me\nTryna keep it peaceful is a struggle for me\nDon't pull up at 6 a.m. to cuddle with me\nYou know how I like it when you lovin′ on me\nI don't wanna die for them to miss me\nYes, I see the things that they wishin′ on me\nHope I got some brothers that outlive me\nThey gon' tell the story, shit was different with me\nGod′s plan, God's plan\nI hold back, sometimes I won't, yeah\nI feel good, sometimes I don′t, ay, don′t\nI finessed down Weston Road, ay, 'nessed\nMight go down a G-O-D, yeah, wait\nI go hard on Southside G, yeah, wait\nI make sure that north-side eat\nAnd still\nBad things, it′s a lot of bad things\nThat they wishin' and wishin′ and wishin' and wishin′\nThey wishin' on me\nBad things, it's a lot of bad things\nThat they wishin′ and wishin′ and wishin' and wishin′\nThey wishin' on me, yeah, ay, ay\nShe said, \"Do you love me?\" I tell her, \"Only partly\"\nI only love Mahbed and my momma, I′m sorry\nFifty Dub, I even got it tatted on me\n81, they'll bring the crashers to the party\nAnd you know me\nTurn the O2 into the O3, dog\nWithout 40, Oli, there′d be no me\nImagine if I never met the broskies\nGod's plan, God's plan\nI can′t do this on my own, ay, no, ay\nSomeone watchin′ this shit close, yep, close\nI've been me since Scarlett Road, ay, road, ay\nMight go down as G-O-D, yeah, wait\nI go hard on Southside G, ay, wait\nI make sure that north-side eat, yeah\nAnd still\nBad things, it′s a lot of bad things\nThat they wishin' and wishin′ and wishin' and wishin′\nThey wishin' on me, yeah, yeah\nBad things, it's a lot of bad things\nThat they wishin′ and wishin′ and wishin' and wishin′\nThey wishin' on me, yeah",
+      "selector_used": "__NEXT_DATA__:props.pageProps.data.trackInfo.data.lyrics.body",
       "rating_label": "",
       "rating_code": "",
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T17:55:00.744733Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
-      "attempted_urls": [
-        "https://www.musixmatch.com/lyrics/Drake/God-s-Plan"
-      ],
+      "updated_at": "2026-04-14T19:00:09.866090Z",
+      "error": "",
+      "attempted_urls": [],
       "request_ids": [
         "||https://open.spotify.com/track/6DCZcSspjsKoFjzjrWoCdn"
       ]
@@ -977,7 +962,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T17:55:01.896039Z",
+      "updated_at": "2026-04-14T19:00:10.904255Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -999,7 +984,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T17:55:02.772269Z",
+      "updated_at": "2026-04-14T19:00:11.698462Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -1021,7 +1006,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T17:55:03.654212Z",
+      "updated_at": "2026-04-14T19:00:12.653867Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -1043,7 +1028,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T17:55:04.325023Z",
+      "updated_at": "2026-04-14T19:00:13.420548Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -1065,7 +1050,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T17:55:05.244666Z",
+      "updated_at": "2026-04-14T19:00:13.971851Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -1087,7 +1072,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T17:55:06.101564Z",
+      "updated_at": "2026-04-14T19:00:14.814074Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
@@ -1109,7 +1094,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-14T17:55:07.024785Z",
+      "updated_at": "2026-04-14T19:00:15.667817Z",
       "error": "",
       "attempted_urls": [],
       "request_ids": [
