@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -195,22 +195,16 @@
           </label>
 
           <button id="btnLoadRequests" class="btn btn-small" type="button">
-            Load Requests
+            Sync Now
           </button>
+
+          <div id="modAutoSyncStatus" class="lyrics-cache-pill lyrics-sync-pill" aria-live="polite">
+            Request sync pending...
+          </div>
 
           <div id="lyricsCacheCountdown" class="lyrics-cache-pill" aria-live="polite">
             Lyrics cache: loading...
           </div>
-
-          <a
-            id="btnRunLyricsCacheWorkflow"
-            class="btn btn-small"
-            href="https://github.com/NBaker9262/American-Leadership-Academy-Music-Queue/actions/workflows/lyrics-cache-refresh.yml"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Run Lyrics Pull (bs4)
-          </a>
 
           <button id="btnApproveAllCleanVisible" class="btn btn-small" type="button">
             Approve All Clean

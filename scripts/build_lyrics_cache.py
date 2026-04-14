@@ -155,31 +155,35 @@ def parse_artist_from_spotify_description(description: str) -> str:
     if not value:
         return ""
 
-    value = re.sub(r"\s+", " ", value)
+    normalized = re.sub(r"\s+", " ", value)
+    normalized = normalized.replace("??", "?")
 
-    # Common formats observed on Spotify track pages, examples:
-    # - "Listen to Song on Spotify. Artist · Song · 2024"
-    # - "Listen to Song on Spotify. Artist"
+    # Common Spotify patterns:
+    # - "Listen to Song on Spotify. Artist ? Song ? 2024"
+    # - "Artist ? Album ? Song ? 2020"
     # - "Listen to Song by Artist on Spotify."
-
-    spotify_dot_match = re.search(r"on Spotify\.\s*(.+)$", value, re.IGNORECASE)
+    spotify_dot_match = re.search(r"on Spotify\.\s*(.+)$", normalized, re.IGNORECASE)
     if spotify_dot_match:
         tail = spotify_dot_match.group(1).strip()
         if tail:
-            tail = tail.split("\u00b7", 1)[0].strip()
-            tail = tail.rstrip(" .|\t\r\n")
+            tail = tail.split("?", 1)[0].strip().rstrip(" .|\t\r\n")
             if tail:
                 return tail
 
-    if "\u00b7 Song" in value:
-        left = value.split("\u00b7 Song", 1)[0].strip()
-        if "on Spotify." in left:
-            tail = left.split("on Spotify.", 1)[1].strip()
-            tail = tail.rstrip(" .|\t\r\n")
-            return tail
-        return left.strip()
+    if "? Song" in normalized:
+        left = normalized.split("? Song", 1)[0].strip(" ?")
+        listen_match = re.search(r"on\s+Spotify\.\s*(.+)$", left, flags=re.IGNORECASE)
+        if listen_match:
+            left = listen_match.group(1).strip(" ?")
 
-    by_match = re.search(r"\sby\s(.+?)\son\sSpotify", value, re.IGNORECASE)
+        parts = [part.strip() for part in left.split("?") if part.strip()]
+        if parts:
+            return parts[0]
+
+        if left:
+            return left
+
+    by_match = re.search(r"\sby\s(.+?)\son\sSpotify", normalized, re.IGNORECASE)
     if by_match:
         artist = by_match.group(1).strip().rstrip(" .|\t\r\n")
         return artist
@@ -188,7 +192,8 @@ def parse_artist_from_spotify_description(description: str) -> str:
 
 
 def resolve_track_meta_from_open_graph(track_url: str, timeout_seconds: int = 20) -> tuple[str, str]:
-    response = requests.get(track_url, headers=REQUEST_HEADERS, timeout=timeout_seconds)
+    # Spotify serves richer Open Graph metadata when this request looks non-automated.
+    response = requests.get(track_url, timeout=timeout_seconds)
     response.raise_for_status()
 
     soup = BeautifulSoup(response.text, "html.parser")
@@ -239,7 +244,6 @@ def resolve_track_meta(track_id: str, timeout_seconds: int = 20) -> TrackMeta:
         response = requests.get(
             "https://open.spotify.com/oembed",
             params={"url": spotify_url},
-            headers=REQUEST_HEADERS,
             timeout=timeout_seconds,
         )
         response.raise_for_status()

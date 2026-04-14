@@ -1,4 +1,4 @@
-﻿// ======================================================
+// ======================================================
 // ALA Music Queue Dashboard
 // Cleaned + fixed single-file app.js
 // - Spotify PKCE login
@@ -46,6 +46,8 @@ const CONFIG = {
   lyricsCacheUseOnLoad: true,
   lyricsCacheUrl: "lyrics-cache.json",
   lyricsCacheRefreshMinutes: 5,
+  lyricsCacheAutoRefresh: true,
+  requestAutoSyncMinutes: 5,
   lyricsPrefetchOnLoad: false,
   lyricsPrefetchConcurrency: 2,
   lyricsPrefetchMaxSongsPerLoad: 80,
@@ -241,6 +243,7 @@ const el = {
   lyricsModalMeta: document.getElementById("lyricsModalMeta"),
   lyricsModalBody: document.getElementById("lyricsModalBody"),
   lyricsModalExternalLink: document.getElementById("lyricsModalExternalLink"),
+  modAutoSyncStatus: document.getElementById("modAutoSyncStatus"),
   lyricsCacheCountdown: document.getElementById("lyricsCacheCountdown"),
   playlistPickerBackdrop: document.getElementById("playlistPickerBackdrop"),
   playlistPickerModal: document.getElementById("playlistPickerModal"),
@@ -277,6 +280,11 @@ let lyricsCacheCountdownTimer = null;
 let lyricsCacheLastGeneratedAtMs = 0;
 let lyricsCachePollTimer = null;
 let lyricsCachePollLastSeenGeneratedAtMs = 0;
+let lyricsCacheNextRefreshAtMs = 0;
+let lyricsCacheAutoRefreshInFlight = false;
+let requestAutoSyncTimer = null;
+let requestAutoSyncInFlight = false;
+let lastRequestSyncAt = null;
 let playlistPickerContext = null;
 let playlistPickerCache = { items: [], fetchedAtMs: 0 };
 
@@ -685,6 +693,12 @@ function setModerationOverride(requestId, patch) {
   return merged;
 }
 
+function clearModerationOverride(requestId) {
+  const key = String(requestId || "").trim();
+  if (!key) return false;
+  return moderationOverrideByRequestId.delete(key);
+}
+
 function applyModerationOverrides(request, moderation) {
   if (!request || !moderation) return moderation;
 
@@ -700,7 +714,7 @@ function applyModerationOverrides(request, moderation) {
 
     moderation.explicitStatus = override.explicitStatus;
     moderation.explicitLabel = override.explicitStatus === "explicit" ? "Explicit" : "Clean";
-    moderation.explicitReason = "Moderator override after friction puzzle.";
+    moderation.explicitReason = "Moderator override marked this track as clean/explicit.";
   }
 
   if (override.themeStatus) {
@@ -708,13 +722,13 @@ function applyModerationOverrides(request, moderation) {
 
     if (override.themeStatus === "blocked") {
       moderation.themeLabel = "Theme Blocked";
-      moderation.themeReason = "Moderator manually set theme status to blocked after friction puzzle.";
+      moderation.themeReason = "Moderator override set theme status to blocked.";
     } else if (override.themeStatus === "flagged") {
       moderation.themeLabel = "Theme Review";
-      moderation.themeReason = "Moderator manually set theme status to flagged after friction puzzle.";
+      moderation.themeReason = "Moderator override set theme status to review.";
     } else {
       moderation.themeLabel = "Theme Clear";
-      moderation.themeReason = "Moderator manually set theme status to clear after friction puzzle.";
+      moderation.themeReason = "Moderator override set theme status to clear.";
     }
   }
 
@@ -1409,6 +1423,7 @@ function logoutSpotify() {
 
   stopPlaybackPolling();
   stopLocalProgressTimer();
+  stopRequestAutoSyncTimer();
 
   currentNowPlayingTrack = null;
   currentSpotifyQueueTracks = [];
@@ -1418,6 +1433,7 @@ function logoutSpotify() {
 
   resetNowPlayingUI();
   renderSpotifyQueue(null);
+  setRequestAutoSyncStatus("Auto-sync paused until Spotify login.", "warn");
   setStatus("Logged out of Spotify.");
 }
 
@@ -2156,7 +2172,6 @@ function renderManualSearchResults() {
               ${escapeHtml(spotify?.album || "Unknown Album")} - ${escapeHtml(msToMinSec(spotify?.durationMs || 0))}
             </div>
             <div class="request-submitted">Spotify track ID: ${escapeHtml(spotify?.id || "Unavailable")}</div>
-            <div class="moderation-inline-note">${escapeHtml(moderation.compactReason)}</div>
           </div>
 
           <div class="request-actions">
@@ -2238,7 +2253,6 @@ function renderRequests(requests) {
             </div>
             <div class="request-submitted">${escapeHtml(request.timestamp || "Unknown time")} - ${escapeHtml(sourceLabel)}</div>
             <div class="request-status-tags">${buildRequestStatusTags(request, moderation)}</div>
-            <div class="moderation-inline-note">${escapeHtml(moderation?.compactReason || "Moderation metadata unavailable.")}</div>
           </div>
 
           <div class="request-actions">
@@ -2323,7 +2337,6 @@ function renderApprovedQueue() {
             </div>
             <div class="queue-item-artist">${escapeHtml(artist)}</div>
             <div class="request-status-tags">${buildRequestStatusTags(item, moderation)}</div>
-            <div class="moderation-inline-note">${escapeHtml(sourceLabel)} - ${escapeHtml(moderation?.compactReason || "Moderation metadata unavailable.")}</div>
           </div>
 
           <div class="queue-item-actions">
@@ -2391,7 +2404,6 @@ function renderApprovedPreview() {
         </div>
         <div class="request-submitted">Selected approved track preview - ${escapeHtml(getSourceLabel(current.source))}</div>
         <div class="request-status-tags">${buildRequestStatusTags(current, moderation)}</div>
-        <div class="moderation-inline-note">${escapeHtml(moderation?.compactReason || "Moderation metadata unavailable.")}</div>
       </div>
 
       <div class="request-actions">
@@ -2799,46 +2811,49 @@ async function fetchSignedInUserPlaylists(forceRefresh = false) {
     return playlistPickerCache.items;
   }
 
-  const me = await getCurrentUserProfile();
-  const myUserId = String(me?.id || "").trim().toLowerCase();
-
   const limit = Math.max(1, Math.min(50, Number(CONFIG.userPlaylistFetchLimit || 50)));
   let nextPath = `/me/playlists?limit=${limit}`;
   const collected = [];
 
-  while (nextPath) {
-    const page = await spotifyFetch(nextPath);
-    const pageItems = Array.isArray(page?.items) ? page.items : [];
-    collected.push(...pageItems);
+  try {
+    while (nextPath) {
+      const page = await spotifyFetch(nextPath);
+      const pageItems = Array.isArray(page?.items) ? page.items : [];
+      collected.push(...pageItems);
 
-    if (collected.length >= 500) {
-      break;
+      if (collected.length >= 1000) {
+        break;
+      }
+
+      nextPath = toSpotifyApiPath(page?.next);
     }
-
-    nextPath = toSpotifyApiPath(page?.next);
+  } catch (error) {
+    const message = String(error?.message || "").toLowerCase();
+    if (message.includes("403") || message.includes("insufficient_scope")) {
+      throw new Error("Spotify denied playlist read access. Log out, then log in again to grant playlist-read-private scope.");
+    }
+    throw error;
   }
 
-  let owned = collected.filter((playlist) => {
-    const ownerId = String(playlist?.owner?.id || "").trim().toLowerCase();
-    return !!myUserId && ownerId === myUserId;
-  });
-
-  if (!owned.length) {
-    owned = collected;
+  const dedupedById = new Map();
+  for (const playlist of collected) {
+    const playlistId = String(playlist?.id || "").trim();
+    if (!playlistId) continue;
+    if (!dedupedById.has(playlistId)) {
+      dedupedById.set(playlistId, playlist);
+    }
   }
 
-  owned = owned
-    .filter((playlist) => !!playlist?.id)
+  const visiblePlaylists = [...dedupedById.values()]
     .sort((a, b) => String(a?.name || "").localeCompare(String(b?.name || ""), undefined, { sensitivity: "base" }));
 
   playlistPickerCache = {
-    items: owned,
+    items: visiblePlaylists,
     fetchedAtMs: Date.now()
   };
 
-  return owned;
+  return visiblePlaylists;
 }
-
 async function openPlaylistPicker(mode, forceRefresh = false) {
   const safeMode = String(mode || "start").trim() === "add" ? "add" : "start";
 
@@ -2977,7 +2992,7 @@ function statusTagHtml(label, tone = "neutral", options = {}) {
         class="mod-status-tag mod-status-tag-${escapeHtml(tone)} mod-status-edit-btn"
         data-request-id="${escapeHtml(requestId)}"
         data-edit-field="${escapeHtml(editField)}"
-        title="Edit ${escapeHtml(label)} after puzzle verification"
+        title="Click to cycle moderation status"
       >
         ${escapeHtml(label)}
       </button>
@@ -3004,29 +3019,15 @@ function getNextThemeOverride(currentThemeStatus) {
   return "flagged";
 }
 
-function runModerationEditPuzzle(editFieldLabel) {
-  const rounds = 5;
+function refreshModerationViewsForRequest(requestId) {
+  renderRequests(currentRequests);
+  renderApprovedQueue();
+  renderApprovedPreview();
 
-  for (let i = 0; i < rounds; i++) {
-    const a = Math.floor(Math.random() * 70) + 15;
-    const b = Math.floor(Math.random() * 40) + 6;
-    const op = Math.random() > 0.5 ? "+" : "-";
-    const actual = op === "+" ? a + b : a - b;
-
-    const shouldBeCorrect = Math.random() > 0.5;
-    const displayed = shouldBeCorrect ? actual : actual + (Math.random() > 0.5 ? 1 : -1) * (Math.floor(Math.random() * 4) + 1);
-
-    const userSaysTrue = window.confirm(
-      `Safety puzzle ${i + 1}/${rounds} to edit ${editFieldLabel}.\n\nPress OK if this is TRUE, Cancel if FALSE:\n${a} ${op} ${b} = ${displayed}`
-    );
-
-    if (userSaysTrue !== shouldBeCorrect) {
-      window.alert("Incorrect puzzle answer. Edit canceled.");
-      return false;
-    }
+  if (moderationDetailContext?.requestId === requestId) {
+    const updated = getRequestById(requestId) || moderationDetailContext;
+    openModerationReasonModal(updated);
   }
-
-  return window.confirm("Final confirmation: apply this moderation status edit?");
 }
 
 function applyStatusTagEdit(requestId, editField) {
@@ -3048,36 +3049,20 @@ function applyStatusTagEdit(requestId, editField) {
       return;
     }
 
-    const confirmed = runModerationEditPuzzle("Explicit/Clean");
-    if (!confirmed) {
-      setStatus("Explicit status edit canceled.");
-      return;
-    }
-
     const nextExplicit = moderation?.explicitStatus === "explicit" ? "clean" : "explicit";
     setModerationOverride(key, { explicitStatus: nextExplicit });
-    setStatus(`Explicit status override set to ${nextExplicit}.`);
+    setStatus(`Explicit status set to ${nextExplicit}.`);
+    logConsoleEvent("Moderation", "Explicit status cycled.", { requestId: key, nextExplicit }, "warn");
+    refreshModerationViewsForRequest(key);
+    return;
   }
 
   if (field === "theme") {
-    const confirmed = runModerationEditPuzzle("Theme Status");
-    if (!confirmed) {
-      setStatus("Theme status edit canceled.");
-      return;
-    }
-
     const nextTheme = getNextThemeOverride(moderation?.themeStatus);
     setModerationOverride(key, { themeStatus: nextTheme });
-    setStatus(`Theme status override set to ${nextTheme}.`);
-  }
-
-  renderRequests(currentRequests);
-  renderApprovedQueue();
-  renderApprovedPreview();
-
-  if (moderationDetailContext?.requestId === key) {
-    const updated = getRequestById(key) || moderationDetailContext;
-    openModerationReasonModal(updated);
+    setStatus(`Theme status set to ${nextTheme}.`);
+    logConsoleEvent("Moderation", "Theme status cycled.", { requestId: key, nextTheme }, "warn");
+    refreshModerationViewsForRequest(key);
   }
 }
 
@@ -3088,7 +3073,32 @@ function applyModerationBypass(requestId, bypassField) {
 
   const request = getRequestById(key);
   if (!request) {
-    setStatus("Could not find request to bypass moderation status.");
+    setStatus("Could not find request to override moderation status.");
+    return;
+  }
+
+  if (field === "allow-all") {
+    if (!request.spotify) {
+      setStatus("Cannot allow this request because Spotify track data is missing.");
+      return;
+    }
+
+    setModerationOverride(key, { explicitStatus: "clean", themeStatus: "clear" });
+    setStatus("Moderator override applied: song marked allow/clear.");
+    logConsoleEvent("Moderation", "Allow-all override applied.", { requestId: key }, "warn");
+    refreshModerationViewsForRequest(key);
+    return;
+  }
+
+  if (field === "reset") {
+    const removed = clearModerationOverride(key);
+    if (removed) {
+      setStatus("Moderator override removed. Auto moderation restored.");
+      logConsoleEvent("Moderation", "Override reset to auto moderation.", { requestId: key }, "info");
+    } else {
+      setStatus("No override found. Auto moderation is already active.");
+    }
+    refreshModerationViewsForRequest(key);
     return;
   }
 
@@ -3098,36 +3108,18 @@ function applyModerationBypass(requestId, bypassField) {
       return;
     }
 
-    const confirmed = runModerationEditPuzzle("Explicit Bypass to Clean");
-    if (!confirmed) {
-      setStatus("Explicit bypass canceled.");
-      return;
-    }
-
     setModerationOverride(key, { explicitStatus: "clean" });
-    setStatus("Explicit gate bypassed: marked as clean by moderator override.");
+    setStatus("Explicit gate bypassed: marked clean by moderator override.");
     logConsoleEvent("Moderation", "Explicit bypass applied.", { requestId: key }, "warn");
+    refreshModerationViewsForRequest(key);
+    return;
   }
 
   if (field === "theme") {
-    const confirmed = runModerationEditPuzzle("Theme Bypass to Clear");
-    if (!confirmed) {
-      setStatus("Theme bypass canceled.");
-      return;
-    }
-
     setModerationOverride(key, { themeStatus: "clear" });
-    setStatus("Theme gate bypassed: marked as clear by moderator override.");
+    setStatus("Theme gate bypassed: marked clear by moderator override.");
     logConsoleEvent("Moderation", "Theme bypass applied.", { requestId: key }, "warn");
-  }
-
-  renderRequests(currentRequests);
-  renderApprovedQueue();
-  renderApprovedPreview();
-
-  if (moderationDetailContext?.requestId === key) {
-    const updated = getRequestById(key) || moderationDetailContext;
-    openModerationReasonModal(updated);
+    refreshModerationViewsForRequest(key);
   }
 }
 function getLyricsFetchStatusTag(requestId) {
@@ -3242,6 +3234,30 @@ function stopLyricsCacheCountdown() {
   if (lyricsCacheCountdownTimer) {
     window.clearInterval(lyricsCacheCountdownTimer);
     lyricsCacheCountdownTimer = null;
+  }
+}
+
+async function triggerAutomaticLyricsCacheRefresh() {
+  if (!CONFIG.lyricsCacheAutoRefresh || lyricsCacheAutoRefreshInFlight) {
+    return;
+  }
+
+  lyricsCacheAutoRefreshInFlight = true;
+
+  try {
+    const cacheResult = await fetchLyricsCacheSnapshot();
+    if (!cacheResult.ok) {
+      return;
+    }
+
+    if (Array.isArray(currentRequests) && currentRequests.length) {
+      const cacheSummary = applyLyricsCacheEntriesFromCache(currentRequests, cacheResult.cache || {});
+      logConsoleEvent("Lyrics Cache", "Automatic cache refresh applied to loaded requests.", cacheSummary, "success");
+    }
+  } catch (error) {
+    console.warn("Automatic lyrics cache refresh failed:", error);
+  } finally {
+    lyricsCacheAutoRefreshInFlight = false;
   }
 }
 
@@ -3408,24 +3424,14 @@ function getLyricsCacheEntryForRequest(request, cacheData) {
   return null;
 }
 
-async function applyLyricsCacheForLoadedRequests(requests) {
-  if (!Array.isArray(requests) || !requests.length || !CONFIG.lyricsCacheUseOnLoad) {
+function applyLyricsCacheEntriesFromCache(requests, cacheData) {
+  if (!Array.isArray(requests) || !requests.length) {
     return {
       started: false,
-      reason: "disabled-or-empty"
+      reason: "empty"
     };
   }
 
-  const cacheResult = await fetchLyricsCacheSnapshot();
-  if (!cacheResult.ok) {
-    setLyricsCacheCountdownLabel(`Lyrics cache unavailable (${cacheResult.reason})`);
-    return {
-      started: false,
-      reason: cacheResult.reason
-    };
-  }
-
-  const cacheData = cacheResult.cache || {};
   let matched = 0;
   let success = 0;
   let fallback = 0;
@@ -3470,6 +3476,26 @@ async function applyLyricsCacheForLoadedRequests(requests) {
     generatedAt: cacheData?.generated_at || "",
     refreshMinutes: Number(cacheData?.refresh_interval_minutes || CONFIG.lyricsCacheRefreshMinutes || 5)
   };
+}
+
+async function applyLyricsCacheForLoadedRequests(requests) {
+  if (!Array.isArray(requests) || !requests.length || !CONFIG.lyricsCacheUseOnLoad) {
+    return {
+      started: false,
+      reason: "disabled-or-empty"
+    };
+  }
+
+  const cacheResult = await fetchLyricsCacheSnapshot();
+  if (!cacheResult.ok) {
+    setLyricsCacheCountdownLabel(`Lyrics cache unavailable (${cacheResult.reason})`);
+    return {
+      started: false,
+      reason: cacheResult.reason
+    };
+  }
+
+  return applyLyricsCacheEntriesFromCache(requests, cacheResult.cache || {});
 }
 
 function buildLyricsPrefetchGroups(requests) {
@@ -3647,17 +3673,15 @@ function buildRequestStatusTags(request, moderation) {
 function moderationReasonHtml(request, moderation) {
   const safeTheme = String(request?.theme || "").trim() || "No theme submitted";
   const safeStudent = String(request?.studentName || "").trim() || "Not provided";
-  const themeTerms = Array.isArray(moderation?.themeTerms) && moderation.themeTerms.length
-    ? moderation.themeTerms.join(", ")
-    : "None";
+  const safeSource = getSourceLabel(request?.source);
   const themePolicyHits = Array.isArray(moderation?.themePolicyHits) ? moderation.themePolicyHits : [];
   const policySummary = Array.isArray(moderation?.themePolicySummary) ? moderation.themePolicySummary : [];
   const lyricsStatus = getLyricsFetchStatusTag(request?.requestId);
-  const spotifySummary = request?.spotify
-    ? "Spotify track lookup succeeded and metadata was found."
-    : "Spotify track lookup failed or the submitted link was invalid.";
+  const matchedTerms = Array.isArray(moderation?.themeTerms) && moderation.themeTerms.length
+    ? moderation.themeTerms.join(", ")
+    : "None";
 
-  const detailTags = [
+  const quickTags = [
     statusTagHtml(`Recommendation: ${moderation?.recommendationLabel || "Manual Review"}`, statusTagToneForRecommendation(moderation?.recommendation)),
     statusTagHtml(`Spotify: ${request?.spotify ? "Found" : "Missing"}`, request?.spotify ? "ok" : "danger"),
     statusTagHtml(
@@ -3676,11 +3700,11 @@ function moderationReasonHtml(request, moderation) {
   const bypassActions = request?.requestId
     ? `
       <div class="moderation-bypass-actions">
-        <button class="btn btn-small moderation-bypass-btn" data-request-id="${escapeHtml(request.requestId)}" data-bypass-field="explicit" type="button">
-          Bypass Explicit
+        <button class="btn btn-small moderation-bypass-btn" data-request-id="${escapeHtml(request.requestId)}" data-bypass-field="allow-all" type="button">
+          Allow Song Now
         </button>
-        <button class="btn btn-small moderation-bypass-btn" data-request-id="${escapeHtml(request.requestId)}" data-bypass-field="theme" type="button">
-          Bypass Theme Flag
+        <button class="btn btn-small moderation-bypass-btn moderation-bypass-reset-btn" data-request-id="${escapeHtml(request.requestId)}" data-bypass-field="reset" type="button">
+          Reset Auto Rules
         </button>
       </div>
     `
@@ -3690,13 +3714,12 @@ function moderationReasonHtml(request, moderation) {
     ? policySummary
       .map((entry) => `
         <div class="moderation-reason-item">
-          <div class="moderation-reason-label">${escapeHtml(entry.severity.toUpperCase())} | ${escapeHtml(entry.category)}</div>
-          <div class="moderation-reason-value">${escapeHtml(entry.count)} hit(s) | Fields: ${escapeHtml(entry.fields.join(", "))}</div>
-          <div class="moderation-inline-note">Matches: ${escapeHtml(entry.matches.join(", "))}</div>
+          <div class="moderation-reason-label">${escapeHtml(entry.category)}</div>
+          <div class="moderation-reason-value">${escapeHtml(entry.severity.toUpperCase())} | ${escapeHtml(entry.count)} hit(s)</div>
         </div>
       `)
       .join("")
-    : "<div class=\"empty-state\">No policy hits were detected for this request.</div>";
+    : "<div class=\"empty-state\">No policy hits were detected.</div>";
 
   const hitRows = themePolicyHits.length
     ? themePolicyHits
@@ -3705,67 +3728,64 @@ function moderationReasonHtml(request, moderation) {
           <td>${escapeHtml(hit.severity)}</td>
           <td>${escapeHtml(hit.category)}</td>
           <td>${escapeHtml(hit.field)}</td>
-          <td>${escapeHtml(hit.matchType)}</td>
           <td>${escapeHtml(hit.matchedText)}</td>
         </tr>
       `)
       .join("")
-    : "<tr><td colspan=\"5\">No keyword or phrase matches.</td></tr>";
+    : "<tr><td colspan=\"4\">No keyword or phrase matches.</td></tr>";
 
   return `
-    <div class="moderation-reason-section">
-      <h3>Status Tags</h3>
-      <div class="request-status-tags moderation-tags-wrap">
-        ${detailTags}
-      </div>
-      <p class="moderation-inline-note">Use status tags or bypass buttons to run the safety puzzle and override moderation state when needed.</p>
-      ${bypassActions}
-    </div>
-
-    <div class="moderation-reason-grid">
-      <div class="moderation-reason-item">
-        <div class="moderation-reason-label">Source</div>
-        <div class="moderation-reason-value">${escapeHtml(getSourceLabel(request?.source))}</div>
-      </div>
-      <div class="moderation-reason-item">
-        <div class="moderation-reason-label">Student Name</div>
-        <div class="moderation-reason-value">${escapeHtml(safeStudent)}</div>
-      </div>
-      <div class="moderation-reason-item">
-        <div class="moderation-reason-label">Theme Submitted</div>
-        <div class="moderation-reason-value">${escapeHtml(safeTheme)}</div>
-      </div>
-      <div class="moderation-reason-item">
-        <div class="moderation-reason-label">Confidence</div>
-        <div class="moderation-reason-value">${escapeHtml(moderation?.confidence || "Medium")}</div>
-      </div>
-    </div>
-
     <div class="moderation-reason-callout">
       <span class="badge ${badgeClassForRecommendation(moderation)}">${escapeHtml(moderation?.recommendationLabel || "Review")}</span>
       <p>${escapeHtml(moderation?.recommendationReason || "Manual review recommended.")}</p>
     </div>
 
     <div class="moderation-reason-section">
-      <h3>Decision Summary</h3>
+      <h3>Quick Controls</h3>
+      <div class="request-status-tags moderation-tags-wrap">
+        ${quickTags}
+      </div>
+      <p class="moderation-inline-note">Tip: click the Explicit or Theme tags to cycle status quickly.</p>
+      ${bypassActions}
+    </div>
+
+    <div class="moderation-reason-grid">
+      <div class="moderation-reason-item">
+        <div class="moderation-reason-label">Source</div>
+        <div class="moderation-reason-value">${escapeHtml(safeSource)}</div>
+      </div>
+      <div class="moderation-reason-item">
+        <div class="moderation-reason-label">Student</div>
+        <div class="moderation-reason-value">${escapeHtml(safeStudent)}</div>
+      </div>
+      <div class="moderation-reason-item">
+        <div class="moderation-reason-label">Theme</div>
+        <div class="moderation-reason-value">${escapeHtml(safeTheme)}</div>
+      </div>
+      <div class="moderation-reason-item">
+        <div class="moderation-reason-label">Matched Terms</div>
+        <div class="moderation-reason-value">${escapeHtml(matchedTerms)}</div>
+      </div>
+    </div>
+
+    <div class="moderation-reason-section">
+      <h3>Decision Notes</h3>
       <ul class="moderation-reason-list">
-        <li>${escapeHtml(spotifySummary)}</li>
         <li>${escapeHtml(moderation?.explicitReason || "No explicit reasoning available.")}</li>
         <li>${escapeHtml(moderation?.themeReason || "No theme reasoning available.")}</li>
         <li>${escapeHtml(lyricsStatus.detail || "Lyrics have not been fetched for this request.")}</li>
       </ul>
-      <p class="moderation-inline-note">Matched terms: ${escapeHtml(themeTerms)}</p>
-    </div>
-
-    <div class="moderation-reason-section">
-      <h3>Policy Category Summary</h3>
-      <div class="moderation-reason-grid moderation-reason-grid-full">
-        ${summaryRows}
-      </div>
     </div>
 
     <details class="moderation-reason-details">
-      <summary>Detailed Keyword / Phrase Hits (${themePolicyHits.length})</summary>
+      <summary>Policy Summary (${policySummary.length})</summary>
+      <div class="moderation-reason-grid moderation-reason-grid-full">
+        ${summaryRows}
+      </div>
+    </details>
+
+    <details class="moderation-reason-details">
+      <summary>Detailed Hits (${themePolicyHits.length})</summary>
       <div class="moderation-reason-table-wrap">
         <table class="moderation-reason-table" aria-label="Moderation policy hit details">
           <thead>
@@ -3773,7 +3793,6 @@ function moderationReasonHtml(request, moderation) {
               <th>Severity</th>
               <th>Category</th>
               <th>Field</th>
-              <th>Type</th>
               <th>Matched Text</th>
             </tr>
           </thead>
@@ -4011,6 +4030,64 @@ async function addManualSearchResultToQueue(trackId) {
   setStatus(`Moderator override added: ${request.spotify.artist} - ${request.spotify.name}`);
 }
 
+function setRequestAutoSyncStatus(message, tone = "neutral") {
+  if (!el.modAutoSyncStatus) return;
+
+  el.modAutoSyncStatus.textContent = message;
+  el.modAutoSyncStatus.dataset.tone = tone;
+}
+
+async function runRequestAutoSync(reason = "manual", options = {}) {
+  const silent = !!options.silent;
+
+  if (requestAutoSyncInFlight) {
+    if (!silent) {
+      setStatus("Request sync is already running.");
+    }
+    return false;
+  }
+
+  requestAutoSyncInFlight = true;
+  setRequestAutoSyncStatus(reason === "manual" ? "Syncing requests now..." : "Auto-sync in progress...", "info");
+
+  try {
+    await loadRequests();
+    lastRequestSyncAt = new Date();
+    const timeText = lastRequestSyncAt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+    const sourceLabel = reason === "manual" ? "manual" : "auto";
+    setRequestAutoSyncStatus(`Last sync ${timeText} (${sourceLabel})`, "ok");
+    return true;
+  } catch (error) {
+    const message = error?.message || "Request sync failed.";
+    setRequestAutoSyncStatus(`Sync failed: ${message}`, "error");
+    if (!silent) {
+      throw error;
+    }
+    console.warn("Automatic request sync failed:", error);
+    return false;
+  } finally {
+    requestAutoSyncInFlight = false;
+  }
+}
+
+function stopRequestAutoSyncTimer() {
+  if (requestAutoSyncTimer) {
+    window.clearInterval(requestAutoSyncTimer);
+    requestAutoSyncTimer = null;
+  }
+}
+
+function startRequestAutoSyncTimer() {
+  stopRequestAutoSyncTimer();
+
+  const minutes = Math.max(1, Number(CONFIG.requestAutoSyncMinutes || 5));
+  setRequestAutoSyncStatus(`Auto-sync every ${minutes} minute(s).`, "neutral");
+
+  requestAutoSyncTimer = window.setInterval(() => {
+    void runRequestAutoSync("auto", { silent: true });
+  }, minutes * 60 * 1000);
+}
+
 // ======================================================
 // LOAD REQUESTS
 // ======================================================
@@ -4113,6 +4190,7 @@ function closeModerationPanel() {
   closeModerationReasonModal();
   closeLyricsModal();
   stopLyricsCachePolling();
+  closePlaylistPicker();
 }
 
 // ======================================================
@@ -4133,10 +4211,11 @@ function wireStaticEvents() {
 
   el.btnLoadRequests?.addEventListener("click", async () => {
     try {
-      await loadRequests();
+      await runRequestAutoSync("manual");
+      setStatus("Manual request sync completed.");
     } catch (error) {
       console.error(error);
-      setStatus(error?.message || "Failed to load requests.");
+      setStatus(error?.message || "Failed to sync requests.");
     }
   });
 
@@ -4571,6 +4650,10 @@ function wireStaticEvents() {
 
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
+      if (el.playlistPickerModal?.classList.contains("playlist-picker-is-open")) {
+        closePlaylistPicker();
+        return;
+      }
       if (el.lyricsModal?.classList.contains("lyrics-is-open")) {
         closeLyricsModal();
         return;
@@ -4649,8 +4732,14 @@ async function init() {
     console.warn("Initial lyrics cache fetch failed:", error);
   }
 
-  if (hasActiveSpotifyLogin || !!authGet(LS.accessToken)) {
+  const hasToken = hasActiveSpotifyLogin || !!authGet(LS.accessToken);
+  if (hasToken) {
     startPlaybackPolling();
+    startRequestAutoSyncTimer();
+    await runRequestAutoSync("startup", { silent: true });
+  } else {
+    stopRequestAutoSyncTimer();
+    setRequestAutoSyncStatus("Login to enable request sync.", "warn");
   }
 }
 

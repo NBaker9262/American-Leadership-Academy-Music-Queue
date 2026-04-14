@@ -1225,6 +1225,41 @@ body.mod-panel-open {
   white-space: nowrap;
 }
 
+.lyrics-sync-pill {
+  min-width: 210px;
+  justify-content: center;
+}
+
+.lyrics-sync-pill[data-tone="neutral"] {
+  border-color: rgba(150, 175, 215, 0.34);
+  background: rgba(130, 152, 190, 0.12);
+  color: #d9e4fb;
+}
+
+.lyrics-sync-pill[data-tone="info"] {
+  border-color: rgba(104, 183, 255, 0.45);
+  background: rgba(86, 166, 244, 0.18);
+  color: #d8eeff;
+}
+
+.lyrics-sync-pill[data-tone="ok"] {
+  border-color: rgba(118, 214, 156, 0.44);
+  background: rgba(76, 173, 122, 0.18);
+  color: #d5ffe4;
+}
+
+.lyrics-sync-pill[data-tone="warn"] {
+  border-color: rgba(255, 204, 118, 0.46);
+  background: rgba(199, 141, 55, 0.24);
+  color: #ffeab7;
+}
+
+.lyrics-sync-pill[data-tone="error"] {
+  border-color: rgba(255, 128, 152, 0.48);
+  background: rgba(170, 56, 82, 0.24);
+  color: #ffd4dd;
+}
+
 .mod-overlay-body {
   flex: 1;
   overflow: hidden;
@@ -3204,6 +3239,12 @@ body.mod-panel-open {
   background: linear-gradient(180deg, rgba(255, 203, 87, 0.24), rgba(255, 203, 87, 0.14));
   border-color: rgba(255, 203, 87, 0.34);
   color: #ffe3a7;
+}
+
+.moderation-bypass-reset-btn {
+  background: rgba(83, 103, 139, 0.18);
+  border-color: rgba(126, 148, 188, 0.34);
+  color: #d7e3fb;
 }
 
 @media (max-width: 900px) {

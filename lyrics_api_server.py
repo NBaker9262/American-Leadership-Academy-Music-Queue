@@ -94,7 +94,14 @@ def text_from_tag(node: Tag) -> str:
 
 
 def normalize_embedded_lyrics(value: str) -> str:
-    text = str(value or "")
+    text = str(value or "").strip()
+    if not text:
+        return ""
+
+    # Some embedded fields are URLs, not HTML lyric fragments.
+    if text.startswith("http://") or text.startswith("https://"):
+        return ""
+
     text = text.replace("<br />", "\n").replace("<br/>", "\n").replace("<br>", "\n")
     rendered = BeautifulSoup(text, "html.parser").get_text("\n", strip=True)
     return clean_lyrics_text(rendered)
