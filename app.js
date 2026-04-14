@@ -663,6 +663,11 @@ function buildModerationMetadata(request) {
 
   const lyricsRating = getLyricsRatingForRequest(request);
 
+  const lyricsStatusRaw = String(request?.lyricsData?.status || "").trim().toLowerCase();
+  const lyricsText = sanitizeLyricsText(request?.lyricsData?.lyrics || "");
+  const lyricsHasLyrics = !!lyricsText;
+  const lyricsGateStatus = lyricsHasLyrics ? "ok" : (lyricsStatusRaw || "missing");
+
   const hardHitCount = policyHits.filter((hit) => hit.severity === "block").length;
   const reviewHitCount = policyHits.filter((hit) => hit.severity === "review").length;
 
@@ -695,20 +700,40 @@ function buildModerationMetadata(request) {
   }
 
   let recommendation = "pass";
-  let recommendationLabel = "Auto-Approve Eligible";
-  let recommendationReason = "No explicit or blocked theme signals were detected.";
+  let recommendationLabel = "OK";
+  let recommendationReason = "Spotify, theme policy, and lyrics checks passed.";
 
-  if (explicitStatus === "explicit" || themeEvaluation.status === "blocked") {
+  if (themeEvaluation.status === "blocked") {
     recommendation = "block";
     recommendationLabel = "Block";
-    recommendationReason =
-      explicitStatus === "explicit"
-        ? (explicitReason || "Track is marked explicit.")
-        : "Theme or metadata triggered blocked policy categories. Review required before any approval.";
-  } else if (themeEvaluation.status === "flagged") {
-    recommendation = "review";
-    recommendationLabel = "Manual Review";
-    recommendationReason = "Theme, metadata, or lyrics passed hard blocks but matched review categories that need manual review.";
+    recommendationReason = "Theme or metadata triggered blocked policy categories. Review required before any approval.";
+  } else {
+    const flagReasons = [];
+
+    if (!request?.spotify) {
+      flagReasons.push("Spotify track metadata is missing.");
+    }
+
+    // Explicit is not a hard block, but it should never auto-OK.
+    if (explicitStatus === "explicit") {
+      flagReasons.push(explicitReason || "Track is marked explicit.");
+    }
+
+    if (themeEvaluation.status === "flagged") {
+      flagReasons.push(themeEvaluation.reason || "Theme status is flagged.");
+    }
+
+    // If we do not have lyrics (fallback/missing/error), do not auto-OK.
+    if (lyricsGateStatus !== "ok") {
+      const detail = String(request?.lyricsData?.detail || "").trim();
+      flagReasons.push(`Lyrics unavailable (${lyricsGateStatus})${detail ? `: ${detail}` : ""}.`);
+    }
+
+    if (flagReasons.length) {
+      recommendation = "flag";
+      recommendationLabel = "Flag";
+      recommendationReason = flagReasons.join(" | ");
+    }
   }
 
   const compactReason = `${explicitLabel} by ${explicitSource || "metadata"} | ${themeEvaluation.label} (${hardHitCount} hard, ${reviewHitCount} review hits)`;
@@ -721,6 +746,9 @@ function buildModerationMetadata(request) {
     lyricsRatingLabel: lyricsRating?.label || "",
     lyricsRatingCode: lyricsRating?.code || "",
     lyricsRatingReason: lyricsRating?.reason || "",
+    lyricsStatus: lyricsStatusRaw || (lyricsHasLyrics ? "success" : "missing"),
+    lyricsHasLyrics,
+    lyricsGateStatus,
     themeStatus: themeEvaluation.status,
     themeLabel: themeEvaluation.label,
     themeReason: themeEvaluation.reason,
@@ -740,20 +768,34 @@ function refreshModerationRecommendation(moderation) {
   if (!moderation || typeof moderation !== "object") return moderation;
 
   let recommendation = "pass";
-  let recommendationLabel = "Auto-Approve Eligible";
-  let recommendationReason = "No explicit or blocked theme signals were detected.";
+  let recommendationLabel = "OK";
+  let recommendationReason = "Spotify, theme policy, and lyrics checks passed.";
 
-  if (moderation.explicitStatus === "explicit" || moderation.themeStatus === "blocked") {
+  if (moderation.themeStatus === "blocked") {
     recommendation = "block";
     recommendationLabel = "Block";
-    recommendationReason =
-      moderation.explicitStatus === "explicit"
-        ? (moderation.explicitReason || "Track is marked explicit.")
-        : "Theme status is blocked. Manual override is required to approve.";
-  } else if (moderation.themeStatus === "flagged") {
-    recommendation = "review";
-    recommendationLabel = "Manual Review";
-    recommendationReason = "Theme status is flagged and needs manual review.";
+    recommendationReason = "Theme status is blocked. Manual override is required to approve.";
+  } else {
+    const flagReasons = [];
+
+    if (moderation.explicitStatus === "explicit") {
+      flagReasons.push(moderation.explicitReason || "Track is marked explicit.");
+    }
+
+    if (moderation.themeStatus === "flagged") {
+      flagReasons.push(moderation.themeReason || "Theme status is flagged.");
+    }
+
+    const gate = String(moderation.lyricsGateStatus || "").trim();
+    if (gate && gate !== "ok") {
+      flagReasons.push(`Lyrics unavailable (${gate}).`);
+    }
+
+    if (flagReasons.length) {
+      recommendation = "flag";
+      recommendationLabel = "Flag";
+      recommendationReason = flagReasons.join(" | ");
+    }
   }
 
   const policyHits = Array.isArray(moderation.themePolicyHits) ? moderation.themePolicyHits : [];
@@ -2405,7 +2447,7 @@ function buildRequestSummary(requests) {
 function approveRequest(request, options = {}) {
   const {
     silentStatus = false,
-    allowExplicit = false,
+    allowExplicit = true,
     allowDuplicateTrack = false,
     selectAdded = false,
     allowThemeBlocked = false
@@ -2548,7 +2590,7 @@ function approveAllVisibleCleanRequests() {
   const visible = getVisibleUnapprovedRequests(currentRequests);
   const cleanVisible = visible.filter((request) => {
     const moderation = ensureModerationMetadata(request);
-    return request.spotify && request.spotify.explicit === false && moderation?.themeStatus !== "blocked";
+    return request.spotify && request.spotify.explicit === false && moderation?.recommendation === "pass";
   });
 
   if (!cleanVisible.length) {
@@ -2727,7 +2769,7 @@ function renderRequests(requests) {
         : "Error";
 
       const approveDisabled =
-        !request.spotify || request.spotify.explicit || moderation?.themeStatus === "blocked"
+        !request.spotify || moderation?.themeStatus === "blocked"
           ? "disabled"
           : "";
       const lyricsUrl = request.spotify ? buildLyricsUrl(request.spotify.artist, request.spotify.name) : "";
@@ -3466,7 +3508,7 @@ async function addDjAssistedRequestFromForm() {
 
 function badgeClassForRecommendation(moderation) {
   if (moderation?.recommendation === "block") return "badge-explicit";
-  if (moderation?.recommendation === "review") return "badge-error";
+  if (moderation?.recommendation === "flag") return "badge-error";
   return "badge-clean";
 }
 
@@ -3479,7 +3521,7 @@ function statusTagToneForTheme(themeStatus) {
 
 function statusTagToneForRecommendation(recommendation) {
   if (recommendation === "block") return "danger";
-  if (recommendation === "review") return "warn";
+  if (recommendation === "flag") return "warn";
   return "ok";
 }
 
@@ -4426,7 +4468,7 @@ function moderationReasonHtml(request, moderation) {
     : "None";
 
   const quickTags = [
-    statusTagHtml(`Recommendation: ${moderation?.recommendationLabel || "Manual Review"}`, statusTagToneForRecommendation(moderation?.recommendation)),
+    statusTagHtml(`Recommendation: ${moderation?.recommendationLabel || "Flag"}`, statusTagToneForRecommendation(moderation?.recommendation)),
     statusTagHtml(`Spotify: ${request?.spotify ? "Found" : "Missing"}`, request?.spotify ? "ok" : "danger"),
     statusTagHtml(
       `Spotify: ${moderation?.explicitStatus === "explicit" ? "Explicit" : moderation?.explicitStatus === "clean" ? "Clean" : "Unknown"}`,
@@ -4486,8 +4528,8 @@ function moderationReasonHtml(request, moderation) {
 
   return `
     <div class="moderation-reason-callout">
-      <span class="badge ${badgeClassForRecommendation(moderation)}">${escapeHtml(moderation?.recommendationLabel || "Review")}</span>
-      <p>${escapeHtml(moderation?.recommendationReason || "Manual review recommended.")}</p>
+      <span class="badge ${badgeClassForRecommendation(moderation)}">${escapeHtml(moderation?.recommendationLabel || "Flag")}</span>
+      <p>${escapeHtml(moderation?.recommendationReason || "Flagged for moderator review.")}</p>
     </div>
 
     <div class="moderation-reason-section">
