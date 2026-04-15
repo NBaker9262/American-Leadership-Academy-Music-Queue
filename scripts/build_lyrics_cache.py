@@ -28,7 +28,11 @@ ROOT_DIR = Path(__file__).resolve().parents[1]
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
-from lyrics_api_server import LyricsFetchError, build_musixmatch_url, fetch_musixmatch_lyrics
+from lyrics_api_server import (
+    LyricsFetchError,
+    build_musixmatch_url,
+    fetch_musixmatch_lyrics_with_disambiguation,
+)
 
 DEFAULT_REQUESTS_CSV_URL = (
     "https://docs.google.com/spreadsheets/d/e/"
@@ -425,17 +429,30 @@ def build_musixmatch_url_candidates(artist: str, song: str) -> list[str]:
 def fetch_lyrics_with_fallback_urls(artist: str, song: str) -> dict:
     attempted: list[dict[str, str]] = []
 
-    for url in build_musixmatch_url_candidates(artist, song):
-        try:
-            result = fetch_musixmatch_lyrics(url=url)
-            return {
-                "ok": True,
-                "result": result,
-                "resolved_url": url,
-                "attempted": attempted,
-            }
-        except (LyricsFetchError, requests.RequestException) as error:
-            attempted.append({"url": url, "error": str(error)})
+    artist_candidates = build_artist_candidates(artist)
+    song_candidates = build_song_candidates(song)
+
+    for artist_candidate in artist_candidates:
+        for song_candidate in song_candidates:
+            try:
+                result, tried_urls = fetch_musixmatch_lyrics_with_disambiguation(
+                    artist=artist_candidate,
+                    song=song_candidate,
+                )
+                # Record a small trace of what was tried (best-effort).
+                for tried_url in tried_urls[:-1]:
+                    attempted.append({"url": tried_url, "error": "tried"})
+                return {
+                    "ok": True,
+                    "result": result,
+                    "resolved_url": result.url,
+                    "attempted": attempted,
+                }
+            except (LyricsFetchError, requests.RequestException) as error:
+                attempted.append({
+                    "url": build_musixmatch_url(artist_candidate, song_candidate),
+                    "error": str(error),
+                })
 
     error_message = attempted[-1]["error"] if attempted else "No Musixmatch URL candidates were generated."
     return {

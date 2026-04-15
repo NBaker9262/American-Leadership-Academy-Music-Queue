@@ -14,6 +14,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import ssl
 from dataclasses import dataclass
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Iterable
@@ -94,6 +95,86 @@ def build_musixmatch_url(artist: str, song: str) -> str:
     artist_slug = slugify_for_musixmatch(artist)
     song_slug = slugify_for_musixmatch(song)
     return f"https://www.musixmatch.com/lyrics/{artist_slug}/{song_slug}"
+
+
+def iter_musixmatch_artist_slug_variants(artist: str, max_suffix: int = 8) -> list[str]:
+    """Return likely Musixmatch artist slug variants.
+
+    Musixmatch sometimes disambiguates artists by appending a numeric suffix
+    (for example, "don-toliver-8"). We can't reliably predict the right suffix
+    from just the name, so we try a small range when the base page 404s.
+    """
+
+    safe_slug = slugify_for_musixmatch(artist)
+    variants: list[str] = []
+    seen: set[str] = set()
+
+    def add(value: str) -> None:
+        value = str(value or "").strip()
+        if not value or value in seen:
+            return
+        seen.add(value)
+        variants.append(value)
+
+    # If the slug already ends with "-<number>", try the root too.
+    match = re.match(r"^(.*?)-(\d+)$", safe_slug)
+    if match:
+        root = match.group(1).strip("-")
+        if root:
+            add(root)
+        add(safe_slug)
+    else:
+        add(safe_slug)
+
+    max_suffix = max(0, int(max_suffix))
+    for suffix in range(1, max_suffix + 1):
+        add(f"{safe_slug}-{suffix}")
+
+    return variants
+
+
+def fetch_musixmatch_lyrics_with_disambiguation(
+    *,
+    artist: str,
+    song: str,
+    selector: str = DEFAULT_SELECTOR,
+    max_artist_suffix: int | None = None,
+) -> tuple[LyricsResult, list[str]]:
+    """Fetch Musixmatch lyrics, trying artist slug numeric suffixes on 404."""
+
+    max_suffix = max_artist_suffix
+    if max_suffix is None:
+        try:
+            max_suffix = int(os.environ.get("MUSIXMATCH_ARTIST_SUFFIX_MAX", "8"))
+        except ValueError:
+            max_suffix = 8
+
+    song_slug = slugify_for_musixmatch(song)
+    tried_urls: list[str] = []
+    last_non_404_error: Exception | None = None
+
+    for candidate_artist_slug in iter_musixmatch_artist_slug_variants(artist, max_suffix=max_suffix):
+        url = f"https://www.musixmatch.com/lyrics/{candidate_artist_slug}/{song_slug}"
+        tried_urls.append(url)
+
+        try:
+            return fetch_musixmatch_lyrics(url=url, selector=selector), tried_urls
+        except requests.HTTPError as error:
+            status_code = getattr(error.response, "status_code", None)
+            if status_code == 404:
+                continue
+            raise
+        except LyricsFetchError as error:
+            # Don't loop on captcha/bot pages.
+            if "captcha" in str(error).lower():
+                raise
+            last_non_404_error = error
+            continue
+
+    if last_non_404_error:
+        raise last_non_404_error
+
+    raise LyricsFetchError("Musixmatch page not found for any artist slug variant.")
 
 
 def clean_lyrics_text(text: str) -> str:
@@ -441,9 +522,10 @@ class LyricsApiHandler(BaseHTTPRequestHandler):
             return
 
         url = build_musixmatch_url(artist=artist, song=song)
+        tried_urls: list[str] = []
 
         try:
-            result = fetch_musixmatch_lyrics(url=url)
+            result, tried_urls = fetch_musixmatch_lyrics_with_disambiguation(artist=artist, song=song)
         except requests.HTTPError as error:
             status_code = getattr(error.response, "status_code", "unknown")
             self._send_json(
@@ -452,6 +534,7 @@ class LyricsApiHandler(BaseHTTPRequestHandler):
                     "ok": False,
                     "error": f"Musixmatch HTTP error: {status_code}",
                     "url": url,
+                    "tried_urls": tried_urls[:12],
                 },
             )
             return
@@ -462,6 +545,7 @@ class LyricsApiHandler(BaseHTTPRequestHandler):
                     "ok": False,
                     "error": f"Network error while fetching lyrics: {error}",
                     "url": url,
+                    "tried_urls": tried_urls[:12],
                 },
             )
             return
@@ -472,6 +556,7 @@ class LyricsApiHandler(BaseHTTPRequestHandler):
                     "ok": False,
                     "error": str(error),
                     "url": url,
+                    "tried_urls": tried_urls[:12],
                 },
             )
             return
@@ -482,6 +567,7 @@ class LyricsApiHandler(BaseHTTPRequestHandler):
                     "ok": False,
                     "error": f"Unexpected server error: {error}",
                     "url": url,
+                    "tried_urls": tried_urls[:12],
                 },
             )
             return
@@ -506,7 +592,19 @@ def main() -> None:
     port = int(os.environ.get("PORT", "8787"))
     bind_host = os.environ.get("BIND_HOST", "127.0.0.1")
     server = ThreadingHTTPServer((bind_host, port), LyricsApiHandler)
-    print(f"Lyrics API listening on http://{bind_host}:{port}")
+
+    tls_cert_file = str(os.environ.get("TLS_CERT_FILE", "")).strip()
+    tls_key_file = str(os.environ.get("TLS_KEY_FILE", "")).strip()
+    use_tls = bool(tls_cert_file and tls_key_file)
+
+    scheme = "http"
+    if use_tls:
+        context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+        context.load_cert_chain(certfile=tls_cert_file, keyfile=tls_key_file)
+        server.socket = context.wrap_socket(server.socket, server_side=True)
+        scheme = "https"
+
+    print(f"Lyrics API listening on {scheme}://{bind_host}:{port}")
     server.serve_forever()
 
 

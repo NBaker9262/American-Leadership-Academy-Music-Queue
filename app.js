@@ -1492,11 +1492,9 @@ function slugifyForMusixmatch(value) {
 }
 
 function buildMusixmatchUrl(artist, song) {
-  // Musixmatch sometimes adds numeric suffixes to artist slugs (e.g. don-toliver-8).
-  // We cannot reliably predict those from just the name, so use search for a robust link.
-  const query = [artist, song].map((v) => String(v || "").trim()).filter(Boolean).join(" ");
-  if (!query) return "https://www.musixmatch.com";
-  return `https://www.musixmatch.com/search/${encodeURIComponent(query)}`;
+  const artistSlug = slugifyForMusixmatch(artist) || "Unknown-Artist";
+  const songSlug = slugifyForMusixmatch(song) || "Unknown-Song";
+  return `https://www.musixmatch.com/lyrics/${artistSlug}/${songSlug}`;
 }
 
 function buildLyricsUrl(artist, song) {
@@ -1516,9 +1514,10 @@ function getLyricsApiBaseUrl() {
   }
 
   // GitHub Pages cannot talk to a plain http:// Raspberry Pi API due to mixed-content rules.
-  // In that case, keep API disabled unless explicitly configured.
+  // In that case, prefer a local HTTPS API if you're running one on this machine.
+  // (To make this work, start lyrics_api_server.py with TLS enabled.)
   if (host.endsWith(".github.io")) {
-    return "";
+    return "https://127.0.0.1:8787";
   }
 
   if (host === "localhost" || host === "127.0.0.1") {
@@ -1563,7 +1562,9 @@ async function fetchLyricsFromApi(artist, song) {
   }
 
   const controller = new AbortController();
-  const timeoutId = window.setTimeout(() => controller.abort(), CONFIG.lyricsApiTimeoutMs);
+  const isLocalhostHttps = /^https:\/\/(?:127\.0\.0\.1|localhost)(?::\d+)?\//i.test(apiUrl);
+  const timeoutMs = isLocalhostHttps ? Math.min(1500, CONFIG.lyricsApiTimeoutMs) : CONFIG.lyricsApiTimeoutMs;
+  const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
 
   try {
     const response = await fetch(apiUrl, {
@@ -1575,11 +1576,29 @@ async function fetchLyricsFromApi(artist, song) {
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
+      let errorText = "";
+      let triedUrls = [];
+      try {
+        const maybeJson = await response.clone().json();
+        errorText = String(maybeJson?.error || "").trim();
+        triedUrls = Array.isArray(maybeJson?.tried_urls) ? maybeJson.tried_urls : [];
+      } catch {
+        // Ignore and fall back to text.
+      }
+
+      if (!errorText) {
+        try {
+          errorText = await response.text();
+        } catch {
+          errorText = "";
+        }
+      }
+
       return {
         ok: false,
         reason: errorText || `Lyrics API responded with ${response.status}.`,
-        status: "api-error"
+        status: "api-error",
+        triedUrls
       };
     }
 
@@ -1596,6 +1615,7 @@ async function fetchLyricsFromApi(artist, song) {
     return {
       ok: true,
       lyrics,
+      url: String(json?.url || ""),
       selectorUsed: String(json?.selector_used || ""),
       source: String(json?.source || "Lyrics API"),
       ratingLabel: String(json?.rating_label || ""),
@@ -4803,6 +4823,9 @@ async function openLyricsModal({ artist, song, fallbackUrl, requestId = "" }) {
   // Live scraper is the primary source.
   const liveResult = await fetchLyricsFromApi(safeArtist, safeSong);
   if (liveResult.ok) {
+    if (el.lyricsModalExternalLink && liveResult.url) {
+      el.lyricsModalExternalLink.href = String(liveResult.url);
+    }
     if (safeRequestId) {
       setLyricsFetchStatus(safeRequestId, "success", `Live lyrics fetched from ${liveResult.source || "Lyrics API"}.`, {
         lyrics: liveResult.lyrics,
@@ -4840,12 +4863,17 @@ async function openLyricsModal({ artist, song, fallbackUrl, requestId = "" }) {
     const backupLyrics = {
       lyrics: sanitizeLyricsText(cacheEntry.lyrics || ""),
       source: cacheEntry.source || "lyrics-cache.json",
+      url: cacheEntry.musixmatch_url || cacheEntry.url || "",
       selectorUsed: cacheEntry.selector_used || "",
       ratingLabel: cacheEntry.rating_label || "",
       ratingCode: cacheEntry.rating_code || "",
       ratingReason: cacheEntry.rating_reason || "",
       ratingSelectorUsed: cacheEntry.rating_selector_used || ""
     };
+
+    if (el.lyricsModalExternalLink && backupLyrics.url) {
+      el.lyricsModalExternalLink.href = String(backupLyrics.url);
+    }
 
     if (safeRequestId) {
       setLyricsFetchStatus(safeRequestId, "success", "Lyrics loaded from backup cache (may be stale).", {
