@@ -56,7 +56,7 @@ python -m http.server 8000
 Workflow: `.github/workflows/lyrics-cache-refresh.yml`
 
 It runs:
-- On schedule: `0 */12 * * *` (every 12 hours)
+- On schedule: `*/5 * * * *` (every 5 minutes)
 - On demand: `workflow_dispatch` from GitHub Actions UI
 - On push for workflow/script dependency changes
 

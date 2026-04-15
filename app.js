@@ -46,7 +46,7 @@ const CONFIG = {
   // Cache is a fallback only (backup).
   lyricsCacheUseOnLoad: false,
   lyricsCacheUrl: "lyrics-cache.json",
-  lyricsCacheRefreshMinutes: 720,
+  lyricsCacheRefreshMinutes: 5,
   lyricsCacheAutoRefresh: false,
   requestAutoSyncMinutes: 5,
   // Live scraper (Raspberry Pi) is the primary path.
