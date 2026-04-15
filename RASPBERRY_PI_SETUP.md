@@ -201,6 +201,67 @@ You can now edit/run code on the Pi from VS Code.
 
 ---
 
+## 9.5) Remote access from anywhere (no port forwarding, no domain)
+
+If you want to access the Pi when you are NOT on the same Wi‑Fi, you have a few free options.
+
+### Option A (recommended for VS Code): VS Code Remote Tunnels
+
+This avoids IP/port issues entirely and does **not** require your own domain.
+
+High-level idea:
+- You run a tunnel on the Pi.
+- VS Code on Windows connects to that tunnel.
+
+On the Pi:
+
+1. Install VS Code server tooling (one common way is to install the `code` CLI via Microsoft’s instructions for Raspberry Pi OS).
+2. Run the tunnel:
+
+```bash
+code tunnel
+```
+
+It will give you a login prompt/link the first time.
+
+On Windows (VS Code):
+
+1. Install the **Remote Tunnels** / **Remote Development** extension(s) if prompted.
+2. Use the Command Palette and connect to the running tunnel.
+
+Notes:
+- This is the simplest way to “access in VS Code” without needing SSH, static IPs, or router config.
+
+### Option B (recommended for SSH): Tailscale
+
+Tailscale is free for personal use and does **not** require a domain.
+
+High-level idea:
+- Install Tailscale on Windows and the Pi.
+- The Pi gets a stable private VPN IP (usually `100.x.y.z`).
+- You SSH to that IP from anywhere.
+
+Once set up, your VS Code SSH target becomes:
+
+```bash
+ssh <username>@<tailscale-pi-ip>
+```
+
+### Option C (recommended for HTTPS API URL): Cloudflare Tunnel “Quick Tunnel”
+
+Use this if you want an **HTTPS** URL to your lyrics API without buying a domain.
+
+Why you might need it:
+- GitHub Pages is HTTPS.
+- Browsers typically block calling an `http://` API from an `https://` page (mixed content).
+
+With a Cloudflare quick tunnel you can get a temporary HTTPS URL like `https://<random>.trycloudflare.com` pointing to your Pi’s `http://127.0.0.1:8787`.
+
+Notes:
+- Quick tunnels are often **temporary** (the URL can change). For a stable hostname you typically use your own domain, but it’s not required to test/validate.
+
+---
+
 ## 10) (Recommended) Serve the dashboard from the Pi to avoid HTTPS mixed-content
 
 If you open the dashboard from GitHub Pages (HTTPS), browsers will block calls to an `http://` API.
