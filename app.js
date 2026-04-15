@@ -1514,10 +1514,9 @@ function getLyricsApiBaseUrl() {
   }
 
   // GitHub Pages cannot talk to a plain http:// Raspberry Pi API due to mixed-content rules.
-  // In that case, prefer a local HTTPS API if you're running one on this machine.
-  // (To make this work, start lyrics_api_server.py with TLS enabled.)
+  // In that case, keep API disabled and rely on the backup cache.
   if (host.endsWith(".github.io")) {
-    return "https://127.0.0.1:8787";
+    return "";
   }
 
   if (host === "localhost" || host === "127.0.0.1") {
@@ -1562,9 +1561,7 @@ async function fetchLyricsFromApi(artist, song) {
   }
 
   const controller = new AbortController();
-  const isLocalhostHttps = /^https:\/\/(?:127\.0\.0\.1|localhost)(?::\d+)?\//i.test(apiUrl);
-  const timeoutMs = isLocalhostHttps ? Math.min(1500, CONFIG.lyricsApiTimeoutMs) : CONFIG.lyricsApiTimeoutMs;
-  const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
+  const timeoutId = window.setTimeout(() => controller.abort(), CONFIG.lyricsApiTimeoutMs);
 
   try {
     const response = await fetch(apiUrl, {

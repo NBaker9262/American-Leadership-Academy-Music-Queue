@@ -78,28 +78,7 @@ If playlists do not show in the picker, log out and log in again so Spotify re-g
 GitHub Pages is served over HTTPS (`https://...github.io`). Browsers will block calls to a plain HTTP lyrics API due to mixed-content rules.
 
 Recommended options:
-- Run the local API as HTTPS on `127.0.0.1` (TLS), so GitHub Pages can call `https://127.0.0.1:8787`.
-- Or use Tailscale Serve to proxy your Pi’s local API as an HTTPS `.ts.net` URL, then set `CONFIG.lyricsApiBaseUrl` in [app.js](app.js) to that HTTPS URL.
-- Or keep the live API for LAN/local usage and rely on `lyrics-cache.json` as the backup path on GitHub Pages.
-
-### Local HTTPS (TLS) for GitHub Pages
-
-The server supports HTTPS if you provide a certificate and key:
-
-Windows (PowerShell):
-
-```powershell
-$env:TLS_CERT_FILE = "C:\\path\\to\\cert.pem"
-$env:TLS_KEY_FILE = "C:\\path\\to\\key.pem"
-python lyrics_api_server.py
-```
-
-Then test:
-
-```powershell
-curl.exe https://127.0.0.1:8787/health
-```
-
-If your cert isn't trusted yet, open `https://127.0.0.1:8787/health` in your browser once and accept the warning so fetch calls can succeed.
+- Online (GitHub Pages): rely on `lyrics-cache.json`.
+- Local/LAN: run `lyrics_api_server.py` and open the dashboard locally so it can call `http://127.0.0.1:8787`.
 
 Full step-by-step for the Tailscale Serve approach is in [RASPBERRY_PI_SETUP.md](RASPBERRY_PI_SETUP.md).

@@ -14,7 +14,6 @@ from __future__ import annotations
 import json
 import os
 import re
-import ssl
 from dataclasses import dataclass
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Iterable
@@ -592,19 +591,7 @@ def main() -> None:
     port = int(os.environ.get("PORT", "8787"))
     bind_host = os.environ.get("BIND_HOST", "127.0.0.1")
     server = ThreadingHTTPServer((bind_host, port), LyricsApiHandler)
-
-    tls_cert_file = str(os.environ.get("TLS_CERT_FILE", "")).strip()
-    tls_key_file = str(os.environ.get("TLS_KEY_FILE", "")).strip()
-    use_tls = bool(tls_cert_file and tls_key_file)
-
-    scheme = "http"
-    if use_tls:
-        context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-        context.load_cert_chain(certfile=tls_cert_file, keyfile=tls_key_file)
-        server.socket = context.wrap_socket(server.socket, server_side=True)
-        scheme = "https"
-
-    print(f"Lyrics API listening on {scheme}://{bind_host}:{port}")
+    print(f"Lyrics API listening on http://{bind_host}:{port}")
     server.serve_forever()
 
 
