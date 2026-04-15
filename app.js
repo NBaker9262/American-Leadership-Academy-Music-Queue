@@ -15,7 +15,7 @@
 // --------------------
 const CONFIG = {
   clientId: "6bcc4a0a3c1b4d869374c628d28a794a",
-  redirectUriFallback: "https://coltonsharp-dev.github.io/American-Leadership-Academy-Music-Queue/",
+  redirectUriFallback: "https://nbaker9262.github.io/American-Leadership-Academy-Music-Queue/",
   defaultPlaylistId: "3dcGJ6miJHVxZkQEIwGog5",
   slowPlaylistId: "36GLC9OyT3WQ8YA2yBQhFJ",
   funPlaylistId: "0hVO11nm205QK7BCfLyXNh",
@@ -278,7 +278,6 @@ const el = {
   lyricsModalBody: document.getElementById("lyricsModalBody"),
   lyricsModalExternalLink: document.getElementById("lyricsModalExternalLink"),
   modAutoSyncStatus: document.getElementById("modAutoSyncStatus"),
-  modNextSyncStatus: document.getElementById("modNextSyncStatus"),
   lyricsCacheCountdown: document.getElementById("lyricsCacheCountdown"),
   playlistPickerBackdrop: document.getElementById("playlistPickerBackdrop"),
   playlistPickerModal: document.getElementById("playlistPickerModal"),
@@ -1173,9 +1172,6 @@ function formatCountdownShort(milliseconds) {
 
 function setNextRequestSyncStatus(message) {
   nextRequestSyncText = String(message || "");
-  if (el.modNextSyncStatus) {
-    el.modNextSyncStatus.textContent = nextRequestSyncText;
-  }
   renderRequestAutoSyncHeaderStatus(el.modAutoSyncStatus?.dataset?.tone || "neutral");
   renderSiteTimerBar();
 }
@@ -1681,15 +1677,23 @@ async function createCodeChallenge(verifier) {
 }
 
 function getRedirectUri() {
-  if (!window?.location?.origin || !window?.location?.pathname) {
+  try {
+    const origin = String(window?.location?.origin || "").trim();
+    const pathname = String(window?.location?.pathname || "").trim();
+    const protocol = String(window?.location?.protocol || "").trim().toLowerCase();
+
+    if (!origin || !pathname || origin === "null" || protocol === "file:") {
+      return CONFIG.redirectUriFallback;
+    }
+
+    const path = pathname.endsWith(".html")
+      ? pathname.replace(/[^/]+$/, "")
+      : pathname;
+
+    return `${origin}${path}`;
+  } catch {
     return CONFIG.redirectUriFallback;
   }
-
-  const path = window.location.pathname.endsWith(".html")
-    ? window.location.pathname.replace(/[^/]+$/, "")
-    : window.location.pathname;
-
-  return `${window.location.origin}${path}`;
 }
 
 // ======================================================
