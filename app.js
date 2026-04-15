@@ -737,6 +737,15 @@ function buildModerationMetadata(request) {
 
   const compactReason = `${explicitLabel} by ${explicitSource || "metadata"} | ${themeEvaluation.label} (${hardHitCount} hard, ${reviewHitCount} review hits)`;
 
+  const marker = computeFinalMarker({
+    explicitStatus,
+    explicitReason,
+    themeStatus: themeEvaluation.status,
+    recommendation,
+    recommendationReason,
+    lyricsGateStatus
+  });
+
   return {
     explicitStatus,
     explicitLabel,
@@ -757,6 +766,9 @@ function buildModerationMetadata(request) {
     recommendation,
     recommendationLabel,
     recommendationReason,
+    finalMarker: marker.marker,
+    finalMarkerLabel: marker.label,
+    finalMarkerReason: marker.reason,
     compactReason,
     evaluatedAt: new Date().toISOString(),
     confidence: explicitStatus === "unknown" && !policyHits.length ? "Medium" : "High"
@@ -806,6 +818,11 @@ function refreshModerationRecommendation(moderation) {
   moderation.recommendationReason = recommendationReason;
   const sourceLabel = String(moderation.explicitSource || "metadata");
   moderation.compactReason = `${moderation.explicitLabel || "Unknown"} by ${sourceLabel} | ${moderation.themeLabel || "No Theme"} (${hardHitCount} hard, ${reviewHitCount} review hits)`;
+
+  const marker = computeFinalMarker(moderation);
+  moderation.finalMarker = marker.marker;
+  moderation.finalMarkerLabel = marker.label;
+  moderation.finalMarkerReason = marker.reason;
 
   return moderation;
 }
@@ -908,6 +925,16 @@ function applyModerationOverrides(request, moderation) {
     moderation.explicitStatus = override.explicitStatus;
     moderation.explicitLabel = override.explicitStatus === "explicit" ? "Explicit" : "Clean";
     moderation.explicitReason = "Moderator override marked this track as clean/explicit.";
+    moderation.explicitSource = "Moderator override";
+  }
+
+  if (override.lyricsGateStatus) {
+    moderation.lyricsGateStatus = String(override.lyricsGateStatus);
+    moderation.lyricsGateStatusOverride = true;
+  }
+
+  if (override.finalMarker) {
+    moderation.finalMarkerOverride = String(override.finalMarker);
   }
 
   if (override.themeStatus) {
@@ -2911,9 +2938,9 @@ function renderRequests(requests) {
       const artistName = request.spotify?.artist || "Unknown artist";
       const image = request.spotify?.image || "";
       const album = request.spotify?.album || "Unknown Album";
-      const decisionClass = badgeClassForRecommendation(moderation);
-      const decisionText = moderation?.recommendationLabel || "Flag";
-      const decisionTitle = String(moderation?.recommendationReason || moderation?.compactReason || "").trim();
+      const markerClass = badgeClassForFinalMarker(moderation?.finalMarker);
+      const markerText = moderation?.finalMarkerLabel || "Flag";
+      const markerTitle = String(moderation?.finalMarkerReason || moderation?.recommendationReason || moderation?.compactReason || "").trim();
 
       const spotifyExplicitClass = request.spotify
         ? request.spotify.explicit
@@ -2948,7 +2975,7 @@ function renderRequests(requests) {
             <div class="request-title-row">
               <div class="request-song">${escapeHtml(songTitle)}</div>
               <div class="request-title-badges">
-                <span class="badge ${decisionClass}" title="${escapeHtml(decisionTitle || "Moderation decision")}">${escapeHtml(decisionText)}</span>
+                <span class="badge ${markerClass}" title="${escapeHtml(markerTitle || "Final marker")}">${escapeHtml(markerText)}</span>
                 <span class="badge ${spotifyExplicitClass}">${escapeHtml(spotifyExplicitText)}</span>
               </div>
             </div>
@@ -3706,6 +3733,51 @@ function badgeClassForRecommendation(moderation) {
   return "badge-clean";
 }
 
+function badgeClassForFinalMarker(marker) {
+  if (marker === "explicit") return "badge-explicit";
+  if (marker === "flag") return "badge-error";
+  return "badge-clean";
+}
+
+function computeFinalMarker(moderation) {
+  const forced = String(moderation?.finalMarkerOverride || "").trim().toLowerCase();
+  if (forced === "explicit" || forced === "flag" || forced === "clean") {
+    return {
+      marker: forced,
+      label: forced === "explicit" ? "Explicit" : forced === "flag" ? "Flag" : "Clean",
+      reason: "Moderator override forced the final marker."
+    };
+  }
+
+  // Single at-a-glance marker:
+  // - explicit: explicit signal or blocked theme
+  // - flag: any uncertainty/review gate (preferred over clean)
+  // - clean: only when everything is confidently ok
+  if (moderation?.themeStatus === "blocked" || moderation?.recommendation === "block") {
+    return { marker: "explicit", label: "Explicit", reason: "Blocked theme/policy categories." };
+  }
+
+  if (moderation?.explicitStatus === "explicit") {
+    return { marker: "explicit", label: "Explicit", reason: moderation?.explicitReason || "Track is marked explicit." };
+  }
+
+  if (moderation?.recommendation === "flag") {
+    return { marker: "flag", label: "Flag", reason: moderation?.recommendationReason || "Manual review recommended." };
+  }
+
+  const gate = String(moderation?.lyricsGateStatus || "").trim().toLowerCase();
+  if (gate && gate !== "ok") {
+    return { marker: "flag", label: "Flag", reason: `Lyrics unavailable (${gate}).` };
+  }
+
+  // Slight preference to Flag over Clean when explicit classification is unknown.
+  if (moderation?.explicitStatus !== "clean") {
+    return { marker: "flag", label: "Flag", reason: "Explicit status is unknown; prefer manual review." };
+  }
+
+  return { marker: "clean", label: "Clean", reason: "All checks passed." };
+}
+
 function statusTagToneForTheme(themeStatus) {
   if (themeStatus === "blocked") return "danger";
   if (themeStatus === "flagged") return "warn";
@@ -3821,8 +3893,8 @@ function applyModerationBypass(requestId, bypassField) {
       return;
     }
 
-    setModerationOverride(key, { explicitStatus: "clean", themeStatus: "clear" });
-    setStatus("Moderator override applied: song marked allow/clear.");
+    setModerationOverride(key, { explicitStatus: "clean", themeStatus: "clear", lyricsGateStatus: "ok", finalMarker: "clean" });
+    setStatus("Moderator override applied: marked clean/clear and bypassed lyrics gate.");
     logConsoleEvent("Moderation", "Allow-all override applied.", { requestId: key }, "warn");
     refreshModerationViewsForRequest(key);
     return;
@@ -3858,6 +3930,40 @@ function applyModerationBypass(requestId, bypassField) {
     setStatus("Theme gate bypassed: marked clear by moderator override.");
     logConsoleEvent("Moderation", "Theme bypass applied.", { requestId: key }, "warn");
     refreshModerationViewsForRequest(key);
+    return;
+  }
+
+  if (field === "lyrics") {
+    setModerationOverride(key, { lyricsGateStatus: "ok" });
+    setStatus("Lyrics gate bypassed for this request.");
+    logConsoleEvent("Moderation", "Lyrics gate bypass applied.", { requestId: key }, "warn");
+    refreshModerationViewsForRequest(key);
+    return;
+  }
+
+  if (field === "force-clean") {
+    if (!request.spotify) {
+      setStatus("Cannot force clean without a valid Spotify track.");
+      return;
+    }
+    setModerationOverride(key, { finalMarker: "clean" });
+    setStatus("Final marker forced to Clean.");
+    refreshModerationViewsForRequest(key);
+    return;
+  }
+
+  if (field === "force-flag") {
+    setModerationOverride(key, { finalMarker: "flag" });
+    setStatus("Final marker forced to Flag.");
+    refreshModerationViewsForRequest(key);
+    return;
+  }
+
+  if (field === "force-explicit") {
+    setModerationOverride(key, { finalMarker: "explicit" });
+    setStatus("Final marker forced to Explicit.");
+    refreshModerationViewsForRequest(key);
+    return;
   }
 }
 function getLyricsFetchStatusTag(requestId) {
@@ -4480,6 +4586,11 @@ async function prefetchLyricsForLoadedRequests(requests) {
 }
 
 function buildRequestStatusTags(request, moderation) {
+  const markerTag = statusTagHtml(
+    `Marker: ${moderation?.finalMarkerLabel || "Flag"}`,
+    moderation?.finalMarker === "explicit" ? "danger" : moderation?.finalMarker === "flag" ? "warn" : "ok"
+  );
+
   const recommendationTag = statusTagHtml(
     `Decision: ${moderation?.recommendationLabel || "Flag"}`,
     statusTagToneForRecommendation(moderation?.recommendation)
@@ -4530,7 +4641,7 @@ function buildRequestStatusTags(request, moderation) {
   const lyricsStatus = getLyricsFetchStatusTag(request?.requestId);
   const lyricsTag = statusTagHtml(lyricsStatus.label, lyricsStatus.tone);
 
-  return `${recommendationTag}${spotifyTag}${explicitTag}${ratingTag}${themeTag}${lyricsTag}`;
+  return `${markerTag}${recommendationTag}${spotifyTag}${explicitTag}${ratingTag}${themeTag}${lyricsTag}`;
 }
 
 function moderationReasonHtml(request, moderation) {
