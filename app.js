@@ -41,7 +41,7 @@ const CONFIG = {
   manualSearchLimit: 8,
   userPlaylistFetchLimit: 50,
   playlistPickerCacheMs: 120000,
-  lyricsApiBaseUrl: "https://nbaker9262.tailfc647c.ts.net",
+  lyricsApiBaseUrl: "",
   lyricsApiTimeoutMs: 12000,
   // Cache is a fallback only (backup).
   lyricsCacheUseOnLoad: false,
@@ -1508,6 +1508,11 @@ function getLyricsApiBaseUrl() {
 
   const host = String(window?.location?.hostname || "").toLowerCase();
   const protocol = String(window?.location?.protocol || "").toLowerCase();
+
+  // If you open index.html directly (file://), default to a local API.
+  if (protocol === "file:") {
+    return "http://127.0.0.1:8787";
+  }
 
   // GitHub Pages cannot talk to a plain http:// Raspberry Pi API due to mixed-content rules.
   // In that case, keep API disabled unless explicitly configured.

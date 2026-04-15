@@ -35,6 +35,22 @@ curl "http://127.0.0.1:8787/lyrics?artist=The%20Weeknd&song=Blinding%20Lights"
 - The moderation panel auto-syncs requests every 5 minutes after Spotify login.
 - There is no manual "Run Workflow" button in the UI.
 
+### Easiest local workflow (recommended)
+
+1) Start the API on your laptop/desktop:
+
+```bash
+python lyrics_api_server.py
+```
+
+2) Open the dashboard:
+- Option A: Open `index.html` directly (file://). The app will default to `http://127.0.0.1:8787` for the lyrics API.
+- Option B: Serve the folder locally and open `http://127.0.0.1:8000`:
+
+```bash
+python -m http.server 8000
+```
+
 ## 4) GitHub Actions cache workflow
 
 Workflow: `.github/workflows/lyrics-cache-refresh.yml`
