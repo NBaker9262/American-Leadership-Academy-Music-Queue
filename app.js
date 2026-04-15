@@ -5545,28 +5545,48 @@ function wireStaticEvents() {
       closeModerationPanel();
     }
   });
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) return;
+    if (!playbackPollingActive) return;
+    if (playbackTimer) window.clearTimeout(playbackTimer);
+    playbackTimer = null;
+    void playbackPollTick();
+  });
 }
 
 // ======================================================
 // AUTO REFRESH PLAYBACK
 // ======================================================
+let playbackPollingActive = false;
+
+async function playbackPollTick() {
+  if (!playbackPollingActive) return;
+
+  const baseDelayMs = Math.max(1000, Number(CONFIG.playbackPollMs || 2500));
+  const delayMs = document.hidden ? Math.max(15000, baseDelayMs) : baseDelayMs;
+
+  try {
+    await refreshPlayback();
+  } catch (error) {
+    console.warn("Playback poll failed:", error);
+  }
+
+  if (!playbackPollingActive) return;
+  playbackTimer = window.setTimeout(playbackPollTick, delayMs);
+}
+
 function startPlaybackPolling() {
   stopPlaybackPolling();
 
-  playbackTimer = window.setInterval(async () => {
-    try {
-      await refreshPlayback();
-    } catch (error) {
-      console.warn("Playback poll failed:", error);
-    }
-  }, CONFIG.playbackPollMs);
+  playbackPollingActive = true;
+  void playbackPollTick();
 }
 
 function stopPlaybackPolling() {
-  if (playbackTimer) {
-    window.clearInterval(playbackTimer);
-    playbackTimer = null;
-  }
+  playbackPollingActive = false;
+  if (playbackTimer) window.clearTimeout(playbackTimer);
+  playbackTimer = null;
 }
 
 // ======================================================
