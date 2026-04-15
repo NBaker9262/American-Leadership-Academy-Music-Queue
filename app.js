@@ -1492,10 +1492,11 @@ function slugifyForMusixmatch(value) {
 }
 
 function buildMusixmatchUrl(artist, song) {
-  const artistSlug = slugifyForMusixmatch(artist) || "Unknown-Artist";
-  const songSlug = slugifyForMusixmatch(song) || "Unknown-Song";
-
-  return `https://www.musixmatch.com/lyrics/${artistSlug}/${songSlug}`;
+  // Musixmatch sometimes adds numeric suffixes to artist slugs (e.g. don-toliver-8).
+  // We cannot reliably predict those from just the name, so use search for a robust link.
+  const query = [artist, song].map((v) => String(v || "").trim()).filter(Boolean).join(" ");
+  if (!query) return "https://www.musixmatch.com";
+  return `https://www.musixmatch.com/search/${encodeURIComponent(query)}`;
 }
 
 function buildLyricsUrl(artist, song) {
