@@ -5,8 +5,8 @@ Run:
   python lyrics_api_server.py
 
 Endpoints:
-  GET /health
-  GET /lyrics?artist=<artist>&song=<song>
+  GET 127.0.0.1/health
+  GET 127.0.0.1/lyrics?artist=<artist>&song=<song>
 """
 
 from __future__ import annotations
@@ -504,8 +504,9 @@ class LyricsApiHandler(BaseHTTPRequestHandler):
 
 def main() -> None:
     port = int(os.environ.get("PORT", "8787"))
-    server = ThreadingHTTPServer(("0.0.0.0", port), LyricsApiHandler)
-    print(f"Lyrics API listening on http://0.0.0.0:{port}")
+    bind_host = os.environ.get("BIND_HOST", "127.0.0.1")
+    server = ThreadingHTTPServer((bind_host, port), LyricsApiHandler)
+    print(f"Lyrics API listening on http://{bind_host}:{port}")
     server.serve_forever()
 
 
