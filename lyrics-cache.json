@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-04-15T17:33:54.497209Z",
-  "next_refresh_at": "2026-04-15T17:38:54.497224Z",
+  "generated_at": "2026-04-15T18:01:01.197721Z",
+  "next_refresh_at": "2026-04-15T18:06:01.197733Z",
   "refresh_interval_minutes": 5,
   "source": {
     "requests_csv_url": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQyc3RRDmjc-nN-XgMMDocbnn1tlxue5ynNoNnYSxnRKxgp2LRGNmYZXnVgAFLH7IViwTAtmIAkvDsK/pub?output=csv",
@@ -20,7 +20,7 @@
       "status": "fallback",
       "lyrics": "",
       "error": "Spotify metadata lookup failed: Spotify metadata lookup failed: 404 Client Error: Not Found for url: https://open.spotify.com/oembed?url=https%3A%2F%2Fopen.spotify.com%2Ftrack%2F0E7s6qk8zR2G6N3v9pR6Jh",
-      "updated_at": "2026-04-15T17:33:17.577287Z",
+      "updated_at": "2026-04-15T18:00:36.284149Z",
       "request_ids": [
         "||https://open.spotify.com/track/0E7s6qk8zR2G6N3v9pR6Jh"
       ]
@@ -40,7 +40,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T17:33:17.881552Z",
+      "updated_at": "2026-04-15T18:00:36.693554Z",
       "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/back-to-friends"
@@ -64,7 +64,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T17:33:20.713640Z",
+      "updated_at": "2026-04-15T18:00:37.816544Z",
       "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/Blinding-Lights"
@@ -88,7 +88,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T17:33:21.577047Z",
+      "updated_at": "2026-04-15T18:00:38.664277Z",
       "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/rockstar-feat-21-Savage",
@@ -113,7 +113,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T17:33:23.108999Z",
+      "updated_at": "2026-04-15T18:00:40.030286Z",
       "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/Cruel-Summer"
@@ -137,7 +137,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T17:33:27.327698Z",
+      "updated_at": "2026-04-15T18:00:42.514338Z",
       "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/Brain-Stew"
@@ -161,7 +161,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T17:33:28.226948Z",
+      "updated_at": "2026-04-15T18:00:43.468133Z",
       "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/One-Dance"
@@ -185,7 +185,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T17:33:30.228694Z",
+      "updated_at": "2026-04-15T18:00:44.281269Z",
       "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/One-Dance"
@@ -209,7 +209,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T17:33:31.672451Z",
+      "updated_at": "2026-04-15T18:00:45.050221Z",
       "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/bad-guy"
@@ -233,7 +233,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T17:33:32.632172Z",
+      "updated_at": "2026-04-15T18:00:45.966449Z",
       "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/The-Real-Slim-Shady"
@@ -257,7 +257,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T17:33:33.598467Z",
+      "updated_at": "2026-04-15T18:00:46.960193Z",
       "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/Dance-Monkey"
@@ -281,7 +281,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T17:33:34.512902Z",
+      "updated_at": "2026-04-15T18:00:47.846692Z",
       "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/Time-is-Running-Out"
@@ -305,7 +305,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T17:33:35.494322Z",
+      "updated_at": "2026-04-15T18:00:48.650935Z",
       "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/Don-t-Start-Now"
@@ -329,7 +329,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T17:33:36.653831Z",
+      "updated_at": "2026-04-15T18:00:49.501708Z",
       "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/WAP-feat-Megan-Thee-Stallion",
@@ -354,7 +354,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T17:33:38.061511Z",
+      "updated_at": "2026-04-15T18:00:50.716051Z",
       "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/Happier-Than-Ever"
@@ -378,7 +378,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T17:33:39.041465Z",
+      "updated_at": "2026-04-15T18:00:51.577414Z",
       "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/Prelude-for-Piano-No-11-in-F-Sharp-Minor"
@@ -402,7 +402,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T17:33:39.924691Z",
+      "updated_at": "2026-04-15T18:00:52.852454Z",
       "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Skit/Paul"
@@ -426,7 +426,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T17:33:42.789248Z",
+      "updated_at": "2026-04-15T18:00:53.807549Z",
       "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/God-s-Plan"
@@ -450,7 +450,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T17:33:45.334882Z",
+      "updated_at": "2026-04-15T18:00:55.107142Z",
       "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/Watermelon-Sugar"
@@ -474,7 +474,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T17:33:48.562183Z",
+      "updated_at": "2026-04-15T18:00:56.016596Z",
       "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/24K-Magic"
@@ -498,7 +498,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T17:33:49.472497Z",
+      "updated_at": "2026-04-15T18:00:56.971920Z",
       "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/XO-Tour-Llif3"
@@ -522,7 +522,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T17:33:50.551070Z",
+      "updated_at": "2026-04-15T18:00:57.758167Z",
       "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/HUMBLE"
@@ -546,7 +546,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T17:33:51.440336Z",
+      "updated_at": "2026-04-15T18:00:58.543188Z",
       "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/Shape-of-You"
@@ -570,7 +570,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T17:33:52.409454Z",
+      "updated_at": "2026-04-15T18:00:59.325788Z",
       "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/A-Bar-Song-Tipsy",
@@ -595,7 +595,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T17:33:54.036805Z",
+      "updated_at": "2026-04-15T18:01:00.783163Z",
       "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/When-I-Look-At-You"
@@ -621,7 +621,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T17:33:17.881552Z",
+      "updated_at": "2026-04-15T18:00:36.693554Z",
       "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/back-to-friends"
@@ -645,7 +645,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T17:33:20.713640Z",
+      "updated_at": "2026-04-15T18:00:37.816544Z",
       "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/Blinding-Lights"
@@ -669,7 +669,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T17:33:21.577047Z",
+      "updated_at": "2026-04-15T18:00:38.664277Z",
       "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/rockstar-feat-21-Savage",
@@ -694,7 +694,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T17:33:23.108999Z",
+      "updated_at": "2026-04-15T18:00:40.030286Z",
       "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/Cruel-Summer"
@@ -718,7 +718,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T17:33:27.327698Z",
+      "updated_at": "2026-04-15T18:00:42.514338Z",
       "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/Brain-Stew"
@@ -742,7 +742,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T17:33:30.228694Z",
+      "updated_at": "2026-04-15T18:00:44.281269Z",
       "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/One-Dance"
@@ -766,7 +766,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T17:33:31.672451Z",
+      "updated_at": "2026-04-15T18:00:45.050221Z",
       "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/bad-guy"
@@ -790,7 +790,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T17:33:32.632172Z",
+      "updated_at": "2026-04-15T18:00:45.966449Z",
       "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/The-Real-Slim-Shady"
@@ -814,7 +814,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T17:33:33.598467Z",
+      "updated_at": "2026-04-15T18:00:46.960193Z",
       "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/Dance-Monkey"
@@ -838,7 +838,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T17:33:34.512902Z",
+      "updated_at": "2026-04-15T18:00:47.846692Z",
       "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/Time-is-Running-Out"
@@ -862,7 +862,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T17:33:35.494322Z",
+      "updated_at": "2026-04-15T18:00:48.650935Z",
       "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/Don-t-Start-Now"
@@ -886,7 +886,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T17:33:36.653831Z",
+      "updated_at": "2026-04-15T18:00:49.501708Z",
       "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/WAP-feat-Megan-Thee-Stallion",
@@ -911,7 +911,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T17:33:38.061511Z",
+      "updated_at": "2026-04-15T18:00:50.716051Z",
       "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/Happier-Than-Ever"
@@ -935,7 +935,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T17:33:39.041465Z",
+      "updated_at": "2026-04-15T18:00:51.577414Z",
       "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/Prelude-for-Piano-No-11-in-F-Sharp-Minor"
@@ -959,7 +959,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T17:33:39.924691Z",
+      "updated_at": "2026-04-15T18:00:52.852454Z",
       "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Skit/Paul"
@@ -983,7 +983,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T17:33:42.789248Z",
+      "updated_at": "2026-04-15T18:00:53.807549Z",
       "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/God-s-Plan"
@@ -1007,7 +1007,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T17:33:45.334882Z",
+      "updated_at": "2026-04-15T18:00:55.107142Z",
       "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/Watermelon-Sugar"
@@ -1031,7 +1031,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T17:33:48.562183Z",
+      "updated_at": "2026-04-15T18:00:56.016596Z",
       "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/24K-Magic"
@@ -1055,7 +1055,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T17:33:49.472497Z",
+      "updated_at": "2026-04-15T18:00:56.971920Z",
       "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/XO-Tour-Llif3"
@@ -1079,7 +1079,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T17:33:50.551070Z",
+      "updated_at": "2026-04-15T18:00:57.758167Z",
       "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/HUMBLE"
@@ -1103,7 +1103,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T17:33:51.440336Z",
+      "updated_at": "2026-04-15T18:00:58.543188Z",
       "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/Shape-of-You"
@@ -1127,7 +1127,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T17:33:52.409454Z",
+      "updated_at": "2026-04-15T18:00:59.325788Z",
       "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/A-Bar-Song-Tipsy",
@@ -1152,7 +1152,7 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T17:33:54.036805Z",
+      "updated_at": "2026-04-15T18:01:00.783163Z",
       "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/When-I-Look-At-You"
