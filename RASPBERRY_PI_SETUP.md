@@ -241,11 +241,69 @@ High-level idea:
 - The Pi gets a stable private VPN IP (usually `100.x.y.z`).
 - You SSH to that IP from anywhere.
 
+It also works great for the **lyrics API** (port `8787`) so you don’t need to deal with home IPs, port forwarding, or CGNAT.
+
+#### B1) Install Tailscale on Windows
+
+1. Install the Tailscale app on Windows.
+2. Sign in.
+
+#### B2) Install Tailscale on the Pi
+
+On the Pi (SSH or Raspberry Pi Connect terminal):
+
+```bash
+curl -fsSL https://tailscale.com/install.sh | sh
+```
+
+Start / login (this prints a link):
+
+```bash
+sudo tailscale up
+```
+
+Open the link in a browser (Raspberry Pi Connect makes this easy), sign in, and approve the device.
+
+#### B3) Get the Pi’s Tailscale IP + test
+
+On the Pi:
+
+```bash
+tailscale ip -4
+tailscale status
+```
+
+From Windows PowerShell (replace with the Pi’s Tailscale IP):
+
+```bash
+curl "http://<tailscale-pi-ip>:8787/health"
+```
+
+If you see `{ "ok": true, ... }`, your API is reachable over Tailscale.
+
+#### B4) VS Code Remote-SSH over Tailscale
+
+Once Tailscale is working, your VS Code SSH target becomes:
+
 Once set up, your VS Code SSH target becomes:
 
 ```bash
 ssh <username>@<tailscale-pi-ip>
 ```
+
+#### B5) Important browser note (GitHub Pages vs. HTTP API)
+
+If you open the dashboard from GitHub Pages (HTTPS), most browsers will block calls to an `http://` API (mixed-content).
+
+Recommended fix (simple): open the dashboard from the Pi over HTTP through Tailscale:
+
+- Start the dashboard server on the Pi (see step 10).
+- On Windows, open:
+   - `http://<tailscale-pi-ip>:8000/`
+
+That way the dashboard is also HTTP, and it can call the lyrics API on port `8787`.
+
+(If you want to keep using GitHub Pages + live API, you’ll need an HTTPS front like Cloudflare Tunnel, or use Tailscale’s HTTPS serving features inside your tailnet.)
 
 ### Option C (recommended for HTTPS API URL): Cloudflare Tunnel “Quick Tunnel”
 
