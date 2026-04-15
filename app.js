@@ -310,6 +310,10 @@ const moderationOverrideByRequestId = new Map();
 let localProgressLastTickAt = 0;
 let refreshPlaybackRequestSeq = 0;
 let refreshPlaybackAppliedSeq = 0;
+let refreshPlaybackInFlight = false;
+let refreshPlaybackQueued = false;
+let lastSpotifyQueueFetchAtMs = 0;
+let lastSpotifyQueueSnapshot = null;
 let lyricsCacheSnapshot = null;
 let lyricsCacheCountdownTimer = null;
 let lyricsCacheLastGeneratedAtMs = 0;
@@ -958,6 +962,30 @@ function wait(ms) {
   return new Promise((resolve) => window.setTimeout(resolve, ms));
 }
 
+let spotifyGlobalBackoffUntilMs = 0;
+let spotifyLastRateLimitAtMs = 0;
+
+function normalizeSpotifyRetryAfterMs(valueMs, fallbackMs = 5000) {
+  const parsed = Number(valueMs);
+  if (Number.isFinite(parsed) && parsed > 0) {
+    return Math.min(30000, Math.max(250, Math.round(parsed)));
+  }
+  return Math.min(30000, Math.max(250, Math.round(Number(fallbackMs) || 5000)));
+}
+
+function noteSpotifyRateLimit(waitMs) {
+  const now = Date.now();
+  spotifyLastRateLimitAtMs = now;
+  spotifyGlobalBackoffUntilMs = Math.max(spotifyGlobalBackoffUntilMs, now + normalizeSpotifyRetryAfterMs(waitMs));
+}
+
+async function waitForSpotifyGlobalBackoff() {
+  const remainingMs = Math.max(0, spotifyGlobalBackoffUntilMs - Date.now());
+  if (remainingMs > 0) {
+    await wait(remainingMs);
+  }
+}
+
 function getSpotifyRetryAfterMs(response) {
   const raw = String(response?.headers?.get("Retry-After") || "").trim();
   const seconds = Number(raw);
@@ -965,7 +993,7 @@ function getSpotifyRetryAfterMs(response) {
     return Math.min(30000, Math.max(250, Math.round(seconds * 1000)));
   }
 
-  return 1250;
+  return 5000;
 }
 
 function getErrorStatusCode(error) {
@@ -1815,6 +1843,10 @@ function logoutSpotify() {
 
   currentNowPlayingTrack = null;
   currentSpotifyQueueTracks = [];
+  lastSpotifyQueueSnapshot = null;
+  lastSpotifyQueueFetchAtMs = 0;
+  spotifyGlobalBackoffUntilMs = 0;
+  spotifyLastRateLimitAtMs = 0;
   currentPlaybackProgressMs = 0;
   currentPlaybackDurationMs = 0;
   isPlaybackActive = false;
@@ -1836,9 +1868,13 @@ async function getTrackByIdWithRetry(trackId) {
       const isLastAttempt = attempt === maxAttempts;
 
       if (statusCode === 429 && !isLastAttempt) {
-        const retryAfterMs = Math.max(250, Number(error?.retryAfterMs || 0) || 0);
-        const fallbackDelay = CONFIG.trackLookupRetryDelayMs * attempt;
-        await wait(retryAfterMs ? retryAfterMs : fallbackDelay);
+        const retryAfterMs = normalizeSpotifyRetryAfterMs(
+          error?.retryAfterMs,
+          CONFIG.trackLookupRetryDelayMs * attempt
+        );
+        const jitterMs = 120 + attempt * 80;
+        noteSpotifyRateLimit(retryAfterMs + jitterMs);
+        await waitForSpotifyGlobalBackoff();
         continue;
       }
 
@@ -1858,6 +1894,8 @@ async function spotifyFetch(path, options = {}) {
     throw new Error("Spotify login required.");
   }
 
+  await waitForSpotifyGlobalBackoff();
+
   const response = await fetch(`https://api.spotify.com/v1${path}`, {
     ...options,
     headers: {
@@ -1874,6 +1912,7 @@ async function spotifyFetch(path, options = {}) {
       const error = new Error("429 Rate limited by Spotify.");
       error.status = 429;
       error.retryAfterMs = getSpotifyRetryAfterMs(response);
+      noteSpotifyRateLimit(error.retryAfterMs);
       throw error;
     }
 
@@ -1897,10 +1936,11 @@ async function spotifyFetchWithRetry(path, options = {}, config = {}) {
       const isLastAttempt = attempt === maxAttempts;
 
       if (status === 429 && !isLastAttempt) {
-        const retryAfterMs = Math.max(250, Number(error?.retryAfterMs || 0) || 0);
+        const retryAfterMs = normalizeSpotifyRetryAfterMs(error?.retryAfterMs, 5000);
         const jitterMs = 120 + attempt * 80;
         logConsoleEvent("Spotify", "Rate limited (429). Backing off...", { attempt, retryAfterMs, path }, "warn");
-        await wait(retryAfterMs + jitterMs);
+        noteSpotifyRateLimit(retryAfterMs + jitterMs);
+        await waitForSpotifyGlobalBackoff();
         continue;
       }
 
@@ -1912,11 +1952,13 @@ async function spotifyFetchWithRetry(path, options = {}, config = {}) {
 }
 
 async function spotifyNoContent(path, options = {}) {
-  const token = await getAccessToken();
-  if (!token) throw new Error("Spotify login required.");
-
   const maxAttempts = 4;
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    const token = await getAccessToken();
+    if (!token) throw new Error("Spotify login required.");
+
+    await waitForSpotifyGlobalBackoff();
+
     const response = await fetch(`https://api.spotify.com/v1${path}`, {
       ...options,
       headers: {
@@ -1931,10 +1973,11 @@ async function spotifyNoContent(path, options = {}) {
     }
 
     if (response.status === 429 && attempt < maxAttempts) {
-      const retryAfterMs = getSpotifyRetryAfterMs(response);
+      const retryAfterMs = normalizeSpotifyRetryAfterMs(getSpotifyRetryAfterMs(response), 5000);
       const jitterMs = 120 + attempt * 80;
       logConsoleEvent("Spotify", "Rate limited (429) on request. Backing off...", { attempt, retryAfterMs, path }, "warn");
-      await wait(retryAfterMs + jitterMs);
+      noteSpotifyRateLimit(retryAfterMs + jitterMs);
+      await waitForSpotifyGlobalBackoff();
       continue;
     }
 
@@ -2121,23 +2164,44 @@ async function addTrackToPlaylist(playlistId, trackUri) {
 }
 
 async function addTrackToSpotifyQueue(trackUri) {
-  const token = await getAccessToken();
-  if (!token) throw new Error("Spotify login required.");
-
   await ensureActiveDevice();
 
-  const url = new URL("https://api.spotify.com/v1/me/player/queue");
-  url.searchParams.set("uri", trackUri);
+  const maxAttempts = 4;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    const token = await getAccessToken();
+    if (!token) throw new Error("Spotify login required.");
 
-  const response = await fetch(url.toString(), {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`
+    await waitForSpotifyGlobalBackoff();
+
+    const url = new URL("https://api.spotify.com/v1/me/player/queue");
+    url.searchParams.set("uri", trackUri);
+
+    const response = await fetch(url.toString(), {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+
+    if (response.ok || response.status === 204) {
+      return;
     }
-  });
 
-  if (!response.ok && response.status !== 204) {
     const text = await response.text();
+
+    if (response.status === 429 && attempt < maxAttempts) {
+      const retryAfterMs = normalizeSpotifyRetryAfterMs(getSpotifyRetryAfterMs(response), 5000);
+      const jitterMs = 120 + attempt * 80;
+      logConsoleEvent(
+        "Spotify",
+        "Rate limited (429) adding to queue. Backing off...",
+        { attempt, retryAfterMs },
+        "warn"
+      );
+      noteSpotifyRateLimit(retryAfterMs + jitterMs);
+      await waitForSpotifyGlobalBackoff();
+      continue;
+    }
 
     if (response.status === 404 && text.includes("NO_ACTIVE_DEVICE")) {
       throw new Error(
@@ -3088,13 +3152,34 @@ function resetNowPlayingUI() {
 async function refreshPlayback() {
   if (!el.nowPlaying || !el.nowPlayingMeta) return;
 
+  if (refreshPlaybackInFlight) {
+    refreshPlaybackQueued = true;
+    return;
+  }
+
+  refreshPlaybackInFlight = true;
+
   const requestSeq = ++refreshPlaybackRequestSeq;
 
   try {
-    const [playbackData, queueData] = await Promise.all([
-      getCurrentlyPlaying(),
-      getSpotifyQueue().catch(() => null)
-    ]);
+    const playbackData = await getCurrentlyPlaying();
+
+    const now = Date.now();
+    const recentlyRateLimited = now - Number(spotifyLastRateLimitAtMs || 0) < 30000;
+    const queueMinIntervalMs = recentlyRateLimited ? 30000 : 10000;
+    const shouldFetchQueue =
+      !recentlyRateLimited &&
+      now - Number(lastSpotifyQueueFetchAtMs || 0) >= queueMinIntervalMs;
+
+    if (shouldFetchQueue) {
+      lastSpotifyQueueFetchAtMs = now;
+      const freshQueue = await getSpotifyQueue().catch(() => null);
+      if (freshQueue) {
+        lastSpotifyQueueSnapshot = freshQueue;
+      }
+    }
+
+    const queueData = lastSpotifyQueueSnapshot;
 
     if (requestSeq < refreshPlaybackAppliedSeq) {
       return;
@@ -3178,8 +3263,19 @@ async function refreshPlayback() {
     updatePlaybackProgressUI(0, 0);
     updateVolumeUI(0);
     updatePlaybackStateLabel();
-    renderSpotifyQueue(null);
+    renderSpotifyQueue(lastSpotifyQueueSnapshot);
     stopLocalProgressTimer();
+  } finally {
+    refreshPlaybackInFlight = false;
+
+    if (refreshPlaybackQueued) {
+      refreshPlaybackQueued = false;
+      window.setTimeout(() => {
+        if (!refreshPlaybackInFlight) {
+          refreshPlayback().catch((error) => console.warn("Queued playback refresh failed:", error));
+        }
+      }, 250);
+    }
   }
 }
 
@@ -3361,7 +3457,7 @@ async function fetchSignedInUserPlaylists(forceRefresh = false) {
 
   try {
     while (nextPath) {
-      const page = await spotifyFetch(nextPath);
+      const page = await spotifyFetchWithRetry(nextPath);
       const pageItems = Array.isArray(page?.items) ? page.items : [];
       collected.push(...pageItems);
 
