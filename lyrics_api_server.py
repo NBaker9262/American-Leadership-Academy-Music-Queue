@@ -29,7 +29,15 @@ DEFAULT_SELECTOR = (
     "div.css-g5y9jx.r-13awgt0.r-eqz5dr.r-1v1z2uz"
 )
 
-RATING_SELECTOR = (
+RATING_BUTTON_SELECTOR = (
+    "#ritmo-portal > div:nth-child(1) > div > div:nth-child(1) > div:nth-child(1) > "
+    "div.css-g5y9jx.r-1smwm8v > div > div > div.css-g5y9jx.r-1xidu1v.r-11c0sde > "
+    "div > div > div > div.css-g5y9jx.r-13awgt0.r-is05cd.r-17ea83y.r-6koalj.r-eqz5dr."
+    "r-f4gmv6.r-y54riw > div > div.css-g5y9jx.r-1otgn73.r-3s8xde.r-1867qdf.r-1rd2zbf."
+    "r-13qz1uu > div"
+)
+
+RATING_OLD_SELECTOR = (
     "#ritmo-portal > div:nth-child(1) > div > div:nth-child(1) > div:nth-child(1) > "
     "div.css-g5y9jx.r-1smwm8v > div > div > div.css-g5y9jx.r-1xidu1v.r-11c0sde > "
     "div > div.css-g5y9jx.r-150rngu.r-18u37iz.r-16y2uox.r-1wbh5a2.r-lltvgl.r-buy8e9."
@@ -37,6 +45,11 @@ RATING_SELECTOR = (
     "r-eqz5dr.r-f4gmv6.r-y54riw > div > div.css-g5y9jx.r-1otgn73.r-3s8xde.r-1867qdf."
     "r-1rd2zbf.r-13qz1uu"
 )
+
+RATING_POPUP_SELECTOR = "#ritmo-portal > div:nth-child(3) > div > div > div:nth-child(3)"
+
+# Keep the function defaults stable while pointing at the newest known selector.
+RATING_SELECTOR = RATING_BUTTON_SELECTOR
 
 FALLBACK_SELECTORS = (
     '[data-testid="lyrics-track"]',
@@ -46,6 +59,7 @@ FALLBACK_SELECTORS = (
 )
 
 RATING_FALLBACK_SELECTORS = (
+    RATING_OLD_SELECTOR,
     '[data-testid*="rating"]',
     '[data-testid*="explicit"]',
     '[aria-label*="explicit"]',
@@ -366,8 +380,72 @@ def parse_rating_text(text: str) -> tuple[str, str, str] | None:
     return rating_label, rating_code, tail
 
 
+def clean_rating_reason_text(text: str) -> str:
+    value = clean_inline_text(text)
+    if not value:
+        return ""
+
+    # Musixmatch popups include a footer link label; remove it.
+    value = re.sub(r"\blearn\s+more\s+about\b.*$", "", value, flags=re.IGNORECASE).strip()
+    value = re.sub(r"\s*\|\s*", " | ", value)
+    return value.strip(" -:|\t\r\n")
+
+
+def extract_rating_popup_reason(
+    soup: BeautifulSoup,
+    *,
+    rating_code: str,
+    rating_label: str,
+) -> tuple[str, str]:
+    popup = soup.select_one(RATING_POPUP_SELECTOR)
+    if popup:
+        parsed = parse_rating_text(inline_text_from_tag(popup))
+        if parsed:
+            popup_label, popup_code, popup_reason = parsed
+            popup_code = normalize_rating_code(popup_code)
+            if not rating_code or popup_code == normalize_rating_code(rating_code):
+                reason = clean_rating_reason_text(popup_reason)
+                if reason:
+                    return reason, f"popup:{RATING_POPUP_SELECTOR}"
+
+    # Heuristic fallback: look for a long rating explanation block.
+    best_blob = ""
+    for node in (soup.select_one("#ritmo-portal") or soup).find_all(["div", "section", "article", "p"]):
+        inline = inline_text_from_tag(node)
+        if not inline:
+            continue
+
+        lower = inline.lower()
+        if "rating" not in lower:
+            continue
+        if rating_code and normalize_rating_code(rating_code).lower() not in lower and (rating_label.lower() not in lower):
+            continue
+        if "lyrics may be" not in lower and "parental" not in lower and "advisory" not in lower:
+            continue
+        if len(inline) < 80:
+            continue
+
+        if len(inline) > len(best_blob):
+            best_blob = inline
+
+    if best_blob:
+        parsed = parse_rating_text(best_blob)
+        if parsed:
+            _, _, tail = parsed
+            reason = clean_rating_reason_text(tail)
+            if reason:
+                return reason, "heuristic:rating-popup"
+
+    return "", ""
+
+
 def extract_rating_from_html(html: str, primary_selector: str = RATING_SELECTOR) -> tuple[str, str, str, str]:
     soup = BeautifulSoup(html, "html.parser")
+
+    rating_label = ""
+    rating_code = ""
+    rating_reason = ""
+    selector_used = ""
 
     for selector in rating_selector_candidates(primary_selector):
         node = soup.select_one(selector)
@@ -377,7 +455,17 @@ def extract_rating_from_html(html: str, primary_selector: str = RATING_SELECTOR)
         parsed = parse_rating_text(inline_text_from_tag(node))
         if parsed:
             rating_label, rating_code, rating_reason = parsed
-            return rating_label, rating_code, rating_reason, selector
+            selector_used = selector
+            break
+
+    # If we didn't find the rating badge/button, try reading the popup directly.
+    if not rating_label and not rating_code:
+        popup = soup.select_one(RATING_POPUP_SELECTOR)
+        if popup:
+            parsed = parse_rating_text(inline_text_from_tag(popup))
+            if parsed:
+                rating_label, rating_code, rating_reason = parsed
+                selector_used = f"popup:{RATING_POPUP_SELECTOR}"
 
     root = soup.select_one("#ritmo-portal") or soup
 
@@ -393,25 +481,44 @@ def extract_rating_from_html(html: str, primary_selector: str = RATING_SELECTOR)
                 parts.append(str(value))
         return " ".join(parts).lower()
 
-    for node in root.find_all(["div", "section", "article", "p", "span"]):
-        inline = inline_text_from_tag(node)
-        if not inline:
-            continue
+    if not rating_label and not rating_code:
+        for node in root.find_all(["div", "section", "article", "p", "span"]):
+            inline = inline_text_from_tag(node)
+            if not inline:
+                continue
 
-        lower_inline = inline.lower()
-        if not re.search(r"\b(rating|explicit|clean|parental|advisory)\b", lower_inline):
-            continue
+            lower_inline = inline.lower()
+            if not re.search(r"\b(rating|explicit|clean|parental|advisory)\b", lower_inline):
+                continue
 
-        attrs = _attr_blob(node)
-        if "rating" not in attrs and "explicit" not in attrs and "clean" not in attrs and "rating" not in lower_inline:
-            continue
+            attrs = _attr_blob(node)
+            if (
+                "rating" not in attrs
+                and "explicit" not in attrs
+                and "clean" not in attrs
+                and "rating" not in lower_inline
+            ):
+                continue
 
-        parsed = parse_rating_text(inline)
-        if parsed:
-            rating_label, rating_code, rating_reason = parsed
-            return rating_label, rating_code, rating_reason, "heuristic:rating-text"
+            parsed = parse_rating_text(inline)
+            if parsed:
+                rating_label, rating_code, rating_reason = parsed
+                selector_used = "heuristic:rating-text"
+                break
 
-    return "", "", "", ""
+    rating_reason = clean_rating_reason_text(rating_reason)
+
+    if rating_label or rating_code:
+        popup_reason, popup_selector = extract_rating_popup_reason(
+            soup,
+            rating_code=rating_code,
+            rating_label=rating_label,
+        )
+        if popup_reason and len(popup_reason) > len(rating_reason):
+            rating_reason = popup_reason
+            selector_used = f"{selector_used} + {popup_selector}" if selector_used else popup_selector
+
+    return rating_label, rating_code, rating_reason, selector_used
 
 
 def extract_lyrics_from_html(html: str, primary_selector: str = DEFAULT_SELECTOR) -> tuple[str, str]:

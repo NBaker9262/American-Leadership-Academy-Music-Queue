@@ -629,10 +629,10 @@ function getLyricsRatingForRequest(request) {
   if (!ratingLabel && !ratingCode) return null;
 
   const label = ratingCode
-    ? `Lyrics Rating: ${ratingCode}`
+    ? `Musixmatch Rating: ${ratingCode}`
     : ratingLabel.startsWith("Rating:")
-      ? `Lyrics ${ratingLabel}`
-      : `Lyrics Rating: ${ratingLabel}`;
+      ? `Musixmatch ${ratingLabel}`
+      : `Musixmatch Rating: ${ratingLabel}`;
 
   return {
     label,
@@ -2911,17 +2911,21 @@ function renderRequests(requests) {
       const artistName = request.spotify?.artist || "Unknown artist";
       const image = request.spotify?.image || "";
       const album = request.spotify?.album || "Unknown Album";
-      const explicitClass = request.spotify
+      const decisionClass = badgeClassForRecommendation(moderation);
+      const decisionText = moderation?.recommendationLabel || "Flag";
+      const decisionTitle = String(moderation?.recommendationReason || moderation?.compactReason || "").trim();
+
+      const spotifyExplicitClass = request.spotify
         ? request.spotify.explicit
           ? "badge-explicit"
           : "badge-clean"
         : "badge-error";
 
-      const explicitText = request.spotify
+      const spotifyExplicitText = request.spotify
         ? request.spotify.explicit
-          ? "Explicit"
-          : "Clean"
-        : "Error";
+          ? "Spotify Explicit"
+          : "Spotify Clean"
+        : "Spotify N/A";
 
       const approveDisabled =
         !request.spotify || moderation?.themeStatus === "blocked"
@@ -2943,7 +2947,10 @@ function renderRequests(requests) {
           <div class="request-main">
             <div class="request-title-row">
               <div class="request-song">${escapeHtml(songTitle)}</div>
-              <span class="badge ${explicitClass}">${explicitText}</span>
+              <div class="request-title-badges">
+                <span class="badge ${decisionClass}" title="${escapeHtml(decisionTitle || "Moderation decision")}">${escapeHtml(decisionText)}</span>
+                <span class="badge ${spotifyExplicitClass}">${escapeHtml(spotifyExplicitText)}</span>
+              </div>
             </div>
 
             <div class="request-artist">${escapeHtml(artistName)}</div>
@@ -4473,11 +4480,16 @@ async function prefetchLyricsForLoadedRequests(requests) {
 }
 
 function buildRequestStatusTags(request, moderation) {
-  const spotifyTag = request?.spotify
-    ? statusTagHtml("Spotify: Found", "ok")
-    : statusTagHtml("Spotify: Missing", "danger");
+  const recommendationTag = statusTagHtml(
+    `Decision: ${moderation?.recommendationLabel || "Flag"}`,
+    statusTagToneForRecommendation(moderation?.recommendation)
+  );
 
-  const spotifyExplicitLabel = moderation?.explicitStatus === "explicit"
+  const spotifyTag = request?.spotify
+    ? statusTagHtml("Spotify Match: Found", "ok")
+    : statusTagHtml("Spotify Match: Missing", "danger");
+
+  const explicitLabel = moderation?.explicitStatus === "explicit"
     ? "Explicit"
     : moderation?.explicitStatus === "clean"
       ? "Clean"
@@ -4489,8 +4501,17 @@ function buildRequestStatusTags(request, moderation) {
       ? "ok"
       : "neutral";
 
+  const sourceRaw = String(moderation?.explicitSource || "");
+  const explicitSourceShort = sourceRaw.includes("Musixmatch")
+    ? "Musixmatch"
+    : sourceRaw.includes("Spotify")
+      ? "Spotify"
+      : "";
+
   const explicitTag = statusTagHtml(
-    `Spotify: ${spotifyExplicitLabel}`,
+    explicitSourceShort
+      ? `Explicit: ${explicitLabel} (${explicitSourceShort})`
+      : `Explicit: ${explicitLabel}`,
     explicitTone,
     { requestId: request?.requestId, editField: "explicit" }
   );
@@ -4499,6 +4520,7 @@ function buildRequestStatusTags(request, moderation) {
   const ratingTag = lyricsRating
     ? statusTagHtml(lyricsRating.label, statusTagToneForLyricsRating(lyricsRating.code))
     : "";
+
   const themeTag = statusTagHtml(
     `Theme: ${moderation?.themeLabel || "No Theme"}`,
     statusTagToneForTheme(moderation?.themeStatus),
@@ -4508,7 +4530,7 @@ function buildRequestStatusTags(request, moderation) {
   const lyricsStatus = getLyricsFetchStatusTag(request?.requestId);
   const lyricsTag = statusTagHtml(lyricsStatus.label, lyricsStatus.tone);
 
-  return `${spotifyTag}${explicitTag}${ratingTag}${themeTag}${lyricsTag}`;
+  return `${recommendationTag}${spotifyTag}${explicitTag}${ratingTag}${themeTag}${lyricsTag}`;
 }
 
 function moderationReasonHtml(request, moderation) {
@@ -4521,15 +4543,23 @@ function moderationReasonHtml(request, moderation) {
   const lyricsRating = getLyricsRatingForRequest(request);
   const ratingLabel = String(request?.lyricsData?.ratingLabel || "").trim();
   const ratingReason = String(request?.lyricsData?.ratingReason || "").trim();
+  const ratingSummaryLabel = ratingLabel || (lyricsRating?.label ? String(lyricsRating.label).replace(/^Lyrics\s+/i, "") : "");
   const matchedTerms = Array.isArray(moderation?.themeTerms) && moderation.themeTerms.length
     ? moderation.themeTerms.join(", ")
     : "None";
 
+  const explicitSourceRaw = String(moderation?.explicitSource || "");
+  const explicitSourceShort = explicitSourceRaw.includes("Musixmatch")
+    ? "Musixmatch"
+    : explicitSourceRaw.includes("Spotify")
+      ? "Spotify"
+      : "metadata";
+
   const quickTags = [
-    statusTagHtml(`Recommendation: ${moderation?.recommendationLabel || "Flag"}`, statusTagToneForRecommendation(moderation?.recommendation)),
-    statusTagHtml(`Spotify: ${request?.spotify ? "Found" : "Missing"}`, request?.spotify ? "ok" : "danger"),
+    statusTagHtml(`Decision: ${moderation?.recommendationLabel || "Flag"}`, statusTagToneForRecommendation(moderation?.recommendation)),
+    statusTagHtml(`Spotify Match: ${request?.spotify ? "Found" : "Missing"}`, request?.spotify ? "ok" : "danger"),
     statusTagHtml(
-      `Spotify: ${moderation?.explicitStatus === "explicit" ? "Explicit" : moderation?.explicitStatus === "clean" ? "Clean" : "Unknown"}`,
+      `Explicit: ${moderation?.explicitStatus === "explicit" ? "Explicit" : moderation?.explicitStatus === "clean" ? "Clean" : "Unknown"} (${explicitSourceShort})`,
       moderation?.explicitStatus === "explicit" ? "danger" : moderation?.explicitStatus === "clean" ? "ok" : "neutral",
       { requestId: request?.requestId, editField: "explicit" }
     ),
@@ -4624,9 +4654,54 @@ function moderationReasonHtml(request, moderation) {
         <li>${escapeHtml(moderation?.explicitReason || "No explicit reasoning available.")}</li>
         <li>${escapeHtml(moderation?.themeReason || "No theme reasoning available.")}</li>
         <li>${escapeHtml(lyricsStatus.detail || "Lyrics have not been fetched for this request.")}</li>
-        ${ratingLabel ? `<li>${escapeHtml(ratingLabel)}${ratingReason ? ` — ${escapeHtml(ratingReason)}` : ""}</li>` : ""}
       </ul>
     </div>
+
+    ${ratingSummaryLabel ? (() => {
+      const normalizedRatingCode = normalizeLyricsRatingCode(moderation?.lyricsRatingCode || lyricsRating?.code || "");
+      const ratingShortRaw = String(ratingSummaryLabel || "")
+        .replace(/^(?:Musixmatch\s+)?Rating:\s*/i, "")
+        .trim();
+      const ratingDerivedCode = normalizedRatingCode || normalizeLyricsRatingCode(ratingShortRaw);
+      const ratingShort = ratingDerivedCode ? ratingDerivedCode : (ratingShortRaw || "Unknown");
+      const ratingTone = statusTagToneForLyricsRating(ratingDerivedCode);
+
+      const explicitLabel = moderation?.explicitStatus === "explicit"
+        ? "Explicit"
+        : moderation?.explicitStatus === "clean"
+          ? "Clean"
+          : "Unknown";
+
+      const explicitTone = moderation?.explicitStatus === "explicit"
+        ? "danger"
+        : moderation?.explicitStatus === "clean"
+          ? "ok"
+          : "neutral";
+
+      const sourceRaw = String(moderation?.explicitSource || "");
+      const explicitSourceShort = sourceRaw.includes("Musixmatch")
+        ? "Musixmatch"
+        : sourceRaw.includes("Spotify")
+          ? "Spotify"
+          : "metadata";
+
+      return `
+        <div class="moderation-reason-section">
+          <h3>Scraped Rating (Musixmatch)</h3>
+          <div class="request-status-tags moderation-tags-wrap">
+            ${statusTagHtml(`Musixmatch Rating: ${ratingShort}`, ratingTone)}
+            ${statusTagHtml(`Explicit signal: ${explicitLabel} (${explicitSourceShort})`, explicitTone)}
+          </div>
+          <p class="moderation-inline-note">Musixmatch rating is used as an explicit/clean signal when Spotify is missing or disagrees. It does not auto-approve; missing lyrics still forces a Flag.</p>
+          <details class="moderation-reason-details" open>
+            <summary>Musixmatch rating explanation</summary>
+            <div class="summary-text">
+              ${escapeHtml(ratingReason || "No rating explanation was scraped for this track.")}
+            </div>
+          </details>
+        </div>
+      `;
+    })() : ""}
 
     <details class="moderation-reason-details">
       <summary>Policy Summary (${policySummary.length})</summary>

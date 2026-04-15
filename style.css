@@ -1061,6 +1061,14 @@ button:disabled,
   justify-content: space-between;
 }
 
+.request-title-badges {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
 .queue-item-title,
 .request-song {
   margin-bottom: 6px;
