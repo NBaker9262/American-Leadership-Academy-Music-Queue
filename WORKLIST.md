@@ -1,5 +1,22 @@
 # Work List (next session)
 
+## Where I stopped (handoff)
+- Implemented a new **single final marker** concept in the frontend JS and started wiring it through UI.
+- Did **not** finish the Musixmatch artist matching improvements in the Python scraper yet.
+- Did **not** finish adding the expanded bypass buttons to the Moderation Details UI (the handlers exist, but the buttons are not all exposed).
+
+### Code changes already made
+- Frontend marker logic + UI:
+  - Added `computeFinalMarker()` + `badgeClassForFinalMarker()` in app.js.
+  - `buildModerationMetadata()` now returns: `finalMarker`, `finalMarkerLabel`, `finalMarkerReason`.
+  - `refreshModerationRecommendation()` recomputes `finalMarker*` after overrides.
+  - Requests list row badge now shows the **final marker** (and still shows a separate Spotify Explicit/Clean badge).
+  - Status tag strip now includes `Marker: ...`.
+- Overrides/bypass (partially complete):
+  - `applyModerationBypass()` supports `lyrics` and `force-clean/force-flag/force-explicit` in addition to allow/reset/theme/explicit.
+  - `applyModerationOverrides()` now reads override fields: `lyricsGateStatus` and `finalMarker`.
+  - **UI still only renders Allow/Reset buttons**, so the new bypass options are not reachable yet.
+
 ## Must-do fixes
 - [ ] Musixmatch artist slug matching
   - [ ] Handle numeric artist suffixes reliably (example: /lyrics/sombr-1/back-to-friends)
@@ -10,7 +27,8 @@
 - [ ] Final single marker (Clean / Flag / Explicit)
   - [x] Add `finalMarker` + label/reason to moderation metadata
   - [x] Prefer `flag` over `clean` when uncertain
-  - [ ] Confirm marker rules are correct with real examples (explicit Spotify + no lyrics => marker should still be Explicit)
+  - [ ] Confirm marker rules are correct with real examples (Spotify explicit=true + lyrics missing => marker must still be Explicit)
+  - [ ] Decide whether theme blocked should always map to Explicit marker (currently yes via blocked->explicit)
 
 - [ ] Expanded bypass/override controls
   - [x] "Allow Now" sets explicit clean + theme clear
