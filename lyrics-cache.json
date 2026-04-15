@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-04-15T01:08:06.064530Z",
-  "next_refresh_at": "2026-04-15T01:13:06.064543Z",
+  "generated_at": "2026-04-15T01:40:24.264062Z",
+  "next_refresh_at": "2026-04-15T01:45:24.264070Z",
   "refresh_interval_minutes": 5,
   "source": {
     "requests_csv_url": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQyc3RRDmjc-nN-XgMMDocbnn1tlxue5ynNoNnYSxnRKxgp2LRGNmYZXnVgAFLH7IViwTAtmIAkvDsK/pub?output=csv",
@@ -10,8 +10,8 @@
     "request_rows": 25,
     "tracks_considered": 25,
     "spotify_meta_resolved": 24,
-    "lyrics_success": 14,
-    "lyrics_fallback": 11
+    "lyrics_success": 0,
+    "lyrics_fallback": 25
   },
   "by_track_id": {
     "0E7s6qk8zR2G6N3v9pR6Jh": {
@@ -20,7 +20,7 @@
       "status": "fallback",
       "lyrics": "",
       "error": "Spotify metadata lookup failed: Spotify metadata lookup failed: 404 Client Error: Not Found for url: https://open.spotify.com/oembed?url=https%3A%2F%2Fopen.spotify.com%2Ftrack%2F0E7s6qk8zR2G6N3v9pR6Jh",
-      "updated_at": "2026-04-15T01:07:40.036759Z",
+      "updated_at": "2026-04-15T01:40:04.062484Z",
       "request_ids": [
         "||https://open.spotify.com/track/0E7s6qk8zR2G6N3v9pR6Jh"
       ]
@@ -28,10 +28,10 @@
     "0FTmksd2dxiE5e3rWyJXs6": {
       "track_id": "0FTmksd2dxiE5e3rWyJXs6",
       "spotify_url": "https://open.spotify.com/track/0FTmksd2dxiE5e3rWyJXs6",
-      "artist": "sombr",
+      "artist": "Unknown Artist",
       "song": "back to friends",
-      "song_key": "sombr|back to friends",
-      "musixmatch_url": "https://www.musixmatch.com/lyrics/sombr/back-to-friends",
+      "song_key": "unknown artist|back to friends",
+      "musixmatch_url": "https://www.musixmatch.com/lyrics/Unknown-Artist/back-to-friends",
       "status": "fallback",
       "lyrics": "",
       "selector_used": "",
@@ -40,10 +40,10 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T01:07:40.552954Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-15T01:40:04.673130Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/back-to-friends",
       "attempted_urls": [
-        "https://www.musixmatch.com/lyrics/sombr/back-to-friends"
+        "https://www.musixmatch.com/lyrics/Unknown-Artist/back-to-friends"
       ],
       "request_ids": [
         "4/14/2026 10:12:16|noahmathmaster@gmail.com|https://open.spotify.com/track/0FTmksd2dxiE5e3rWyJXs6?si=1049a7bc05e64524"
@@ -52,32 +52,10 @@
     "0VjIjW4GlUZAMYd2vXMi3b": {
       "track_id": "0VjIjW4GlUZAMYd2vXMi3b",
       "spotify_url": "https://open.spotify.com/track/0VjIjW4GlUZAMYd2vXMi3b",
-      "artist": "The Weeknd",
+      "artist": "Unknown Artist",
       "song": "Blinding Lights",
-      "song_key": "the weeknd|blinding lights",
-      "musixmatch_url": "https://www.musixmatch.com/lyrics/The-Weeknd/Blinding-Lights",
-      "status": "success",
-      "lyrics": "Yeah\nI′ve been tryna call\nI've been on my own for long enough\nMaybe you can show me how to love, maybe\nI′m goin' through withdrawals\nYou don't even have to do too much\nYou can turn me on with just a touch, baby\nI look around and\nSin City′s cold and empty (oh)\nNo one′s around to judge me (oh)\nI can't see clearly when you′re gone\nI said, \"Ooh, I'm blinded by the lights\nNo, I can′t sleep until I feel your touch\"\nI said, \"Ooh, I'm drowning in the night\nOh, when I′m like this, you're the one I trust\"\n(Hey, hey, hey)\nI'm running out of time\n′Cause I can see the sun light up the sky\nSo I hit the road in overdrive, baby, oh\nThe city′s cold and empty (oh)\nNo one's around to judge me (oh)\nI can′t see clearly when you're gone\nI said, \"Ooh, I′m blinded by the lights\nNo, I can't sleep until I feel your touch\"\nI said, \"Ooh, I′m drowning in the night\nOh, when I'm like this, you're the one I trust\"\nI′m just walking by to let you know (by to let you know)\nI could never say it on the phone (say it on the phone)\nWill never let you go this time (ooh)\nI said, \"Ooh, I′m blinded by the lights\nNo, I can't sleep until I feel your touch\"\n(Hey, hey, hey)\n(Hey, hey, hey)\nI said, \"Ooh, I′m blinded by the lights\nNo, I can't sleep until I feel your touch\"",
-      "selector_used": "__NEXT_DATA__:props.pageProps.data.trackInfo.data.lyrics.body",
-      "rating_label": "",
-      "rating_code": "",
-      "rating_reason": "",
-      "rating_selector_used": "",
-      "source": "github-actions-cache",
-      "updated_at": "2026-04-15T01:07:41.662503Z",
-      "error": "",
-      "attempted_urls": [],
-      "request_ids": [
-        "||https://open.spotify.com/track/0VjIjW4GlUZAMYd2vXMi3b"
-      ]
-    },
-    "0e7ipj03S05BNilyu5bRzt": {
-      "track_id": "0e7ipj03S05BNilyu5bRzt",
-      "spotify_url": "https://open.spotify.com/track/0e7ipj03S05BNilyu5bRzt",
-      "artist": "Post Malone, 21 Savage",
-      "song": "rockstar (feat. 21 Savage)",
-      "song_key": "post malone, 21 savage|rockstar (feat. 21 savage)",
-      "musixmatch_url": "https://www.musixmatch.com/lyrics/Post-Malone-21-Savage/rockstar-feat-21-Savage",
+      "song_key": "unknown artist|blinding lights",
+      "musixmatch_url": "https://www.musixmatch.com/lyrics/Unknown-Artist/Blinding-Lights",
       "status": "fallback",
       "lyrics": "",
       "selector_used": "",
@@ -86,13 +64,35 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T01:07:42.387281Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-15T01:40:05.477987Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/Blinding-Lights",
       "attempted_urls": [
-        "https://www.musixmatch.com/lyrics/Post-Malone-21-Savage/rockstar-feat-21-Savage",
-        "https://www.musixmatch.com/lyrics/Post-Malone-21-Savage/rockstar",
-        "https://www.musixmatch.com/lyrics/Post-Malone/rockstar-feat-21-Savage",
-        "https://www.musixmatch.com/lyrics/Post-Malone/rockstar"
+        "https://www.musixmatch.com/lyrics/Unknown-Artist/Blinding-Lights"
+      ],
+      "request_ids": [
+        "||https://open.spotify.com/track/0VjIjW4GlUZAMYd2vXMi3b"
+      ]
+    },
+    "0e7ipj03S05BNilyu5bRzt": {
+      "track_id": "0e7ipj03S05BNilyu5bRzt",
+      "spotify_url": "https://open.spotify.com/track/0e7ipj03S05BNilyu5bRzt",
+      "artist": "Unknown Artist",
+      "song": "rockstar (feat. 21 Savage)",
+      "song_key": "unknown artist|rockstar (feat. 21 savage)",
+      "musixmatch_url": "https://www.musixmatch.com/lyrics/Unknown-Artist/rockstar-feat-21-Savage",
+      "status": "fallback",
+      "lyrics": "",
+      "selector_used": "",
+      "rating_label": "",
+      "rating_code": "",
+      "rating_reason": "",
+      "rating_selector_used": "",
+      "source": "github-actions-cache",
+      "updated_at": "2026-04-15T01:40:06.027817Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/rockstar",
+      "attempted_urls": [
+        "https://www.musixmatch.com/lyrics/Unknown-Artist/rockstar-feat-21-Savage",
+        "https://www.musixmatch.com/lyrics/Unknown-Artist/rockstar"
       ],
       "request_ids": [
         "||https://open.spotify.com/track/0e7ipj03S05BNilyu5bRzt"
@@ -101,32 +101,10 @@
     "1BxfuPKGuaTgP7aM0Bbdwr": {
       "track_id": "1BxfuPKGuaTgP7aM0Bbdwr",
       "spotify_url": "https://open.spotify.com/track/1BxfuPKGuaTgP7aM0Bbdwr",
-      "artist": "Taylor Swift",
+      "artist": "Unknown Artist",
       "song": "Cruel Summer",
-      "song_key": "taylor swift|cruel summer",
-      "musixmatch_url": "https://www.musixmatch.com/lyrics/Taylor-Swift/Cruel-Summer",
-      "status": "success",
-      "lyrics": "(Yeah, yeah, yeah, yeah)\nFever dream high in the quiet of the night\nYou know that I caught it (oh yeah, you′re right, I want it)\nBad, bad boy, shiny toy with a price\nYou know that I bought it (oh yeah, you're right, I want it)\nKilling me slow, out the window\nI′m always waiting for you to be waiting below\nDevils roll the dice, angels roll their eyes\nWhat doesn't kill me makes me want you more\nAnd it's new, the shape of your body\nIt′s blue, the feeling I′ve got\nAnd it's ooh, whoa-oh\nIt′s a cruel summer\n\"It's cool,\" that′s what I tell 'em\nNo rules in breakable heaven\nBut ooh, whoa-oh\nIt′s a cruel summer with you (yeah, yeah)\nHang your head low in the glow of the vending machine\nI'm not dying (oh yeah, you're right, I want it)\nYou say that we′ll just screw it up in these trying times\nWe′re not trying (oh yeah, you're right, I want it)\nSo cut the headlights, summer′s a knife\nI'm always waiting for you just to cut to the bone\nDevils roll the dice, angels roll their eyes\nAnd if I bleed, you′ll be the last to know, oh\nIt's new, the shape of your body\nIt′s blue, the feeling I've got\nAnd it's ooh, whoa-oh\nIt′s a cruel summer\n\"It′s cool,\" that's what I tell ′em\nNo rules in breakable heaven\nBut ooh, whoa-oh\nIt's a cruel summer with you\nI′m drunk in the back of the car\nAnd I cried like a baby coming home from the bar (oh)\nSaid, \"I'm fine,\" but it wasn′t true\nI don't wanna keep secrets just to keep you\nAnd I snuck in through the garden gate\nEvery night that summer, just to seal my fate (oh)\nAnd I screamed, \"For whatever it's worth\nI love you, ain′t that the worst thing you ever heard?\"\nHe looks up, grinnin′ like a devil\nIt's new, the shape of your body\nIt′s blue, the feeling I've got\nAnd it′s ooh, whoa-oh\nIt's a cruel summer\n\"It′s cool,\" that's what I tell 'em\nNo rules in breakable heaven\nBut ooh, whoa-oh\nIt′s a cruel summer with you\nI′m drunk in the back of the car\nAnd I cried like a baby coming home from the bar (oh)\nSaid, \"I'm fine,\" but it wasn′t true\nI don't wanna keep secrets just to keep you\nAnd I snuck in through the garden gate\nEvery night that summer, just to seal my fate (oh)\nAnd I screamed, \"For whatever it′s worth\nI love you, ain't that the worst thing you ever heard?\"\n(Yeah, yeah, yeah, yeah)",
-      "selector_used": "__NEXT_DATA__:props.pageProps.data.trackInfo.data.lyrics.body",
-      "rating_label": "",
-      "rating_code": "",
-      "rating_reason": "",
-      "rating_selector_used": "",
-      "source": "github-actions-cache",
-      "updated_at": "2026-04-15T01:07:44.672607Z",
-      "error": "",
-      "attempted_urls": [],
-      "request_ids": [
-        "||https://open.spotify.com/track/1BxfuPKGuaTgP7aM0Bbdwr"
-      ]
-    },
-    "1nLnpLXvl68RZCSjfkyiaa": {
-      "track_id": "1nLnpLXvl68RZCSjfkyiaa",
-      "spotify_url": "https://open.spotify.com/track/1nLnpLXvl68RZCSjfkyiaa",
-      "artist": "Green Day",
-      "song": "Brain Stew",
-      "song_key": "green day|brain stew",
-      "musixmatch_url": "https://www.musixmatch.com/lyrics/Green-Day/Brain-Stew",
+      "song_key": "unknown artist|cruel summer",
+      "musixmatch_url": "https://www.musixmatch.com/lyrics/Unknown-Artist/Cruel-Summer",
       "status": "fallback",
       "lyrics": "",
       "selector_used": "",
@@ -135,10 +113,34 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T01:07:45.333789Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-15T01:40:06.977359Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/Cruel-Summer",
       "attempted_urls": [
-        "https://www.musixmatch.com/lyrics/Green-Day/Brain-Stew"
+        "https://www.musixmatch.com/lyrics/Unknown-Artist/Cruel-Summer"
+      ],
+      "request_ids": [
+        "||https://open.spotify.com/track/1BxfuPKGuaTgP7aM0Bbdwr"
+      ]
+    },
+    "1nLnpLXvl68RZCSjfkyiaa": {
+      "track_id": "1nLnpLXvl68RZCSjfkyiaa",
+      "spotify_url": "https://open.spotify.com/track/1nLnpLXvl68RZCSjfkyiaa",
+      "artist": "Unknown Artist",
+      "song": "Brain Stew",
+      "song_key": "unknown artist|brain stew",
+      "musixmatch_url": "https://www.musixmatch.com/lyrics/Unknown-Artist/Brain-Stew",
+      "status": "fallback",
+      "lyrics": "",
+      "selector_used": "",
+      "rating_label": "",
+      "rating_code": "",
+      "rating_reason": "",
+      "rating_selector_used": "",
+      "source": "github-actions-cache",
+      "updated_at": "2026-04-15T01:40:07.642293Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/Brain-Stew",
+      "attempted_urls": [
+        "https://www.musixmatch.com/lyrics/Unknown-Artist/Brain-Stew"
       ],
       "request_ids": [
         "4/8/2026 8:27:14|mjrivera007@gmail.com|https://open.spotify.com/track/1nLnpLXvl68RZCSjfkyiaa?si=S-pT1LUdQvubX7bE0F2gHw&nd=1&utm_medium=organic&_branch_referrer=H4sIAAAAAAAAA7WNUQuCMBzEP818S1PDIhgRlfTgS1kQvcTUTZdzG%2F9tSS999lbQRwgODu7H3XXWarOMIqOV5ewZEq1DwWUfrTSoxtUWK01lgJIZc0LcHAjcfSooXaMk9%2Frg8Neu1eAjC6TuvceykLq4PES2OF435Z31T04ISnPDUbotJ%2FoUF%2Bfm8HDVZV7tpnnS7sfvExGi8hP%2Ff0NJJhtP44BRYh1QrKAlktfBCyijAFy2twrUaCjgTQdqoG%2BUONfeMQEAAA%3D%3D&product=open&%24full_url=https%3A%2F%2Fopen.spotify.com%2Ftrack%2F1nLnpLXvl68RZCSjfkyiaa%3Fsi%3DS-pT1LUdQvubX7bE0F2gHw&feature=organic&_branch_match_id=1484302801022976536"
@@ -147,10 +149,10 @@
     "1xznGGDReH1oQq0xzbwXa3": {
       "track_id": "1xznGGDReH1oQq0xzbwXa3",
       "spotify_url": "https://open.spotify.com/track/1xznGGDReH1oQq0xzbwXa3",
-      "artist": "Drake, Wizkid, Kyla",
+      "artist": "Unknown Artist",
       "song": "One Dance",
-      "song_key": "drake, wizkid, kyla|one dance",
-      "musixmatch_url": "https://www.musixmatch.com/lyrics/Drake-Wizkid-Kyla/One-Dance",
+      "song_key": "unknown artist|one dance",
+      "musixmatch_url": "https://www.musixmatch.com/lyrics/Unknown-Artist/One-Dance",
       "status": "fallback",
       "lyrics": "",
       "selector_used": "",
@@ -159,11 +161,10 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T01:07:46.382195Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-15T01:40:08.331461Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/One-Dance",
       "attempted_urls": [
-        "https://www.musixmatch.com/lyrics/Drake-Wizkid-Kyla/One-Dance",
-        "https://www.musixmatch.com/lyrics/Drake/One-Dance"
+        "https://www.musixmatch.com/lyrics/Unknown-Artist/One-Dance"
       ],
       "request_ids": [
         "||https://open.spotify.com/track/1xznGGDReH1oQq0xzbwXa3"
@@ -172,10 +173,10 @@
     "1zi7xx7UVEFkmKfv06H8x0": {
       "track_id": "1zi7xx7UVEFkmKfv06H8x0",
       "spotify_url": "https://open.spotify.com/track/1zi7xx7UVEFkmKfv06H8x0",
-      "artist": "Drake, Wizkid, Kyla",
+      "artist": "Unknown Artist",
       "song": "One Dance",
-      "song_key": "drake, wizkid, kyla|one dance",
-      "musixmatch_url": "https://www.musixmatch.com/lyrics/Drake-Wizkid-Kyla/One-Dance",
+      "song_key": "unknown artist|one dance",
+      "musixmatch_url": "https://www.musixmatch.com/lyrics/Unknown-Artist/One-Dance",
       "status": "fallback",
       "lyrics": "",
       "selector_used": "",
@@ -184,11 +185,10 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T01:07:47.910092Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-15T01:40:08.945992Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/One-Dance",
       "attempted_urls": [
-        "https://www.musixmatch.com/lyrics/Drake-Wizkid-Kyla/One-Dance",
-        "https://www.musixmatch.com/lyrics/Drake/One-Dance"
+        "https://www.musixmatch.com/lyrics/Unknown-Artist/One-Dance"
       ],
       "request_ids": [
         "||https://open.spotify.com/track/1zi7xx7UVEFkmKfv06H8x0"
@@ -197,32 +197,10 @@
     "2Fxmhks0bxGSBdJ92vM42m": {
       "track_id": "2Fxmhks0bxGSBdJ92vM42m",
       "spotify_url": "https://open.spotify.com/track/2Fxmhks0bxGSBdJ92vM42m",
-      "artist": "Billie Eilish",
+      "artist": "Unknown Artist",
       "song": "bad guy",
-      "song_key": "billie eilish|bad guy",
-      "musixmatch_url": "https://www.musixmatch.com/lyrics/Billie-Eilish/bad-guy",
-      "status": "success",
-      "lyrics": "My Invisalign has funny\nI have taken out my Invisalign\nI have taken out my Invisalign, and this is the album\nWhite shirt now red, my bloody nose\nSleepin′, you're on your tippy-toes\nCreepin′ around like no one knows\nThink you're so criminal\nBruises on both my knees for you\nDon't say thank you or please\nI do what I want when I′m wanting to\nMy soul, so cynical\nSo you′re a tough guy, like it really rough guy?\nJust can't get enough guy, chest always so puffed guy\nI′m that bad type, make your mama sad type\nMake your girlfriend mad tight, might seduce your dad type\nI'm the bad guy, duh\nI′m the bad guy\nI like it when you take control\nEven if you know that you don't own me\nI′ll let you play the role\nI'll be your animal\nMy mommy likes to sing along with me\nBut she won't sing this song\nIf she reads all the lyrics\nShe′ll pity the men I know\nSo you′re a tough guy, like it really rough guy\nJust can't get enough guy, chest always so puffed guy\nI′m that bad type, make your mama sad type\nMake your girlfriend mad tight, might seduce your dad type\nI'm the bad guy, duh\nI′m the bad guy, duh\nI'm only good at bein′ bad, bad\nI like when you get mad\nI guess I'm pretty glad that you're alone\nYou said she′s scared of me? I mean, I don′t see what she sees\nBut maybe it's ′cause I'm wearing your cologne\nI′m a bad guy\nI'm, I′m a bad guy (bad guy, bad guy)\nI'm a bad—",
-      "selector_used": "__NEXT_DATA__:props.pageProps.data.trackInfo.data.lyrics.body",
-      "rating_label": "",
-      "rating_code": "",
-      "rating_reason": "",
-      "rating_selector_used": "",
-      "source": "github-actions-cache",
-      "updated_at": "2026-04-15T01:07:49.550162Z",
-      "error": "",
-      "attempted_urls": [],
-      "request_ids": [
-        "||https://open.spotify.com/track/2Fxmhks0bxGSBdJ92vM42m"
-      ]
-    },
-    "2WXUcFnJPPATncUkPYC54v": {
-      "track_id": "2WXUcFnJPPATncUkPYC54v",
-      "spotify_url": "https://open.spotify.com/track/2WXUcFnJPPATncUkPYC54v",
-      "artist": "Eminem",
-      "song": "The Real Slim Shady",
-      "song_key": "eminem|the real slim shady",
-      "musixmatch_url": "https://www.musixmatch.com/lyrics/Eminem/The-Real-Slim-Shady",
+      "song_key": "unknown artist|bad guy",
+      "musixmatch_url": "https://www.musixmatch.com/lyrics/Unknown-Artist/bad-guy",
       "status": "fallback",
       "lyrics": "",
       "selector_used": "",
@@ -231,10 +209,34 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T01:07:50.688724Z",
-      "error": "Lyrics element not found or extracted text was too short.",
+      "updated_at": "2026-04-15T01:40:09.373300Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/bad-guy",
       "attempted_urls": [
-        "https://www.musixmatch.com/lyrics/Eminem/The-Real-Slim-Shady"
+        "https://www.musixmatch.com/lyrics/Unknown-Artist/bad-guy"
+      ],
+      "request_ids": [
+        "||https://open.spotify.com/track/2Fxmhks0bxGSBdJ92vM42m"
+      ]
+    },
+    "2WXUcFnJPPATncUkPYC54v": {
+      "track_id": "2WXUcFnJPPATncUkPYC54v",
+      "spotify_url": "https://open.spotify.com/track/2WXUcFnJPPATncUkPYC54v",
+      "artist": "Unknown Artist",
+      "song": "The Real Slim Shady",
+      "song_key": "unknown artist|the real slim shady",
+      "musixmatch_url": "https://www.musixmatch.com/lyrics/Unknown-Artist/The-Real-Slim-Shady",
+      "status": "fallback",
+      "lyrics": "",
+      "selector_used": "",
+      "rating_label": "",
+      "rating_code": "",
+      "rating_reason": "",
+      "rating_selector_used": "",
+      "source": "github-actions-cache",
+      "updated_at": "2026-04-15T01:40:10.092650Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/The-Real-Slim-Shady",
+      "attempted_urls": [
+        "https://www.musixmatch.com/lyrics/Unknown-Artist/The-Real-Slim-Shady"
       ],
       "request_ids": [
         "4/8/2026 8:33:11|mjrivera007@gmail.com|https://open.spotify.com/track/2WXUcFnJPPATncUkPYC54v?si=OO8kihmbQWaIViGf9KRALA"
@@ -243,76 +245,10 @@
     "2XU0oxnq2qxCpomAAuJY8K": {
       "track_id": "2XU0oxnq2qxCpomAAuJY8K",
       "spotify_url": "https://open.spotify.com/track/2XU0oxnq2qxCpomAAuJY8K",
-      "artist": "Tones And I",
+      "artist": "Unknown Artist",
       "song": "Dance Monkey",
-      "song_key": "tones and i|dance monkey",
-      "musixmatch_url": "https://www.musixmatch.com/lyrics/Tones-And-I/Dance-Monkey",
-      "status": "success",
-      "lyrics": "They say, \"Oh my God, I see the way you shine\nTake your hand, my dear, and place them both in mine\"\nYou know you stopped me dead while I was passing by\nAnd now I beg to see you dance just one more time\nOoh, I see you, see you, see you every time\nAnd oh my, I, I, I like your style\nYou, you make me, make me, make me wanna cry\nAnd now I beg to see you dance just one more time\nSo they say, \"Dance for me, dance for me, dance for me, oh\nI′ve never seen anybody do the things you do before\"\nThey say, \"Move for me, move for me, move for me, ay\nAnd when you're done, I′ll make you do it all again\"\nI said, \"Oh my God, I see you walking by\nTake my hands, my dear, and look me in my eyes\"\nJust like a monkey, I've been dancin' my whole life\nBut you just beg to see me dance just one more time\nOoh, I see you, see you, see you every time\nAnd oh my, I, I, I like your style\nYou, you make me, make me, make me wanna cry\nAnd now I beg to see you dance just one more time\nSo they say, \"Dance for me, dance for me, dance for me, oh\nI′ve never seen anybody do the things you do before\"\nThey say, \"Move for me, move for me, move for me, ay\nAnd when you′re done, I'll make you do it all again\"\nThey say, \"Dance for me, dance for me, dance for me, oh, oh, oh\nI′ve never seen anybody do the things you do before\"\nThey say, \"Move for me, move for me, move for me, ay\nAnd when you're done, I′ll make you do it all again\"\nOoh, ooh, ooh, ooh, ooh (do it all again, do it all again, do it all again)\nWhoa, whoa, oh\nOoh, ooh, ooh, ooh, ooh-ooh (do it all again, do it all again, do it all again)\nWhoa, ah\nThey say, \"Dance for me, dance for me, dance for me, oh\nI've never seen anybody do the things you do before\"\nThey say, \"Move for me, move for me, move for me, ay\nAnd when you′re done, I'll make you do it all again\"\nThey say, \"Dance for me, dance for me, dance for me, oh, oh, oh\nI've never seen anybody do the things you do before\"\nThey say, \"Move for me, move for me, move for me, ay (ooh)\nAnd when you′re done, I′ll make you do it all again\"\nAll again",
-      "selector_used": "__NEXT_DATA__:props.pageProps.data.trackInfo.data.lyrics.body",
-      "rating_label": "",
-      "rating_code": "",
-      "rating_reason": "",
-      "rating_selector_used": "",
-      "source": "github-actions-cache",
-      "updated_at": "2026-04-15T01:07:51.485253Z",
-      "error": "",
-      "attempted_urls": [],
-      "request_ids": [
-        "||https://open.spotify.com/track/2XU0oxnq2qxCpomAAuJY8K"
-      ]
-    },
-    "2takcwOaAZWiXQijPHIx7B": {
-      "track_id": "2takcwOaAZWiXQijPHIx7B",
-      "spotify_url": "https://open.spotify.com/track/2takcwOaAZWiXQijPHIx7B",
-      "artist": "Muse",
-      "song": "Time is Running Out",
-      "song_key": "muse|time is running out",
-      "musixmatch_url": "https://www.musixmatch.com/lyrics/Muse/Time-is-Running-Out",
-      "status": "success",
-      "lyrics": "I think I′m drowning, asphyxiated\nI wanna break this spell that you've created\nYou′re something beautiful, a contradiction\nI wanna play the game, I want the friction\nAnd you will be the death of me\nYeah, you will be the death of me\nBury it\nI won't let you bury it\nI won't let you smother it\nI won′t let you murder it\nAnd our time is running out\nBut our time is running out\nYou can′t push it underground\nYou can't stop it screaming out\nI wanted freedom, bound and restricted\nI tried to give you up, but I′m addicted\nNow that you know I'm trapped, sense of elation\nYou′d never dream of breaking this fixation\nAnd you will squeeze the life out of me\nAnd bury it\nI won't let you bury it\nI won′t let you smother it\nI won't let you murder it\nAnd our time is running out\nBut our time is running out\nYou can't push it underground\nYou can′t stop it screaming out\nHow did it come to this?\nOoh, yeah, yeah, yeah, yeah, yeah\nOoh, yeah, yeah, yeah, yeah, yeah\nOoh, yeah, yeah, yeah, yeah, yeah\nYeah, you will suck the life out of me\nBury it\nI won′t let you bury it\nI won't let you smother it\nI won′t let you murder it\nAnd our time is running out\nAnd our time is running out\nYou can't push it underground\nYou can′t stop it screaming out\nHow did it come to this?\nOoh, yeah, yeah, yeah, yeah, yeah\nOoh, yeah, yeah, yeah, yeah, yeah\nOoh, yeah, yeah, yeah, yeah, yeah",
-      "selector_used": "__NEXT_DATA__:props.pageProps.data.trackInfo.data.lyrics.body",
-      "rating_label": "",
-      "rating_code": "",
-      "rating_reason": "",
-      "rating_selector_used": "",
-      "source": "github-actions-cache",
-      "updated_at": "2026-04-15T01:07:52.481529Z",
-      "error": "",
-      "attempted_urls": [],
-      "request_ids": [
-        "||https://open.spotify.com/track/2takcwOaAZWiXQijPHIx7B"
-      ]
-    },
-    "3PfIrDoz19wz7qK7tYeu62": {
-      "track_id": "3PfIrDoz19wz7qK7tYeu62",
-      "spotify_url": "https://open.spotify.com/track/3PfIrDoz19wz7qK7tYeu62",
-      "artist": "Dua Lipa",
-      "song": "Don't Start Now",
-      "song_key": "dua lipa|don't start now",
-      "musixmatch_url": "https://www.musixmatch.com/lyrics/Dua-Lipa/Don-t-Start-Now",
-      "status": "success",
-      "lyrics": "If you don′t wanna see me\nDid a full 180, crazy\nThinking 'bout the way I was\nDid the heartbreak change me? Maybe\nBut look at where I ended up\nI′m all good already, so moved on, it's scary\nI'm not where you left me at all, so\nIf you don′t wanna see me dancing with somebody\nIf you wanna believe that anything could stop me\nDon′t show up, don't come out\nDon′t start caring about me now\nWalk away, you know how\nDon't start caring about me now\nAren′t you the guy who tried to\nHurt me with the word \"goodbye\"?\nThough it took some time to survive you\nI'm better on the other side\nI′m all good already\nSo moved on, it's scary\nI'm not where you left me at all, so\nIf you don′t wanna see me dancing with somebody\nIf you wanna believe that anything could stop me\n(Don′t, don't, don′t)\nDon't show up, don′t come out\nDon't start caring about me now\nWalk away, you know how\nDon′t start caring about me now ('bout me now, 'bout me)\nUp, up, don′t come out, out, out\nDon′t show up, up, up, don't start now (oh)\nUp, up, don′t come out, out\nI'm not where you left me at all, so\nIf you don′t wanna see me dancing with somebody\nIf you wanna believe that anything could stop me\nDon't show up (don′t show up), don't come out (don't come out)\nDon′t start caring about me now (′bout me now)\nWalk away (walk away), you know how (you know how)\nDon't start caring about me now (so)\nUp, up, don′t come out, out, out\nDon't show up, up, up, walk away, walk away (so)\nUp, up, don′t come out, out, out\nDon't show up, up, up, walk away, walk away, oh",
-      "selector_used": "__NEXT_DATA__:props.pageProps.data.trackInfo.data.lyrics.body",
-      "rating_label": "",
-      "rating_code": "",
-      "rating_reason": "",
-      "rating_selector_used": "",
-      "source": "github-actions-cache",
-      "updated_at": "2026-04-15T01:07:53.338747Z",
-      "error": "",
-      "attempted_urls": [],
-      "request_ids": [
-        "||https://open.spotify.com/track/3PfIrDoz19wz7qK7tYeu62"
-      ]
-    },
-    "4Oun2ylbjFKMPTiaSbbCih": {
-      "track_id": "4Oun2ylbjFKMPTiaSbbCih",
-      "spotify_url": "https://open.spotify.com/track/4Oun2ylbjFKMPTiaSbbCih",
-      "artist": "Cardi B, Megan Thee Stallion",
-      "song": "WAP (feat. Megan Thee Stallion)",
-      "song_key": "cardi b, megan thee stallion|wap (feat. megan thee stallion)",
-      "musixmatch_url": "https://www.musixmatch.com/lyrics/Cardi-B-Megan-Thee-Stallion/WAP-feat-Megan-Thee-Stallion",
+      "song_key": "unknown artist|dance monkey",
+      "musixmatch_url": "https://www.musixmatch.com/lyrics/Unknown-Artist/Dance-Monkey",
       "status": "fallback",
       "lyrics": "",
       "selector_used": "",
@@ -321,13 +257,83 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T01:07:54.117203Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-15T01:40:10.799548Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/Dance-Monkey",
       "attempted_urls": [
-        "https://www.musixmatch.com/lyrics/Cardi-B-Megan-Thee-Stallion/WAP-feat-Megan-Thee-Stallion",
-        "https://www.musixmatch.com/lyrics/Cardi-B-Megan-Thee-Stallion/WAP",
-        "https://www.musixmatch.com/lyrics/Cardi-B/WAP-feat-Megan-Thee-Stallion",
-        "https://www.musixmatch.com/lyrics/Cardi-B/WAP"
+        "https://www.musixmatch.com/lyrics/Unknown-Artist/Dance-Monkey"
+      ],
+      "request_ids": [
+        "||https://open.spotify.com/track/2XU0oxnq2qxCpomAAuJY8K"
+      ]
+    },
+    "2takcwOaAZWiXQijPHIx7B": {
+      "track_id": "2takcwOaAZWiXQijPHIx7B",
+      "spotify_url": "https://open.spotify.com/track/2takcwOaAZWiXQijPHIx7B",
+      "artist": "Unknown Artist",
+      "song": "Time is Running Out",
+      "song_key": "unknown artist|time is running out",
+      "musixmatch_url": "https://www.musixmatch.com/lyrics/Unknown-Artist/Time-is-Running-Out",
+      "status": "fallback",
+      "lyrics": "",
+      "selector_used": "",
+      "rating_label": "",
+      "rating_code": "",
+      "rating_reason": "",
+      "rating_selector_used": "",
+      "source": "github-actions-cache",
+      "updated_at": "2026-04-15T01:40:11.817833Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/Time-is-Running-Out",
+      "attempted_urls": [
+        "https://www.musixmatch.com/lyrics/Unknown-Artist/Time-is-Running-Out"
+      ],
+      "request_ids": [
+        "||https://open.spotify.com/track/2takcwOaAZWiXQijPHIx7B"
+      ]
+    },
+    "3PfIrDoz19wz7qK7tYeu62": {
+      "track_id": "3PfIrDoz19wz7qK7tYeu62",
+      "spotify_url": "https://open.spotify.com/track/3PfIrDoz19wz7qK7tYeu62",
+      "artist": "Unknown Artist",
+      "song": "Don't Start Now",
+      "song_key": "unknown artist|don't start now",
+      "musixmatch_url": "https://www.musixmatch.com/lyrics/Unknown-Artist/Don-t-Start-Now",
+      "status": "fallback",
+      "lyrics": "",
+      "selector_used": "",
+      "rating_label": "",
+      "rating_code": "",
+      "rating_reason": "",
+      "rating_selector_used": "",
+      "source": "github-actions-cache",
+      "updated_at": "2026-04-15T01:40:12.711563Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/Don-t-Start-Now",
+      "attempted_urls": [
+        "https://www.musixmatch.com/lyrics/Unknown-Artist/Don-t-Start-Now"
+      ],
+      "request_ids": [
+        "||https://open.spotify.com/track/3PfIrDoz19wz7qK7tYeu62"
+      ]
+    },
+    "4Oun2ylbjFKMPTiaSbbCih": {
+      "track_id": "4Oun2ylbjFKMPTiaSbbCih",
+      "spotify_url": "https://open.spotify.com/track/4Oun2ylbjFKMPTiaSbbCih",
+      "artist": "Unknown Artist",
+      "song": "WAP (feat. Megan Thee Stallion)",
+      "song_key": "unknown artist|wap (feat. megan thee stallion)",
+      "musixmatch_url": "https://www.musixmatch.com/lyrics/Unknown-Artist/WAP-feat-Megan-Thee-Stallion",
+      "status": "fallback",
+      "lyrics": "",
+      "selector_used": "",
+      "rating_label": "",
+      "rating_code": "",
+      "rating_reason": "",
+      "rating_selector_used": "",
+      "source": "github-actions-cache",
+      "updated_at": "2026-04-15T01:40:13.956168Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/WAP",
+      "attempted_urls": [
+        "https://www.musixmatch.com/lyrics/Unknown-Artist/WAP-feat-Megan-Thee-Stallion",
+        "https://www.musixmatch.com/lyrics/Unknown-Artist/WAP"
       ],
       "request_ids": [
         "||https://open.spotify.com/track/4Oun2ylbjFKMPTiaSbbCih"
@@ -336,32 +342,10 @@
     "4RVwu0g32PAqgUiJoXsdF8": {
       "track_id": "4RVwu0g32PAqgUiJoXsdF8",
       "spotify_url": "https://open.spotify.com/track/4RVwu0g32PAqgUiJoXsdF8",
-      "artist": "Billie Eilish",
+      "artist": "Unknown Artist",
       "song": "Happier Than Ever",
-      "song_key": "billie eilish|happier than ever",
-      "musixmatch_url": "https://www.musixmatch.com/lyrics/Billie-Eilish/Happier-Than-Ever",
-      "status": "success",
-      "lyrics": "When I′m away from you\nI'm happier than ever\nWish I could explain it better\nI wish it wasn′t true\nGive me a day or two\nTo think of something clever\nTo write myself a letter\nTo tell me what to do, mm-mm\nDo you read my interviews?\nOr do you skip my avenue? (My avenue)\nWhen you (when you) said you were passing through\nWas I even on your way?\nI knew when I asked you to (when I asked you to)\nBe cool about what I was telling you\nYou'd do the opposite of what you said you'd do (what you said you′d do)\nAnd I′d end up more afraid\nDon't say it isn′t fair\nYou clearly weren't aware that you made me miserable\nSo if you really wanna know\nWhen I′m away from you (when I'm away from you)\nI′m happier than ever (happier than ever)\nWish I could explain it better (wish I could explain it better)\nI wish it wasn't true (wish it wasn't true), mm-hm\nYou call me again, drunk in your Benz\nDriving home under the influence\nYou scared me to death, but I′m wasting my breath\n′Cause you only listen to your fucking friends\nI don't relate to you\nI don′t relate to you, no\n'Cause I′d never treat me this shitty\nYou made me hate this city\nAnd I don't talk shit about you on the internet\nNever told anyone anything bad\n′Cause that shit's embarrassing, you were my everything\nAnd all that you did was make me fucking sad\nSo don't waste the time I don′t have\nAnd don′t try to make me feel bad\nI could talk about every time that you showed up on time\nBut I'd have an empty line ′cause you never did\nNever paid any mind to my mother or friends\nSo I shut 'em all out for you ′cause I was a kid\nYou ruined everything good\nAlways said you were misunderstood\nMade all my moments your own\nJust fucking leave me alone, whoa, yeah",
-      "selector_used": "__NEXT_DATA__:props.pageProps.data.trackInfo.data.lyrics.body",
-      "rating_label": "",
-      "rating_code": "",
-      "rating_reason": "",
-      "rating_selector_used": "",
-      "source": "github-actions-cache",
-      "updated_at": "2026-04-15T01:07:56.654288Z",
-      "error": "",
-      "attempted_urls": [],
-      "request_ids": [
-        "||https://open.spotify.com/track/4RVwu0g32PAqgUiJoXsdF8"
-      ]
-    },
-    "4iV5W9uYEdYUVa79Axb7Rh": {
-      "track_id": "4iV5W9uYEdYUVa79Axb7Rh",
-      "spotify_url": "https://open.spotify.com/track/4iV5W9uYEdYUVa79Axb7Rh",
-      "artist": "Eduard Abramyan, Sona Shaboyan",
-      "song": "Prelude for Piano No. 11 in F-Sharp Minor",
-      "song_key": "eduard abramyan, sona shaboyan|prelude for piano no. 11 in f-sharp minor",
-      "musixmatch_url": "https://www.musixmatch.com/lyrics/Eduard-Abramyan-Sona-Shaboyan/Prelude-for-Piano-No-11-in-F-Sharp-Minor",
+      "song_key": "unknown artist|happier than ever",
+      "musixmatch_url": "https://www.musixmatch.com/lyrics/Unknown-Artist/Happier-Than-Ever",
       "status": "fallback",
       "lyrics": "",
       "selector_used": "",
@@ -370,11 +354,34 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T01:07:57.749117Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-15T01:40:14.713910Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/Happier-Than-Ever",
       "attempted_urls": [
-        "https://www.musixmatch.com/lyrics/Eduard-Abramyan-Sona-Shaboyan/Prelude-for-Piano-No-11-in-F-Sharp-Minor",
-        "https://www.musixmatch.com/lyrics/Eduard-Abramyan/Prelude-for-Piano-No-11-in-F-Sharp-Minor"
+        "https://www.musixmatch.com/lyrics/Unknown-Artist/Happier-Than-Ever"
+      ],
+      "request_ids": [
+        "||https://open.spotify.com/track/4RVwu0g32PAqgUiJoXsdF8"
+      ]
+    },
+    "4iV5W9uYEdYUVa79Axb7Rh": {
+      "track_id": "4iV5W9uYEdYUVa79Axb7Rh",
+      "spotify_url": "https://open.spotify.com/track/4iV5W9uYEdYUVa79Axb7Rh",
+      "artist": "Unknown Artist",
+      "song": "Prelude for Piano No. 11 in F-Sharp Minor",
+      "song_key": "unknown artist|prelude for piano no. 11 in f-sharp minor",
+      "musixmatch_url": "https://www.musixmatch.com/lyrics/Unknown-Artist/Prelude-for-Piano-No-11-in-F-Sharp-Minor",
+      "status": "fallback",
+      "lyrics": "",
+      "selector_used": "",
+      "rating_label": "",
+      "rating_code": "",
+      "rating_reason": "",
+      "rating_selector_used": "",
+      "source": "github-actions-cache",
+      "updated_at": "2026-04-15T01:40:15.880277Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/Prelude-for-Piano-No-11-in-F-Sharp-Minor",
+      "attempted_urls": [
+        "https://www.musixmatch.com/lyrics/Unknown-Artist/Prelude-for-Piano-No-11-in-F-Sharp-Minor"
       ],
       "request_ids": [
         "||https://open.spotify.com/track/4iV5W9uYEdYUVa79Axb7Rh"
@@ -395,8 +402,8 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T01:07:59.093568Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-15T01:40:16.695939Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Skit/Paul",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Skit/Paul"
       ],
@@ -407,10 +414,10 @@
     "6DCZcSspjsKoFjzjrWoCdn": {
       "track_id": "6DCZcSspjsKoFjzjrWoCdn",
       "spotify_url": "https://open.spotify.com/track/6DCZcSspjsKoFjzjrWoCdn",
-      "artist": "Drake",
+      "artist": "Unknown Artist",
       "song": "God's Plan",
-      "song_key": "drake|god's plan",
-      "musixmatch_url": "https://www.musixmatch.com/lyrics/Drake/God-s-Plan",
+      "song_key": "unknown artist|god's plan",
+      "musixmatch_url": "https://www.musixmatch.com/lyrics/Unknown-Artist/God-s-Plan",
       "status": "fallback",
       "lyrics": "",
       "selector_used": "",
@@ -419,10 +426,10 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T01:08:00.085575Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-15T01:40:17.294236Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/God-s-Plan",
       "attempted_urls": [
-        "https://www.musixmatch.com/lyrics/Drake/God-s-Plan"
+        "https://www.musixmatch.com/lyrics/Unknown-Artist/God-s-Plan"
       ],
       "request_ids": [
         "||https://open.spotify.com/track/6DCZcSspjsKoFjzjrWoCdn"
@@ -431,21 +438,23 @@
     "6UelLqGlWMcVH1E5c4H7lY": {
       "track_id": "6UelLqGlWMcVH1E5c4H7lY",
       "spotify_url": "https://open.spotify.com/track/6UelLqGlWMcVH1E5c4H7lY",
-      "artist": "Harry Styles",
+      "artist": "Unknown Artist",
       "song": "Watermelon Sugar",
-      "song_key": "harry styles|watermelon sugar",
-      "musixmatch_url": "https://www.musixmatch.com/lyrics/Harry-Styles/Watermelon-Sugar",
-      "status": "success",
-      "lyrics": "Tastes like strawberries on a summer evenin′\nAnd it sounds just like a song\nI want more berries and that summer feelin'\nIt′s so wonderful and warm\nBreathe me in, breathe me out\nI don't know if I could ever go without\nI'm just thinking out loud\nI don′t know if I could ever go without\nWatermelon sugar high, watermelon sugar high\nWatermelon sugar high, watermelon sugar high\nWatermelon sugar\nStrawberries on a summer evenin′\nBaby, you're the end of June\nI want your belly and that summer feelin′\nGetting washed away in you\nBreathe me in, breathe me out\nI don't know if I could ever go without\nWatermelon sugar high, watermelon sugar high\nWatermelon sugar high, watermelon sugar high\nWatermelon sugar high, watermelon sugar high\nWatermelon sugar high, watermelon sugar high\nI just wanna taste it, I just wanna taste it\nWatermelon sugar high\nTastes like strawberries on a summer evenin′\nAnd it sounds just like a song\nI want your belly and that summer feelin'\nI don′t know if I could ever go without\nWatermelon sugar high, watermelon sugar high\nWatermelon sugar (sugar) high, watermelon sugar high (sugar)\nWatermelon sugar high, watermelon sugar high\nWatermelon sugar high, watermelon sugar high\nI just wanna taste it, I just wanna taste it (yeah)\nWatermelon sugar high\nI just wanna taste it, I just wanna taste it\nWatermelon sugar high, watermelon sugar",
-      "selector_used": "__NEXT_DATA__:props.pageProps.data.trackInfo.data.lyrics.body",
+      "song_key": "unknown artist|watermelon sugar",
+      "musixmatch_url": "https://www.musixmatch.com/lyrics/Unknown-Artist/Watermelon-Sugar",
+      "status": "fallback",
+      "lyrics": "",
+      "selector_used": "",
       "rating_label": "",
       "rating_code": "",
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T01:08:01.132036Z",
-      "error": "",
-      "attempted_urls": [],
+      "updated_at": "2026-04-15T01:40:18.060472Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/Watermelon-Sugar",
+      "attempted_urls": [
+        "https://www.musixmatch.com/lyrics/Unknown-Artist/Watermelon-Sugar"
+      ],
       "request_ids": [
         "||https://open.spotify.com/track/6UelLqGlWMcVH1E5c4H7lY"
       ]
@@ -453,21 +462,23 @@
     "6b8Be6ljOzmkOmFslEb23P": {
       "track_id": "6b8Be6ljOzmkOmFslEb23P",
       "spotify_url": "https://open.spotify.com/track/6b8Be6ljOzmkOmFslEb23P",
-      "artist": "Bruno Mars",
+      "artist": "Unknown Artist",
       "song": "24K Magic",
-      "song_key": "bruno mars|24k magic",
-      "musixmatch_url": "https://www.musixmatch.com/lyrics/Bruno-Mars/24K-Magic",
-      "status": "success",
-      "lyrics": "Tonight\nI just want to take you higher\nThrow your hands up in the sky\nLet′s set this party off right\nPlayers\nPut your pinky rings up to the moon\nGirls, what y'all trying to do?\n24-karat magic in the air\nHead to toe, so player, uh, look out, uh\nPop-pop, it′s showtime (showtime)\nShow time (show time)\nGuess who's back again?\nOh, they don't know? (Go on, tell ′em)\nOh, they don′t know? (Go on, tell 'em)\nI bet they know soon as we walk in (sure ′nough)\nI'm wearing Cuban links (yeah)\nDesigner minks (yeah)\nInglewood′s finest shoes (whoop, whoop)\nDon't look too hard, might hurt yourself\nKnown to give the colour red the blues\nOoh, shit\nI′m a dangerous man\nWith some money in my pocket (keep up, whoop)\nSo many pretty girls around me\nAnd they waking up the rocket (keep up, whoop)\nWhy you mad? Fix your face\nAin't my fault that y'all be jocking (keep up, whoop)\nPlayers only, come on\nPut your pinky rings up to the moon\nGirls, what y′all trying to do?\n24-karat magic in the air\nHead to toe, so player, uh, look out, uh\nSecond verse for the hustlas (hustlas)\nGangstas (gangstas)\nBad bitches and your ugly ass friends (haha)\nCan I preach? (Uh-oh)\nCan I preach? (Uh-oh)\nI gotta show ′em how a pimp get it in\nFirst, take your sip (sip)\nDo your dip (dip)\nSpend your money like money ain't shit\nOoh-ooh (we too fresh)\nGot to blame in on Jesus (hashtag blessed)\nThey ain′t ready for me, uh (whoo)\nI'm a dangerous man\nWith some money in my pocket (keep up, whoop)\nSo many pretty girls around me\nAnd they waking up the rocket (keep up, whoop)\nWhy you mad? Fix your face\nAin′t my fault that y'all be jocking (keep up, whoop)\nPlayers only, come on\nPut your pinky rings up to the moon (whoo)\nHey girls, what y′all tryin' to do? (What y'all tryin′ to do?)\n24-karat magic in the air (air, air)\nHead to toe, so player, ooh, ooh, look out, uh\n(Whoop!) Everywhere I go they be like, \"Ooh, so player\"\n(Whoop!) Everywhere I go they be like, \"Ooh, so player\" (ah)\n(Whoop!) Everywhere I go they be like, \"Ooh, so player, ooh\"\nNow, now, now, now watch me break it down like, ugh\n24-karat (whoop), 24-karat magic (what′s that sound?)\n24-karat, 24-karat magic (come on now)\n24-karat, 24-karat magic (ooh)\nDon't fight the feelin′, invite the feeling\nJust put your pinky rings up to the moon (whoo)\nGirls, what y'all trying to do? (Tell me what y′all trying to do)\n24-karat magic in the air (c'mon)\nHead to toe, so player (hands up)\nPut your pinky rings up to the moon (24-karat, 24-karat magic)\nGirls, what y′all trying to do? (24-karat, 24-karat magic)\n24-karat magic in the air (24-karat magic)\nHead to toe so player (24-karat), uh, look out (24-karat magic...)",
-      "selector_used": "__NEXT_DATA__:props.pageProps.data.trackInfo.data.lyrics.body",
+      "song_key": "unknown artist|24k magic",
+      "musixmatch_url": "https://www.musixmatch.com/lyrics/Unknown-Artist/24K-Magic",
+      "status": "fallback",
+      "lyrics": "",
+      "selector_used": "",
       "rating_label": "",
       "rating_code": "",
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T01:08:01.912576Z",
-      "error": "",
-      "attempted_urls": [],
+      "updated_at": "2026-04-15T01:40:19.029538Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/24K-Magic",
+      "attempted_urls": [
+        "https://www.musixmatch.com/lyrics/Unknown-Artist/24K-Magic"
+      ],
       "request_ids": [
         "|nb72258@stu.alaschools.org|https://open.spotify.com/track/6b8Be6ljOzmkOmFslEb23P?si=4674576dc0f44430"
       ]
@@ -475,21 +486,23 @@
     "7GX5flRQZVHRAGd6B4TmDO": {
       "track_id": "7GX5flRQZVHRAGd6B4TmDO",
       "spotify_url": "https://open.spotify.com/track/7GX5flRQZVHRAGd6B4TmDO",
-      "artist": "Lil Uzi Vert",
+      "artist": "Unknown Artist",
       "song": "XO Tour Llif3",
-      "song_key": "lil uzi vert|xo tour llif3",
-      "musixmatch_url": "https://www.musixmatch.com/lyrics/Lil-Uzi-Vert/XO-Tour-Llif3",
-      "status": "success",
-      "lyrics": "Are you alright? I′m alright\nI'm quite alright and my money′s right\n(8) yeah\n(Countin' them bands all way to the top 'til they be fallin′ over)\n(Countin′ them bands, on my way to the top 'til we fallin′ over)\nI don't really care if you cry\nOn the real, you should′ve never lied\nShould've saw the way she looked me in my eyes\nShe said, \"Baby, I am not afraid to die\"\nPush me to the edge\nAll my friends are dead, push me to the edge\nAll my friends are dead, push me to the edge\nAll my friends are dead, push me to the edge\nPhantom that′s all red, inside all white\nLike something you ride a sled down, I just want that head\nMy Brittany got mad, I'm barely her man now\nEverybody got the same swag now, watch the way that I tear it down\nStackin' my bands all the way to the top, all the way ′til my bands fallin′ over\nEvery time that you leave your spot, your girlfriend call me like, \"Come on over\"\nI like the way that she treat me, gon' leave you, won′t leave me, I call it that Casanova\nShe say I'm insane, yeah, I might blow my brain out\n(Hey) Xanny help the pain, yeah, please, Xanny make it go away\nI′m committed, not addicted, but it keep control of me\nAll the pain, now I can't feel it, I swear that it′s slowin' me, yeah\nI don't really care if you cry\nOn the real, you should′ve never lied\nSaw the way she looked me in my eyes\nShe said, \"I am not afraid to die\"\nYeah, all my friends are dead\nPush me to the edge, all my friends are dead\nYeah, ooh, push me to the edge\nAll my friends are dead, yeah, all my friends are dead, yeah\nThat is not your swag, I swear you fake hard\nNow these niggas wanna take my cadence (yeah)\nRain on ′em, thunderstorm, rain on 'em (ooh, yeah)\nMedicine, lil′ nigga take some (yeah, yeah)\nFast car, Nascar, race on 'em\nIn the club, ain′t got no ones, then we would beg them (yeah)\nClothes from overseas, got them racks and they all C-Notes\nYou is not a G, though\nLookin' at you stackin′ all your money, it all green though\nI was countin' that and these all twenties, that's a G-roll\nShe say, \"You′re the worst, you′re the worst\"\nI cannot die because this my universe\nI don't really care if you cry\nOn the real, you should′ve never lied\nShould've saw the way she looked me in my eyes\nShe said, \"Baby, I am not afraid to die\"\nPush me to the edge\nAll my friends are dead, push me to the edge\nAll my friends are dead, push me to the edge\nAll my friends are dead, push me to the edge",
-      "selector_used": "__NEXT_DATA__:props.pageProps.data.trackInfo.data.lyrics.body",
+      "song_key": "unknown artist|xo tour llif3",
+      "musixmatch_url": "https://www.musixmatch.com/lyrics/Unknown-Artist/XO-Tour-Llif3",
+      "status": "fallback",
+      "lyrics": "",
+      "selector_used": "",
       "rating_label": "",
       "rating_code": "",
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T01:08:02.730179Z",
-      "error": "",
-      "attempted_urls": [],
+      "updated_at": "2026-04-15T01:40:20.625455Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/XO-Tour-Llif3",
+      "attempted_urls": [
+        "https://www.musixmatch.com/lyrics/Unknown-Artist/XO-Tour-Llif3"
+      ],
       "request_ids": [
         "||https://open.spotify.com/track/7GX5flRQZVHRAGd6B4TmDO"
       ]
@@ -497,21 +510,23 @@
     "7KXjTSCq5nL1LoYtL7XAwS": {
       "track_id": "7KXjTSCq5nL1LoYtL7XAwS",
       "spotify_url": "https://open.spotify.com/track/7KXjTSCq5nL1LoYtL7XAwS",
-      "artist": "Kendrick Lamar",
+      "artist": "Unknown Artist",
       "song": "HUMBLE.",
-      "song_key": "kendrick lamar|humble.",
-      "musixmatch_url": "https://www.musixmatch.com/lyrics/Kendrick-Lamar/HUMBLE",
-      "status": "success",
-      "lyrics": "Nobody pray for me\nIt been that day for me\nWay (yeah, yeah)\nAyy, I remember syrup sandwiches and crime allowances\nFinesse a nigga with some counterfeits, but now I′m countin' this\nParmesan where my accountant lives in fact, I′m downin' this\nD'USSÉ with my boo bae tastes like Kool-Aid for the analysts\nGirl, I can buy yo′ ass the world with my paystub\nOoh, that pussy good, won′t you sit it on my taste bloods?\nI get way too petty once you let me do the extras\nPull up on your block, then break it down, we playin' Tetris\nA.m. to the p.m., p.m. to the a.m., funk\nPiss out your per diem, you just gotta hate ′em, funk\nIf I quit your BM, I still ride Mercedes, funk\nIf I quit this season, I still be the greatest, funk\nMy left stroke just went viral\nRight stroke put lil' baby in a spiral\nSoprano C, we like to keep it on a high note\nIt′s levels to it, you and I know\nBitch, be humble (hol' up, bitch), sit down (hol′ up, lil'-, hol' up, lil′ bitch)\nBe humble (hol′ up, bitch), sit down (hol' up, sit down, lil′-, sit down, lil' bitch)\nBe humble (hol′ up, hol' up), bitch, sit down (hol′ up, hol' up, lil' bitch)\nBe humble (lil′ bitch, hol′ up, bitch), sit down (hol' up, hol′ up, hol' up, hol′ up)\nBe humble (hol' up, hol′ up), sit down (hol' up, hol' up, lil′-, hol′ up, lil' bitch)\nBe humble (hol′ up, bitch), sit down (hol' up, sit down, lil′-, sit down, lil' bitch)\nBe humble (hol′ up, hol' up), bitch, sit down (hol' up, hol′ up, lil′ bitch)\nBe humble (lil' bitch, hol′ up, bitch), sit down (hol' up, hol′ up, hol' up, hol′ up)\nWho that nigga thinkin' that he frontin' on Man-Man? (Man-Man)\nGet the fuck off my stage, I′m the Sandman (Sandman)\nGet the fuck off my dick, that ain′t right\nI make a play fuckin' up your whole life\nI′m so fuckin' sick and tired of the Photoshop\nShow me somethin′ natural like afro on Richard Pryor\nShow me somethin' natural like ass with some stretch marks\nStill′ll take you down right on your mama's couch in Polo sock\nAyy, this shit way too crazy, ayy, you do not amaze me, ayy\nI blew cool from AC, ayy, Obama just paged me, ayy\nI don't fabricate it, ayy, most of y′all be fakin′, ayy\nI stay modest 'bout it, ayy, she elaborate it, ayy\nThis that Grey Poupon, that Evian, that TED Talk, ayy\nWatch my soul speak, you let the meds talk, ayy\nIf I kill a nigga, it won′t be the alcohol, ayy\nI'm the realest nigga after all\nBitch, be humble (hol′ up, bitch), sit down (hol' up, lil′-, hol' up, lil' bitch)\nBe humble (hol′ up, bitch), sit down (hol′ up, sit down, lil'-, sit down, lil′ bitch)\nBe humble (hol' up, hol′ up), bitch, sit down (hol' up, hol′ up, lil' bitch)\nBe humble (lil' bitch, hol′ up, bitch), sit down (hol′ up, hol' up, hol′ up, hol' up)\nBe humble (hol′ up, hol' up), sit down (hol′ up, hol' up, lil'-, hol′ up, lil′ bitch)\nBe humble (hol' up, bitch), sit down (hol′ up, sit down, lil'-, sit down, lil′ bitch)\nBe humble (hol' up, hol′ up, hol' up, hol' up), bitch, sit down (hol′ up, hol′ up, lil' bitch)\nBe humble (lil′ bitch, hol' up, bitch), sit down (hol′ up, hol' up, hol′ up, hol' up)",
-      "selector_used": "__NEXT_DATA__:props.pageProps.data.trackInfo.data.lyrics.body",
+      "song_key": "unknown artist|humble.",
+      "musixmatch_url": "https://www.musixmatch.com/lyrics/Unknown-Artist/HUMBLE",
+      "status": "fallback",
+      "lyrics": "",
+      "selector_used": "",
       "rating_label": "",
       "rating_code": "",
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T01:08:03.478933Z",
-      "error": "",
-      "attempted_urls": [],
+      "updated_at": "2026-04-15T01:40:21.248135Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/HUMBLE",
+      "attempted_urls": [
+        "https://www.musixmatch.com/lyrics/Unknown-Artist/HUMBLE"
+      ],
       "request_ids": [
         "||https://open.spotify.com/track/7KXjTSCq5nL1LoYtL7XAwS"
       ]
@@ -519,21 +534,23 @@
     "7qiZfU4dY1lWllzX7mPBI3": {
       "track_id": "7qiZfU4dY1lWllzX7mPBI3",
       "spotify_url": "https://open.spotify.com/track/7qiZfU4dY1lWllzX7mPBI3",
-      "artist": "Ed Sheeran",
+      "artist": "Unknown Artist",
       "song": "Shape of You",
-      "song_key": "ed sheeran|shape of you",
-      "musixmatch_url": "https://www.musixmatch.com/lyrics/Ed-Sheeran/Shape-of-You",
-      "status": "success",
-      "lyrics": "The club isn′t the best place to find a lover\nSo the bar is where I go, mm\nMe and my friends at the table doin' shots\nDrinkin′ fast and then we talk slow, mm\nAnd you come over and start up a conversation with just me\nAnd trust me, I'll give it a chance now, mm\nTake my hand, stop, put Van the Man on the jukebox\nAnd then we start to dance, and now I'm singin′ like\n\"Girl, you know I want your love\nYour love was handmade for somebody like me\nCome on now, follow my lead\nI may be crazy, don′t mind me\"\nSay, \"Boy, let's not talk too much\nGrab on my waist and put that body on me\nCome on now, follow my lead\"\nCome, come on now, follow my lead, mm\nI′m in love with the shape of you\nWe push and pull like a magnet do\nAlthough my heart is fallin' too\nI′m in love with your body\nAnd last night, you were in my room\nAnd now my bedsheets smell like you\nEvery day, discoverin' somethin′ brand new\nWell, I'm in love with your body\nOh, I, oh, I, oh, I, oh, I\nWell, I'm in love with your body\nOh, I, oh, I, oh, I, oh, I\nWell, I′m in love with your body\nOh, I, oh, I, oh, I, oh, I\nWell, I′m in love with your body\nEvery day, discoverin' somethin′ brand new\nI'm in love with the shape of you\nOne week in, we let the story begin\nWe′re goin' out on our first date, mm\nYou and me are thrifty, so go all-you-can-eat\nFill up your bag and I fill up a plate, mm\nWe talk for hours and hours about the sweet and the sour\nAnd how your family is doin′ okay, mm\nAnd leave and get in a taxi, and kiss in the back seat\nTell the driver, \"Make the radio play,\" and I'm singin' like\n\"Girl, you know I want your love\nYour love was handmade for somebody like me\nCome on now, follow my lead\nI may be crazy, don′t mind me\"\nSay, \"Boy, let′s not talk too much\nGrab on my waist and put that body on me\nCome on now, follow my lead\"\nCome, come on now, follow my lead, mm\nI'm in love with the shape of you\nWe push and pull like a magnet do\nAlthough my heart is fallin′ too\nI'm in love with your body\nAnd last night, you were in my room\nAnd now my bedsheets smell like you\nEvery day, discoverin′ somethin' brand new\nWell, I′m in love with your body\nOh, I, oh, I, oh, I, oh, I\nWell, I'm in love with your body\nOh, I, oh, I, oh, I, oh, I\nWell, I'm in love with your body\nOh, I, oh, I, oh, I, oh, I\nWell, I′m in love with your body\nEvery day, discoverin′ somethin' brand new\nI′m in love with the shape of you\nCome on, be my baby, come on\nCome on, be my baby, come on\nCome on, be my baby, come on\nCome on, be my baby, come on\nCome on, be my baby, come on\nCome on, be my baby, come on\nCome on, be my baby, come on\nCome on, be my baby, come on\nI'm in love with the shape of you\nWe push and pull like a magnet do\nAlthough my heart is fallin′ too\nI'm in love with your body\nAnd last night, you were in my room\nAnd now my bedsheets smell like you\nEvery day, discoverin′ somethin' brand new\nWell, I'm in love with your body\nCome on, be my baby, come on\nCome on, be my baby, come on (I′m in love with your body)\nCome on, be my baby, come on\nCome on, be my baby, come on (oh, I′m in love with your body)\nCome on, be my baby, come on\nCome on, be my baby, come on (I'm in love with your body)\nEvery day, discoverin′ somethin' brand new\nI′m in love with the shape of you",
-      "selector_used": "__NEXT_DATA__:props.pageProps.data.trackInfo.data.lyrics.body",
+      "song_key": "unknown artist|shape of you",
+      "musixmatch_url": "https://www.musixmatch.com/lyrics/Unknown-Artist/Shape-of-You",
+      "status": "fallback",
+      "lyrics": "",
+      "selector_used": "",
       "rating_label": "",
       "rating_code": "",
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T01:08:04.193203Z",
-      "error": "",
-      "attempted_urls": [],
+      "updated_at": "2026-04-15T01:40:21.790406Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/Shape-of-You",
+      "attempted_urls": [
+        "https://www.musixmatch.com/lyrics/Unknown-Artist/Shape-of-You"
+      ],
       "request_ids": [
         "||https://open.spotify.com/track/7qiZfU4dY1lWllzX7mPBI3"
       ]
@@ -541,21 +558,24 @@
     "7wd9kz7UXhJr8pgdqpzKu5": {
       "track_id": "7wd9kz7UXhJr8pgdqpzKu5",
       "spotify_url": "https://open.spotify.com/track/7wd9kz7UXhJr8pgdqpzKu5",
-      "artist": "Shaboozey",
+      "artist": "Unknown Artist",
       "song": "A Bar Song (Tipsy)",
-      "song_key": "shaboozey|a bar song (tipsy)",
-      "musixmatch_url": "https://www.musixmatch.com/lyrics/Shaboozey/A-Bar-Song-Tipsy",
-      "status": "success",
-      "lyrics": "My baby want a Birkin, she′s been tellin' me all night long\nGasoline and groceries, the list goes on and on\nThis nine-to-five ain′t workin', why the hell do I work so hard?\nI can't worry ′bout my problems, I can′t take 'em when I′m gone, uh\nOne, here comes the two to the three to the four\nTell 'em \"Bring another round, we need plenty more\"\nTwo-steppin′ on the table, she don't need a dance floor\nOh my, good Lord\nSomeone pour me up a double shot of whiskey\nThey know me and Jack Daniel′s got a history\nThere's a party downtown near 5th Street\nEverybody at the bar gettin' tipsy\nEverybody at the bar gettin′ tipsy\nEverybody at the bar gettin′ tipsy\nI've been Boozey since I′ve left, I ain't changin′ for a check\nTell my ma I ain't forget (oh, Lord), I\nWoke up drunk at 10 a.m., we gon′ do this sh- again\nTell your girl to bring a friend (oh, Lord)\nOne, here comes the two to the three to the four\nTell 'em \"Bring another round, we need plenty more\"\nTwo-steppin' on the table, she don′t need a dance floor\nOh my, good Lord\nSomeone pour me up a double shot of whiskey (double shot of whiskey)\nThey know me and Jack Daniel′s got a history (way back)\nThere's a party downtown near 5th Street (okay, let′s go)\nEverybody at the bar gettin' tipsy (at the bar gettin′ tipsy)\nEverybody at the bar gettin' tipsy (at the bar gettin′ tipsy)\nEverybody at the bar gettin' tipsy\nOne, here comes the two to the three to the four\nWhen it's last call, and they kick us out the door\nIt′s gettin′ kind of late, but the ladies want some more\nOh my, good Lord (tell 'em drinks on me)\nSomeone pour me up a double shot of whiskey (double shot of whiskey)\nThey know me and Jack Daniel′s got a history (way back)\nThere's a party downtown near 5th Street (come on)\nEverybody at the bar gettin′ tipsy (whoo-ooh)\nSomeone pour me up a double shot of whiskey (double shot of double shot of whiskey)\nThey know me and Jack Daniel's got a history (it′s Jack D)\nAt the bottom of a bottle, don't miss me (baby, don't miss me)\nEverybody at the bar gettin′ tipsy (at the bar gettin′ tipsy)\nEverybody at the bar gettin' tipsy\nEverybody at the bar gettin′ tipsy\nThat's fuckin′ messed up, bro, they kicked me out the bar",
-      "selector_used": "__NEXT_DATA__:props.pageProps.data.trackInfo.data.lyrics.body",
+      "song_key": "unknown artist|a bar song (tipsy)",
+      "musixmatch_url": "https://www.musixmatch.com/lyrics/Unknown-Artist/A-Bar-Song-Tipsy",
+      "status": "fallback",
+      "lyrics": "",
+      "selector_used": "",
       "rating_label": "",
       "rating_code": "",
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T01:08:04.935006Z",
-      "error": "",
-      "attempted_urls": [],
+      "updated_at": "2026-04-15T01:40:23.329034Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/A-Bar-Song",
+      "attempted_urls": [
+        "https://www.musixmatch.com/lyrics/Unknown-Artist/A-Bar-Song-Tipsy",
+        "https://www.musixmatch.com/lyrics/Unknown-Artist/A-Bar-Song"
+      ],
       "request_ids": [
         "||https://open.spotify.com/track/7wd9kz7UXhJr8pgdqpzKu5?si=9d38bc6351be4ce4"
       ]
@@ -563,34 +583,36 @@
     "7ywzEdEuVG1lsjsRCGJfLy": {
       "track_id": "7ywzEdEuVG1lsjsRCGJfLy",
       "spotify_url": "https://open.spotify.com/track/7ywzEdEuVG1lsjsRCGJfLy",
-      "artist": "Miley Cyrus",
+      "artist": "Unknown Artist",
       "song": "When I Look At You",
-      "song_key": "miley cyrus|when i look at you",
-      "musixmatch_url": "https://www.musixmatch.com/lyrics/Miley-Cyrus/When-I-Look-At-You",
-      "status": "success",
-      "lyrics": "Everybody needs inspiration\nEverybody needs a song\nA beautiful melody\nWhen the night′s so long\n'Cause there is no guarantee\nThat this life is easy\nYeah, when my world is falling apart\nWhen there′s no light to break up the dark\nThat's when I, I\nI look at you\nWhen the waves\nAre flooding the shore and I can't\nFind my way home anymore\nThat′s when I, I\nI look at you\nWhen I look at you, I see forgiveness\nI see the truth\nYou love me for who I am\nLike the stars hold the moon\nRight there where they belong\nAnd I know I′m not alone\nYeah, when my world is falling apart\nWhen there's no light to break up the dark\nThat′s when I, I\nI look at you\nWhen the waves\nAre flooding the shore and I can't\nFind my way home anymore\nThat′s when I, I\nI look at you\nYou appear just like a dream to me\nJust like Kaleidoscope colors that\nCover me, all I need\nEvery breath that I breathe\nDon't you know you′re beautiful?\nYeah, yeah, yeah\nWhen the waves\nAre flooding the shore and I can't\nFind my way home anymore\nThat's when I, I\nI look at you\nI look at you\nYou appear just like a dream\nTo me",
-      "selector_used": "__NEXT_DATA__:props.pageProps.data.trackInfo.data.lyrics.body",
+      "song_key": "unknown artist|when i look at you",
+      "musixmatch_url": "https://www.musixmatch.com/lyrics/Unknown-Artist/When-I-Look-At-You",
+      "status": "fallback",
+      "lyrics": "",
+      "selector_used": "",
       "rating_label": "",
       "rating_code": "",
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T01:08:05.946574Z",
-      "error": "",
-      "attempted_urls": [],
+      "updated_at": "2026-04-15T01:40:24.131162Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/When-I-Look-At-You",
+      "attempted_urls": [
+        "https://www.musixmatch.com/lyrics/Unknown-Artist/When-I-Look-At-You"
+      ],
       "request_ids": [
         "4/6/2026 15:08:22|noahmathmaster@gmail.com|https://open.spotify.com/track/7ywzEdEuVG1lsjsRCGJfLy?si=75ae6370785b4fe7"
       ]
     }
   },
   "by_song_key": {
-    "sombr|back to friends": {
+    "unknown artist|back to friends": {
       "track_id": "0FTmksd2dxiE5e3rWyJXs6",
       "spotify_url": "https://open.spotify.com/track/0FTmksd2dxiE5e3rWyJXs6",
-      "artist": "sombr",
+      "artist": "Unknown Artist",
       "song": "back to friends",
-      "song_key": "sombr|back to friends",
-      "musixmatch_url": "https://www.musixmatch.com/lyrics/sombr/back-to-friends",
+      "song_key": "unknown artist|back to friends",
+      "musixmatch_url": "https://www.musixmatch.com/lyrics/Unknown-Artist/back-to-friends",
       "status": "fallback",
       "lyrics": "",
       "selector_used": "",
@@ -599,44 +621,22 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T01:07:40.552954Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-15T01:40:04.673130Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/back-to-friends",
       "attempted_urls": [
-        "https://www.musixmatch.com/lyrics/sombr/back-to-friends"
+        "https://www.musixmatch.com/lyrics/Unknown-Artist/back-to-friends"
       ],
       "request_ids": [
         "4/14/2026 10:12:16|noahmathmaster@gmail.com|https://open.spotify.com/track/0FTmksd2dxiE5e3rWyJXs6?si=1049a7bc05e64524"
       ]
     },
-    "the weeknd|blinding lights": {
+    "unknown artist|blinding lights": {
       "track_id": "0VjIjW4GlUZAMYd2vXMi3b",
       "spotify_url": "https://open.spotify.com/track/0VjIjW4GlUZAMYd2vXMi3b",
-      "artist": "The Weeknd",
+      "artist": "Unknown Artist",
       "song": "Blinding Lights",
-      "song_key": "the weeknd|blinding lights",
-      "musixmatch_url": "https://www.musixmatch.com/lyrics/The-Weeknd/Blinding-Lights",
-      "status": "success",
-      "lyrics": "Yeah\nI′ve been tryna call\nI've been on my own for long enough\nMaybe you can show me how to love, maybe\nI′m goin' through withdrawals\nYou don't even have to do too much\nYou can turn me on with just a touch, baby\nI look around and\nSin City′s cold and empty (oh)\nNo one′s around to judge me (oh)\nI can't see clearly when you′re gone\nI said, \"Ooh, I'm blinded by the lights\nNo, I can′t sleep until I feel your touch\"\nI said, \"Ooh, I'm drowning in the night\nOh, when I′m like this, you're the one I trust\"\n(Hey, hey, hey)\nI'm running out of time\n′Cause I can see the sun light up the sky\nSo I hit the road in overdrive, baby, oh\nThe city′s cold and empty (oh)\nNo one's around to judge me (oh)\nI can′t see clearly when you're gone\nI said, \"Ooh, I′m blinded by the lights\nNo, I can't sleep until I feel your touch\"\nI said, \"Ooh, I′m drowning in the night\nOh, when I'm like this, you're the one I trust\"\nI′m just walking by to let you know (by to let you know)\nI could never say it on the phone (say it on the phone)\nWill never let you go this time (ooh)\nI said, \"Ooh, I′m blinded by the lights\nNo, I can't sleep until I feel your touch\"\n(Hey, hey, hey)\n(Hey, hey, hey)\nI said, \"Ooh, I′m blinded by the lights\nNo, I can't sleep until I feel your touch\"",
-      "selector_used": "__NEXT_DATA__:props.pageProps.data.trackInfo.data.lyrics.body",
-      "rating_label": "",
-      "rating_code": "",
-      "rating_reason": "",
-      "rating_selector_used": "",
-      "source": "github-actions-cache",
-      "updated_at": "2026-04-15T01:07:41.662503Z",
-      "error": "",
-      "attempted_urls": [],
-      "request_ids": [
-        "||https://open.spotify.com/track/0VjIjW4GlUZAMYd2vXMi3b"
-      ]
-    },
-    "post malone, 21 savage|rockstar (feat. 21 savage)": {
-      "track_id": "0e7ipj03S05BNilyu5bRzt",
-      "spotify_url": "https://open.spotify.com/track/0e7ipj03S05BNilyu5bRzt",
-      "artist": "Post Malone, 21 Savage",
-      "song": "rockstar (feat. 21 Savage)",
-      "song_key": "post malone, 21 savage|rockstar (feat. 21 savage)",
-      "musixmatch_url": "https://www.musixmatch.com/lyrics/Post-Malone-21-Savage/rockstar-feat-21-Savage",
+      "song_key": "unknown artist|blinding lights",
+      "musixmatch_url": "https://www.musixmatch.com/lyrics/Unknown-Artist/Blinding-Lights",
       "status": "fallback",
       "lyrics": "",
       "selector_used": "",
@@ -645,47 +645,47 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T01:07:42.387281Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-15T01:40:05.477987Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/Blinding-Lights",
       "attempted_urls": [
-        "https://www.musixmatch.com/lyrics/Post-Malone-21-Savage/rockstar-feat-21-Savage",
-        "https://www.musixmatch.com/lyrics/Post-Malone-21-Savage/rockstar",
-        "https://www.musixmatch.com/lyrics/Post-Malone/rockstar-feat-21-Savage",
-        "https://www.musixmatch.com/lyrics/Post-Malone/rockstar"
+        "https://www.musixmatch.com/lyrics/Unknown-Artist/Blinding-Lights"
+      ],
+      "request_ids": [
+        "||https://open.spotify.com/track/0VjIjW4GlUZAMYd2vXMi3b"
+      ]
+    },
+    "unknown artist|rockstar (feat. 21 savage)": {
+      "track_id": "0e7ipj03S05BNilyu5bRzt",
+      "spotify_url": "https://open.spotify.com/track/0e7ipj03S05BNilyu5bRzt",
+      "artist": "Unknown Artist",
+      "song": "rockstar (feat. 21 Savage)",
+      "song_key": "unknown artist|rockstar (feat. 21 savage)",
+      "musixmatch_url": "https://www.musixmatch.com/lyrics/Unknown-Artist/rockstar-feat-21-Savage",
+      "status": "fallback",
+      "lyrics": "",
+      "selector_used": "",
+      "rating_label": "",
+      "rating_code": "",
+      "rating_reason": "",
+      "rating_selector_used": "",
+      "source": "github-actions-cache",
+      "updated_at": "2026-04-15T01:40:06.027817Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/rockstar",
+      "attempted_urls": [
+        "https://www.musixmatch.com/lyrics/Unknown-Artist/rockstar-feat-21-Savage",
+        "https://www.musixmatch.com/lyrics/Unknown-Artist/rockstar"
       ],
       "request_ids": [
         "||https://open.spotify.com/track/0e7ipj03S05BNilyu5bRzt"
       ]
     },
-    "taylor swift|cruel summer": {
+    "unknown artist|cruel summer": {
       "track_id": "1BxfuPKGuaTgP7aM0Bbdwr",
       "spotify_url": "https://open.spotify.com/track/1BxfuPKGuaTgP7aM0Bbdwr",
-      "artist": "Taylor Swift",
+      "artist": "Unknown Artist",
       "song": "Cruel Summer",
-      "song_key": "taylor swift|cruel summer",
-      "musixmatch_url": "https://www.musixmatch.com/lyrics/Taylor-Swift/Cruel-Summer",
-      "status": "success",
-      "lyrics": "(Yeah, yeah, yeah, yeah)\nFever dream high in the quiet of the night\nYou know that I caught it (oh yeah, you′re right, I want it)\nBad, bad boy, shiny toy with a price\nYou know that I bought it (oh yeah, you're right, I want it)\nKilling me slow, out the window\nI′m always waiting for you to be waiting below\nDevils roll the dice, angels roll their eyes\nWhat doesn't kill me makes me want you more\nAnd it's new, the shape of your body\nIt′s blue, the feeling I′ve got\nAnd it's ooh, whoa-oh\nIt′s a cruel summer\n\"It's cool,\" that′s what I tell 'em\nNo rules in breakable heaven\nBut ooh, whoa-oh\nIt′s a cruel summer with you (yeah, yeah)\nHang your head low in the glow of the vending machine\nI'm not dying (oh yeah, you're right, I want it)\nYou say that we′ll just screw it up in these trying times\nWe′re not trying (oh yeah, you're right, I want it)\nSo cut the headlights, summer′s a knife\nI'm always waiting for you just to cut to the bone\nDevils roll the dice, angels roll their eyes\nAnd if I bleed, you′ll be the last to know, oh\nIt's new, the shape of your body\nIt′s blue, the feeling I've got\nAnd it's ooh, whoa-oh\nIt′s a cruel summer\n\"It′s cool,\" that's what I tell ′em\nNo rules in breakable heaven\nBut ooh, whoa-oh\nIt's a cruel summer with you\nI′m drunk in the back of the car\nAnd I cried like a baby coming home from the bar (oh)\nSaid, \"I'm fine,\" but it wasn′t true\nI don't wanna keep secrets just to keep you\nAnd I snuck in through the garden gate\nEvery night that summer, just to seal my fate (oh)\nAnd I screamed, \"For whatever it's worth\nI love you, ain′t that the worst thing you ever heard?\"\nHe looks up, grinnin′ like a devil\nIt's new, the shape of your body\nIt′s blue, the feeling I've got\nAnd it′s ooh, whoa-oh\nIt's a cruel summer\n\"It′s cool,\" that's what I tell 'em\nNo rules in breakable heaven\nBut ooh, whoa-oh\nIt′s a cruel summer with you\nI′m drunk in the back of the car\nAnd I cried like a baby coming home from the bar (oh)\nSaid, \"I'm fine,\" but it wasn′t true\nI don't wanna keep secrets just to keep you\nAnd I snuck in through the garden gate\nEvery night that summer, just to seal my fate (oh)\nAnd I screamed, \"For whatever it′s worth\nI love you, ain't that the worst thing you ever heard?\"\n(Yeah, yeah, yeah, yeah)",
-      "selector_used": "__NEXT_DATA__:props.pageProps.data.trackInfo.data.lyrics.body",
-      "rating_label": "",
-      "rating_code": "",
-      "rating_reason": "",
-      "rating_selector_used": "",
-      "source": "github-actions-cache",
-      "updated_at": "2026-04-15T01:07:44.672607Z",
-      "error": "",
-      "attempted_urls": [],
-      "request_ids": [
-        "||https://open.spotify.com/track/1BxfuPKGuaTgP7aM0Bbdwr"
-      ]
-    },
-    "green day|brain stew": {
-      "track_id": "1nLnpLXvl68RZCSjfkyiaa",
-      "spotify_url": "https://open.spotify.com/track/1nLnpLXvl68RZCSjfkyiaa",
-      "artist": "Green Day",
-      "song": "Brain Stew",
-      "song_key": "green day|brain stew",
-      "musixmatch_url": "https://www.musixmatch.com/lyrics/Green-Day/Brain-Stew",
+      "song_key": "unknown artist|cruel summer",
+      "musixmatch_url": "https://www.musixmatch.com/lyrics/Unknown-Artist/Cruel-Summer",
       "status": "fallback",
       "lyrics": "",
       "selector_used": "",
@@ -694,22 +694,46 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T01:07:45.333789Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-15T01:40:06.977359Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/Cruel-Summer",
       "attempted_urls": [
-        "https://www.musixmatch.com/lyrics/Green-Day/Brain-Stew"
+        "https://www.musixmatch.com/lyrics/Unknown-Artist/Cruel-Summer"
+      ],
+      "request_ids": [
+        "||https://open.spotify.com/track/1BxfuPKGuaTgP7aM0Bbdwr"
+      ]
+    },
+    "unknown artist|brain stew": {
+      "track_id": "1nLnpLXvl68RZCSjfkyiaa",
+      "spotify_url": "https://open.spotify.com/track/1nLnpLXvl68RZCSjfkyiaa",
+      "artist": "Unknown Artist",
+      "song": "Brain Stew",
+      "song_key": "unknown artist|brain stew",
+      "musixmatch_url": "https://www.musixmatch.com/lyrics/Unknown-Artist/Brain-Stew",
+      "status": "fallback",
+      "lyrics": "",
+      "selector_used": "",
+      "rating_label": "",
+      "rating_code": "",
+      "rating_reason": "",
+      "rating_selector_used": "",
+      "source": "github-actions-cache",
+      "updated_at": "2026-04-15T01:40:07.642293Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/Brain-Stew",
+      "attempted_urls": [
+        "https://www.musixmatch.com/lyrics/Unknown-Artist/Brain-Stew"
       ],
       "request_ids": [
         "4/8/2026 8:27:14|mjrivera007@gmail.com|https://open.spotify.com/track/1nLnpLXvl68RZCSjfkyiaa?si=S-pT1LUdQvubX7bE0F2gHw&nd=1&utm_medium=organic&_branch_referrer=H4sIAAAAAAAAA7WNUQuCMBzEP818S1PDIhgRlfTgS1kQvcTUTZdzG%2F9tSS999lbQRwgODu7H3XXWarOMIqOV5ewZEq1DwWUfrTSoxtUWK01lgJIZc0LcHAjcfSooXaMk9%2Frg8Neu1eAjC6TuvceykLq4PES2OF435Z31T04ISnPDUbotJ%2FoUF%2Bfm8HDVZV7tpnnS7sfvExGi8hP%2Ff0NJJhtP44BRYh1QrKAlktfBCyijAFy2twrUaCjgTQdqoG%2BUONfeMQEAAA%3D%3D&product=open&%24full_url=https%3A%2F%2Fopen.spotify.com%2Ftrack%2F1nLnpLXvl68RZCSjfkyiaa%3Fsi%3DS-pT1LUdQvubX7bE0F2gHw&feature=organic&_branch_match_id=1484302801022976536"
       ]
     },
-    "drake, wizkid, kyla|one dance": {
+    "unknown artist|one dance": {
       "track_id": "1zi7xx7UVEFkmKfv06H8x0",
       "spotify_url": "https://open.spotify.com/track/1zi7xx7UVEFkmKfv06H8x0",
-      "artist": "Drake, Wizkid, Kyla",
+      "artist": "Unknown Artist",
       "song": "One Dance",
-      "song_key": "drake, wizkid, kyla|one dance",
-      "musixmatch_url": "https://www.musixmatch.com/lyrics/Drake-Wizkid-Kyla/One-Dance",
+      "song_key": "unknown artist|one dance",
+      "musixmatch_url": "https://www.musixmatch.com/lyrics/Unknown-Artist/One-Dance",
       "status": "fallback",
       "lyrics": "",
       "selector_used": "",
@@ -718,45 +742,22 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T01:07:47.910092Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-15T01:40:08.945992Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/One-Dance",
       "attempted_urls": [
-        "https://www.musixmatch.com/lyrics/Drake-Wizkid-Kyla/One-Dance",
-        "https://www.musixmatch.com/lyrics/Drake/One-Dance"
+        "https://www.musixmatch.com/lyrics/Unknown-Artist/One-Dance"
       ],
       "request_ids": [
         "||https://open.spotify.com/track/1zi7xx7UVEFkmKfv06H8x0"
       ]
     },
-    "billie eilish|bad guy": {
+    "unknown artist|bad guy": {
       "track_id": "2Fxmhks0bxGSBdJ92vM42m",
       "spotify_url": "https://open.spotify.com/track/2Fxmhks0bxGSBdJ92vM42m",
-      "artist": "Billie Eilish",
+      "artist": "Unknown Artist",
       "song": "bad guy",
-      "song_key": "billie eilish|bad guy",
-      "musixmatch_url": "https://www.musixmatch.com/lyrics/Billie-Eilish/bad-guy",
-      "status": "success",
-      "lyrics": "My Invisalign has funny\nI have taken out my Invisalign\nI have taken out my Invisalign, and this is the album\nWhite shirt now red, my bloody nose\nSleepin′, you're on your tippy-toes\nCreepin′ around like no one knows\nThink you're so criminal\nBruises on both my knees for you\nDon't say thank you or please\nI do what I want when I′m wanting to\nMy soul, so cynical\nSo you′re a tough guy, like it really rough guy?\nJust can't get enough guy, chest always so puffed guy\nI′m that bad type, make your mama sad type\nMake your girlfriend mad tight, might seduce your dad type\nI'm the bad guy, duh\nI′m the bad guy\nI like it when you take control\nEven if you know that you don't own me\nI′ll let you play the role\nI'll be your animal\nMy mommy likes to sing along with me\nBut she won't sing this song\nIf she reads all the lyrics\nShe′ll pity the men I know\nSo you′re a tough guy, like it really rough guy\nJust can't get enough guy, chest always so puffed guy\nI′m that bad type, make your mama sad type\nMake your girlfriend mad tight, might seduce your dad type\nI'm the bad guy, duh\nI′m the bad guy, duh\nI'm only good at bein′ bad, bad\nI like when you get mad\nI guess I'm pretty glad that you're alone\nYou said she′s scared of me? I mean, I don′t see what she sees\nBut maybe it's ′cause I'm wearing your cologne\nI′m a bad guy\nI'm, I′m a bad guy (bad guy, bad guy)\nI'm a bad—",
-      "selector_used": "__NEXT_DATA__:props.pageProps.data.trackInfo.data.lyrics.body",
-      "rating_label": "",
-      "rating_code": "",
-      "rating_reason": "",
-      "rating_selector_used": "",
-      "source": "github-actions-cache",
-      "updated_at": "2026-04-15T01:07:49.550162Z",
-      "error": "",
-      "attempted_urls": [],
-      "request_ids": [
-        "||https://open.spotify.com/track/2Fxmhks0bxGSBdJ92vM42m"
-      ]
-    },
-    "eminem|the real slim shady": {
-      "track_id": "2WXUcFnJPPATncUkPYC54v",
-      "spotify_url": "https://open.spotify.com/track/2WXUcFnJPPATncUkPYC54v",
-      "artist": "Eminem",
-      "song": "The Real Slim Shady",
-      "song_key": "eminem|the real slim shady",
-      "musixmatch_url": "https://www.musixmatch.com/lyrics/Eminem/The-Real-Slim-Shady",
+      "song_key": "unknown artist|bad guy",
+      "musixmatch_url": "https://www.musixmatch.com/lyrics/Unknown-Artist/bad-guy",
       "status": "fallback",
       "lyrics": "",
       "selector_used": "",
@@ -765,88 +766,46 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T01:07:50.688724Z",
-      "error": "Lyrics element not found or extracted text was too short.",
+      "updated_at": "2026-04-15T01:40:09.373300Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/bad-guy",
       "attempted_urls": [
-        "https://www.musixmatch.com/lyrics/Eminem/The-Real-Slim-Shady"
+        "https://www.musixmatch.com/lyrics/Unknown-Artist/bad-guy"
+      ],
+      "request_ids": [
+        "||https://open.spotify.com/track/2Fxmhks0bxGSBdJ92vM42m"
+      ]
+    },
+    "unknown artist|the real slim shady": {
+      "track_id": "2WXUcFnJPPATncUkPYC54v",
+      "spotify_url": "https://open.spotify.com/track/2WXUcFnJPPATncUkPYC54v",
+      "artist": "Unknown Artist",
+      "song": "The Real Slim Shady",
+      "song_key": "unknown artist|the real slim shady",
+      "musixmatch_url": "https://www.musixmatch.com/lyrics/Unknown-Artist/The-Real-Slim-Shady",
+      "status": "fallback",
+      "lyrics": "",
+      "selector_used": "",
+      "rating_label": "",
+      "rating_code": "",
+      "rating_reason": "",
+      "rating_selector_used": "",
+      "source": "github-actions-cache",
+      "updated_at": "2026-04-15T01:40:10.092650Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/The-Real-Slim-Shady",
+      "attempted_urls": [
+        "https://www.musixmatch.com/lyrics/Unknown-Artist/The-Real-Slim-Shady"
       ],
       "request_ids": [
         "4/8/2026 8:33:11|mjrivera007@gmail.com|https://open.spotify.com/track/2WXUcFnJPPATncUkPYC54v?si=OO8kihmbQWaIViGf9KRALA"
       ]
     },
-    "tones and i|dance monkey": {
+    "unknown artist|dance monkey": {
       "track_id": "2XU0oxnq2qxCpomAAuJY8K",
       "spotify_url": "https://open.spotify.com/track/2XU0oxnq2qxCpomAAuJY8K",
-      "artist": "Tones And I",
+      "artist": "Unknown Artist",
       "song": "Dance Monkey",
-      "song_key": "tones and i|dance monkey",
-      "musixmatch_url": "https://www.musixmatch.com/lyrics/Tones-And-I/Dance-Monkey",
-      "status": "success",
-      "lyrics": "They say, \"Oh my God, I see the way you shine\nTake your hand, my dear, and place them both in mine\"\nYou know you stopped me dead while I was passing by\nAnd now I beg to see you dance just one more time\nOoh, I see you, see you, see you every time\nAnd oh my, I, I, I like your style\nYou, you make me, make me, make me wanna cry\nAnd now I beg to see you dance just one more time\nSo they say, \"Dance for me, dance for me, dance for me, oh\nI′ve never seen anybody do the things you do before\"\nThey say, \"Move for me, move for me, move for me, ay\nAnd when you're done, I′ll make you do it all again\"\nI said, \"Oh my God, I see you walking by\nTake my hands, my dear, and look me in my eyes\"\nJust like a monkey, I've been dancin' my whole life\nBut you just beg to see me dance just one more time\nOoh, I see you, see you, see you every time\nAnd oh my, I, I, I like your style\nYou, you make me, make me, make me wanna cry\nAnd now I beg to see you dance just one more time\nSo they say, \"Dance for me, dance for me, dance for me, oh\nI′ve never seen anybody do the things you do before\"\nThey say, \"Move for me, move for me, move for me, ay\nAnd when you′re done, I'll make you do it all again\"\nThey say, \"Dance for me, dance for me, dance for me, oh, oh, oh\nI′ve never seen anybody do the things you do before\"\nThey say, \"Move for me, move for me, move for me, ay\nAnd when you're done, I′ll make you do it all again\"\nOoh, ooh, ooh, ooh, ooh (do it all again, do it all again, do it all again)\nWhoa, whoa, oh\nOoh, ooh, ooh, ooh, ooh-ooh (do it all again, do it all again, do it all again)\nWhoa, ah\nThey say, \"Dance for me, dance for me, dance for me, oh\nI've never seen anybody do the things you do before\"\nThey say, \"Move for me, move for me, move for me, ay\nAnd when you′re done, I'll make you do it all again\"\nThey say, \"Dance for me, dance for me, dance for me, oh, oh, oh\nI've never seen anybody do the things you do before\"\nThey say, \"Move for me, move for me, move for me, ay (ooh)\nAnd when you′re done, I′ll make you do it all again\"\nAll again",
-      "selector_used": "__NEXT_DATA__:props.pageProps.data.trackInfo.data.lyrics.body",
-      "rating_label": "",
-      "rating_code": "",
-      "rating_reason": "",
-      "rating_selector_used": "",
-      "source": "github-actions-cache",
-      "updated_at": "2026-04-15T01:07:51.485253Z",
-      "error": "",
-      "attempted_urls": [],
-      "request_ids": [
-        "||https://open.spotify.com/track/2XU0oxnq2qxCpomAAuJY8K"
-      ]
-    },
-    "muse|time is running out": {
-      "track_id": "2takcwOaAZWiXQijPHIx7B",
-      "spotify_url": "https://open.spotify.com/track/2takcwOaAZWiXQijPHIx7B",
-      "artist": "Muse",
-      "song": "Time is Running Out",
-      "song_key": "muse|time is running out",
-      "musixmatch_url": "https://www.musixmatch.com/lyrics/Muse/Time-is-Running-Out",
-      "status": "success",
-      "lyrics": "I think I′m drowning, asphyxiated\nI wanna break this spell that you've created\nYou′re something beautiful, a contradiction\nI wanna play the game, I want the friction\nAnd you will be the death of me\nYeah, you will be the death of me\nBury it\nI won't let you bury it\nI won't let you smother it\nI won′t let you murder it\nAnd our time is running out\nBut our time is running out\nYou can′t push it underground\nYou can't stop it screaming out\nI wanted freedom, bound and restricted\nI tried to give you up, but I′m addicted\nNow that you know I'm trapped, sense of elation\nYou′d never dream of breaking this fixation\nAnd you will squeeze the life out of me\nAnd bury it\nI won't let you bury it\nI won′t let you smother it\nI won't let you murder it\nAnd our time is running out\nBut our time is running out\nYou can't push it underground\nYou can′t stop it screaming out\nHow did it come to this?\nOoh, yeah, yeah, yeah, yeah, yeah\nOoh, yeah, yeah, yeah, yeah, yeah\nOoh, yeah, yeah, yeah, yeah, yeah\nYeah, you will suck the life out of me\nBury it\nI won′t let you bury it\nI won't let you smother it\nI won′t let you murder it\nAnd our time is running out\nAnd our time is running out\nYou can't push it underground\nYou can′t stop it screaming out\nHow did it come to this?\nOoh, yeah, yeah, yeah, yeah, yeah\nOoh, yeah, yeah, yeah, yeah, yeah\nOoh, yeah, yeah, yeah, yeah, yeah",
-      "selector_used": "__NEXT_DATA__:props.pageProps.data.trackInfo.data.lyrics.body",
-      "rating_label": "",
-      "rating_code": "",
-      "rating_reason": "",
-      "rating_selector_used": "",
-      "source": "github-actions-cache",
-      "updated_at": "2026-04-15T01:07:52.481529Z",
-      "error": "",
-      "attempted_urls": [],
-      "request_ids": [
-        "||https://open.spotify.com/track/2takcwOaAZWiXQijPHIx7B"
-      ]
-    },
-    "dua lipa|don't start now": {
-      "track_id": "3PfIrDoz19wz7qK7tYeu62",
-      "spotify_url": "https://open.spotify.com/track/3PfIrDoz19wz7qK7tYeu62",
-      "artist": "Dua Lipa",
-      "song": "Don't Start Now",
-      "song_key": "dua lipa|don't start now",
-      "musixmatch_url": "https://www.musixmatch.com/lyrics/Dua-Lipa/Don-t-Start-Now",
-      "status": "success",
-      "lyrics": "If you don′t wanna see me\nDid a full 180, crazy\nThinking 'bout the way I was\nDid the heartbreak change me? Maybe\nBut look at where I ended up\nI′m all good already, so moved on, it's scary\nI'm not where you left me at all, so\nIf you don′t wanna see me dancing with somebody\nIf you wanna believe that anything could stop me\nDon′t show up, don't come out\nDon′t start caring about me now\nWalk away, you know how\nDon't start caring about me now\nAren′t you the guy who tried to\nHurt me with the word \"goodbye\"?\nThough it took some time to survive you\nI'm better on the other side\nI′m all good already\nSo moved on, it's scary\nI'm not where you left me at all, so\nIf you don′t wanna see me dancing with somebody\nIf you wanna believe that anything could stop me\n(Don′t, don't, don′t)\nDon't show up, don′t come out\nDon't start caring about me now\nWalk away, you know how\nDon′t start caring about me now ('bout me now, 'bout me)\nUp, up, don′t come out, out, out\nDon′t show up, up, up, don't start now (oh)\nUp, up, don′t come out, out\nI'm not where you left me at all, so\nIf you don′t wanna see me dancing with somebody\nIf you wanna believe that anything could stop me\nDon't show up (don′t show up), don't come out (don't come out)\nDon′t start caring about me now (′bout me now)\nWalk away (walk away), you know how (you know how)\nDon't start caring about me now (so)\nUp, up, don′t come out, out, out\nDon't show up, up, up, walk away, walk away (so)\nUp, up, don′t come out, out, out\nDon't show up, up, up, walk away, walk away, oh",
-      "selector_used": "__NEXT_DATA__:props.pageProps.data.trackInfo.data.lyrics.body",
-      "rating_label": "",
-      "rating_code": "",
-      "rating_reason": "",
-      "rating_selector_used": "",
-      "source": "github-actions-cache",
-      "updated_at": "2026-04-15T01:07:53.338747Z",
-      "error": "",
-      "attempted_urls": [],
-      "request_ids": [
-        "||https://open.spotify.com/track/3PfIrDoz19wz7qK7tYeu62"
-      ]
-    },
-    "cardi b, megan thee stallion|wap (feat. megan thee stallion)": {
-      "track_id": "4Oun2ylbjFKMPTiaSbbCih",
-      "spotify_url": "https://open.spotify.com/track/4Oun2ylbjFKMPTiaSbbCih",
-      "artist": "Cardi B, Megan Thee Stallion",
-      "song": "WAP (feat. Megan Thee Stallion)",
-      "song_key": "cardi b, megan thee stallion|wap (feat. megan thee stallion)",
-      "musixmatch_url": "https://www.musixmatch.com/lyrics/Cardi-B-Megan-Thee-Stallion/WAP-feat-Megan-Thee-Stallion",
+      "song_key": "unknown artist|dance monkey",
+      "musixmatch_url": "https://www.musixmatch.com/lyrics/Unknown-Artist/Dance-Monkey",
       "status": "fallback",
       "lyrics": "",
       "selector_used": "",
@@ -855,47 +814,95 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T01:07:54.117203Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-15T01:40:10.799548Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/Dance-Monkey",
       "attempted_urls": [
-        "https://www.musixmatch.com/lyrics/Cardi-B-Megan-Thee-Stallion/WAP-feat-Megan-Thee-Stallion",
-        "https://www.musixmatch.com/lyrics/Cardi-B-Megan-Thee-Stallion/WAP",
-        "https://www.musixmatch.com/lyrics/Cardi-B/WAP-feat-Megan-Thee-Stallion",
-        "https://www.musixmatch.com/lyrics/Cardi-B/WAP"
+        "https://www.musixmatch.com/lyrics/Unknown-Artist/Dance-Monkey"
+      ],
+      "request_ids": [
+        "||https://open.spotify.com/track/2XU0oxnq2qxCpomAAuJY8K"
+      ]
+    },
+    "unknown artist|time is running out": {
+      "track_id": "2takcwOaAZWiXQijPHIx7B",
+      "spotify_url": "https://open.spotify.com/track/2takcwOaAZWiXQijPHIx7B",
+      "artist": "Unknown Artist",
+      "song": "Time is Running Out",
+      "song_key": "unknown artist|time is running out",
+      "musixmatch_url": "https://www.musixmatch.com/lyrics/Unknown-Artist/Time-is-Running-Out",
+      "status": "fallback",
+      "lyrics": "",
+      "selector_used": "",
+      "rating_label": "",
+      "rating_code": "",
+      "rating_reason": "",
+      "rating_selector_used": "",
+      "source": "github-actions-cache",
+      "updated_at": "2026-04-15T01:40:11.817833Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/Time-is-Running-Out",
+      "attempted_urls": [
+        "https://www.musixmatch.com/lyrics/Unknown-Artist/Time-is-Running-Out"
+      ],
+      "request_ids": [
+        "||https://open.spotify.com/track/2takcwOaAZWiXQijPHIx7B"
+      ]
+    },
+    "unknown artist|don't start now": {
+      "track_id": "3PfIrDoz19wz7qK7tYeu62",
+      "spotify_url": "https://open.spotify.com/track/3PfIrDoz19wz7qK7tYeu62",
+      "artist": "Unknown Artist",
+      "song": "Don't Start Now",
+      "song_key": "unknown artist|don't start now",
+      "musixmatch_url": "https://www.musixmatch.com/lyrics/Unknown-Artist/Don-t-Start-Now",
+      "status": "fallback",
+      "lyrics": "",
+      "selector_used": "",
+      "rating_label": "",
+      "rating_code": "",
+      "rating_reason": "",
+      "rating_selector_used": "",
+      "source": "github-actions-cache",
+      "updated_at": "2026-04-15T01:40:12.711563Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/Don-t-Start-Now",
+      "attempted_urls": [
+        "https://www.musixmatch.com/lyrics/Unknown-Artist/Don-t-Start-Now"
+      ],
+      "request_ids": [
+        "||https://open.spotify.com/track/3PfIrDoz19wz7qK7tYeu62"
+      ]
+    },
+    "unknown artist|wap (feat. megan thee stallion)": {
+      "track_id": "4Oun2ylbjFKMPTiaSbbCih",
+      "spotify_url": "https://open.spotify.com/track/4Oun2ylbjFKMPTiaSbbCih",
+      "artist": "Unknown Artist",
+      "song": "WAP (feat. Megan Thee Stallion)",
+      "song_key": "unknown artist|wap (feat. megan thee stallion)",
+      "musixmatch_url": "https://www.musixmatch.com/lyrics/Unknown-Artist/WAP-feat-Megan-Thee-Stallion",
+      "status": "fallback",
+      "lyrics": "",
+      "selector_used": "",
+      "rating_label": "",
+      "rating_code": "",
+      "rating_reason": "",
+      "rating_selector_used": "",
+      "source": "github-actions-cache",
+      "updated_at": "2026-04-15T01:40:13.956168Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/WAP",
+      "attempted_urls": [
+        "https://www.musixmatch.com/lyrics/Unknown-Artist/WAP-feat-Megan-Thee-Stallion",
+        "https://www.musixmatch.com/lyrics/Unknown-Artist/WAP"
       ],
       "request_ids": [
         "||https://open.spotify.com/track/4Oun2ylbjFKMPTiaSbbCih"
       ]
     },
-    "billie eilish|happier than ever": {
+    "unknown artist|happier than ever": {
       "track_id": "4RVwu0g32PAqgUiJoXsdF8",
       "spotify_url": "https://open.spotify.com/track/4RVwu0g32PAqgUiJoXsdF8",
-      "artist": "Billie Eilish",
+      "artist": "Unknown Artist",
       "song": "Happier Than Ever",
-      "song_key": "billie eilish|happier than ever",
-      "musixmatch_url": "https://www.musixmatch.com/lyrics/Billie-Eilish/Happier-Than-Ever",
-      "status": "success",
-      "lyrics": "When I′m away from you\nI'm happier than ever\nWish I could explain it better\nI wish it wasn′t true\nGive me a day or two\nTo think of something clever\nTo write myself a letter\nTo tell me what to do, mm-mm\nDo you read my interviews?\nOr do you skip my avenue? (My avenue)\nWhen you (when you) said you were passing through\nWas I even on your way?\nI knew when I asked you to (when I asked you to)\nBe cool about what I was telling you\nYou'd do the opposite of what you said you'd do (what you said you′d do)\nAnd I′d end up more afraid\nDon't say it isn′t fair\nYou clearly weren't aware that you made me miserable\nSo if you really wanna know\nWhen I′m away from you (when I'm away from you)\nI′m happier than ever (happier than ever)\nWish I could explain it better (wish I could explain it better)\nI wish it wasn't true (wish it wasn't true), mm-hm\nYou call me again, drunk in your Benz\nDriving home under the influence\nYou scared me to death, but I′m wasting my breath\n′Cause you only listen to your fucking friends\nI don't relate to you\nI don′t relate to you, no\n'Cause I′d never treat me this shitty\nYou made me hate this city\nAnd I don't talk shit about you on the internet\nNever told anyone anything bad\n′Cause that shit's embarrassing, you were my everything\nAnd all that you did was make me fucking sad\nSo don't waste the time I don′t have\nAnd don′t try to make me feel bad\nI could talk about every time that you showed up on time\nBut I'd have an empty line ′cause you never did\nNever paid any mind to my mother or friends\nSo I shut 'em all out for you ′cause I was a kid\nYou ruined everything good\nAlways said you were misunderstood\nMade all my moments your own\nJust fucking leave me alone, whoa, yeah",
-      "selector_used": "__NEXT_DATA__:props.pageProps.data.trackInfo.data.lyrics.body",
-      "rating_label": "",
-      "rating_code": "",
-      "rating_reason": "",
-      "rating_selector_used": "",
-      "source": "github-actions-cache",
-      "updated_at": "2026-04-15T01:07:56.654288Z",
-      "error": "",
-      "attempted_urls": [],
-      "request_ids": [
-        "||https://open.spotify.com/track/4RVwu0g32PAqgUiJoXsdF8"
-      ]
-    },
-    "eduard abramyan, sona shaboyan|prelude for piano no. 11 in f-sharp minor": {
-      "track_id": "4iV5W9uYEdYUVa79Axb7Rh",
-      "spotify_url": "https://open.spotify.com/track/4iV5W9uYEdYUVa79Axb7Rh",
-      "artist": "Eduard Abramyan, Sona Shaboyan",
-      "song": "Prelude for Piano No. 11 in F-Sharp Minor",
-      "song_key": "eduard abramyan, sona shaboyan|prelude for piano no. 11 in f-sharp minor",
-      "musixmatch_url": "https://www.musixmatch.com/lyrics/Eduard-Abramyan-Sona-Shaboyan/Prelude-for-Piano-No-11-in-F-Sharp-Minor",
+      "song_key": "unknown artist|happier than ever",
+      "musixmatch_url": "https://www.musixmatch.com/lyrics/Unknown-Artist/Happier-Than-Ever",
       "status": "fallback",
       "lyrics": "",
       "selector_used": "",
@@ -904,11 +911,34 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T01:07:57.749117Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-15T01:40:14.713910Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/Happier-Than-Ever",
       "attempted_urls": [
-        "https://www.musixmatch.com/lyrics/Eduard-Abramyan-Sona-Shaboyan/Prelude-for-Piano-No-11-in-F-Sharp-Minor",
-        "https://www.musixmatch.com/lyrics/Eduard-Abramyan/Prelude-for-Piano-No-11-in-F-Sharp-Minor"
+        "https://www.musixmatch.com/lyrics/Unknown-Artist/Happier-Than-Ever"
+      ],
+      "request_ids": [
+        "||https://open.spotify.com/track/4RVwu0g32PAqgUiJoXsdF8"
+      ]
+    },
+    "unknown artist|prelude for piano no. 11 in f-sharp minor": {
+      "track_id": "4iV5W9uYEdYUVa79Axb7Rh",
+      "spotify_url": "https://open.spotify.com/track/4iV5W9uYEdYUVa79Axb7Rh",
+      "artist": "Unknown Artist",
+      "song": "Prelude for Piano No. 11 in F-Sharp Minor",
+      "song_key": "unknown artist|prelude for piano no. 11 in f-sharp minor",
+      "musixmatch_url": "https://www.musixmatch.com/lyrics/Unknown-Artist/Prelude-for-Piano-No-11-in-F-Sharp-Minor",
+      "status": "fallback",
+      "lyrics": "",
+      "selector_used": "",
+      "rating_label": "",
+      "rating_code": "",
+      "rating_reason": "",
+      "rating_selector_used": "",
+      "source": "github-actions-cache",
+      "updated_at": "2026-04-15T01:40:15.880277Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/Prelude-for-Piano-No-11-in-F-Sharp-Minor",
+      "attempted_urls": [
+        "https://www.musixmatch.com/lyrics/Unknown-Artist/Prelude-for-Piano-No-11-in-F-Sharp-Minor"
       ],
       "request_ids": [
         "||https://open.spotify.com/track/4iV5W9uYEdYUVa79Axb7Rh"
@@ -929,8 +959,8 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T01:07:59.093568Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-15T01:40:16.695939Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Skit/Paul",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Skit/Paul"
       ],
@@ -938,13 +968,13 @@
         "4/14/2026 10:11:01|colton.sharpsconsulting@gmail.com|https://open.spotify.com/track/4nUmIR26ipSnEPlgNsRBWk?si=7eATXqClSQ-dOI27sghX9A&nd=1&utm_medium=organic&_branch_referrer=H4sIAAAAAAAAA7WN3QqCMBzFn2bepTTFKJAwS%2Bim78i7WDrncG7rv43opmdvBT1CcODA%2BXHO6azVZhZFRivL22dItA4Fl30016AaV9tMaSoDhJPWCXF1ILLuU0FxjnDp9cHhr12rwUcWSN17T%2BR5WB9wyvVRrnaCbcxhcelRXBqO4uWE5qfqXojjftRs13hiWFdN8%2B8TEeLmJ%2F7%2FhnAqG0%2FHQUuJdUAzBYxIXgcvoC0F4JJdb6AehkJWdKAG%2BgYM70KAMQEAAA%3D%3D&product=open&%24full_url=https%3A%2F%2Fopen.spotify.com%2Ftrack%2F4nUmIR26ipSnEPlgNsRBWk%3Fsi%3D7eATXqClSQ-dOI27sghX9A&feature=organic&_branch_match_id=1572647660768721821"
       ]
     },
-    "drake|god's plan": {
+    "unknown artist|god's plan": {
       "track_id": "6DCZcSspjsKoFjzjrWoCdn",
       "spotify_url": "https://open.spotify.com/track/6DCZcSspjsKoFjzjrWoCdn",
-      "artist": "Drake",
+      "artist": "Unknown Artist",
       "song": "God's Plan",
-      "song_key": "drake|god's plan",
-      "musixmatch_url": "https://www.musixmatch.com/lyrics/Drake/God-s-Plan",
+      "song_key": "unknown artist|god's plan",
+      "musixmatch_url": "https://www.musixmatch.com/lyrics/Unknown-Artist/God-s-Plan",
       "status": "fallback",
       "lyrics": "",
       "selector_used": "",
@@ -953,165 +983,180 @@
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T01:08:00.085575Z",
-      "error": "Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.",
+      "updated_at": "2026-04-15T01:40:17.294236Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/God-s-Plan",
       "attempted_urls": [
-        "https://www.musixmatch.com/lyrics/Drake/God-s-Plan"
+        "https://www.musixmatch.com/lyrics/Unknown-Artist/God-s-Plan"
       ],
       "request_ids": [
         "||https://open.spotify.com/track/6DCZcSspjsKoFjzjrWoCdn"
       ]
     },
-    "harry styles|watermelon sugar": {
+    "unknown artist|watermelon sugar": {
       "track_id": "6UelLqGlWMcVH1E5c4H7lY",
       "spotify_url": "https://open.spotify.com/track/6UelLqGlWMcVH1E5c4H7lY",
-      "artist": "Harry Styles",
+      "artist": "Unknown Artist",
       "song": "Watermelon Sugar",
-      "song_key": "harry styles|watermelon sugar",
-      "musixmatch_url": "https://www.musixmatch.com/lyrics/Harry-Styles/Watermelon-Sugar",
-      "status": "success",
-      "lyrics": "Tastes like strawberries on a summer evenin′\nAnd it sounds just like a song\nI want more berries and that summer feelin'\nIt′s so wonderful and warm\nBreathe me in, breathe me out\nI don't know if I could ever go without\nI'm just thinking out loud\nI don′t know if I could ever go without\nWatermelon sugar high, watermelon sugar high\nWatermelon sugar high, watermelon sugar high\nWatermelon sugar\nStrawberries on a summer evenin′\nBaby, you're the end of June\nI want your belly and that summer feelin′\nGetting washed away in you\nBreathe me in, breathe me out\nI don't know if I could ever go without\nWatermelon sugar high, watermelon sugar high\nWatermelon sugar high, watermelon sugar high\nWatermelon sugar high, watermelon sugar high\nWatermelon sugar high, watermelon sugar high\nI just wanna taste it, I just wanna taste it\nWatermelon sugar high\nTastes like strawberries on a summer evenin′\nAnd it sounds just like a song\nI want your belly and that summer feelin'\nI don′t know if I could ever go without\nWatermelon sugar high, watermelon sugar high\nWatermelon sugar (sugar) high, watermelon sugar high (sugar)\nWatermelon sugar high, watermelon sugar high\nWatermelon sugar high, watermelon sugar high\nI just wanna taste it, I just wanna taste it (yeah)\nWatermelon sugar high\nI just wanna taste it, I just wanna taste it\nWatermelon sugar high, watermelon sugar",
-      "selector_used": "__NEXT_DATA__:props.pageProps.data.trackInfo.data.lyrics.body",
+      "song_key": "unknown artist|watermelon sugar",
+      "musixmatch_url": "https://www.musixmatch.com/lyrics/Unknown-Artist/Watermelon-Sugar",
+      "status": "fallback",
+      "lyrics": "",
+      "selector_used": "",
       "rating_label": "",
       "rating_code": "",
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T01:08:01.132036Z",
-      "error": "",
-      "attempted_urls": [],
+      "updated_at": "2026-04-15T01:40:18.060472Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/Watermelon-Sugar",
+      "attempted_urls": [
+        "https://www.musixmatch.com/lyrics/Unknown-Artist/Watermelon-Sugar"
+      ],
       "request_ids": [
         "||https://open.spotify.com/track/6UelLqGlWMcVH1E5c4H7lY"
       ]
     },
-    "bruno mars|24k magic": {
+    "unknown artist|24k magic": {
       "track_id": "6b8Be6ljOzmkOmFslEb23P",
       "spotify_url": "https://open.spotify.com/track/6b8Be6ljOzmkOmFslEb23P",
-      "artist": "Bruno Mars",
+      "artist": "Unknown Artist",
       "song": "24K Magic",
-      "song_key": "bruno mars|24k magic",
-      "musixmatch_url": "https://www.musixmatch.com/lyrics/Bruno-Mars/24K-Magic",
-      "status": "success",
-      "lyrics": "Tonight\nI just want to take you higher\nThrow your hands up in the sky\nLet′s set this party off right\nPlayers\nPut your pinky rings up to the moon\nGirls, what y'all trying to do?\n24-karat magic in the air\nHead to toe, so player, uh, look out, uh\nPop-pop, it′s showtime (showtime)\nShow time (show time)\nGuess who's back again?\nOh, they don't know? (Go on, tell ′em)\nOh, they don′t know? (Go on, tell 'em)\nI bet they know soon as we walk in (sure ′nough)\nI'm wearing Cuban links (yeah)\nDesigner minks (yeah)\nInglewood′s finest shoes (whoop, whoop)\nDon't look too hard, might hurt yourself\nKnown to give the colour red the blues\nOoh, shit\nI′m a dangerous man\nWith some money in my pocket (keep up, whoop)\nSo many pretty girls around me\nAnd they waking up the rocket (keep up, whoop)\nWhy you mad? Fix your face\nAin't my fault that y'all be jocking (keep up, whoop)\nPlayers only, come on\nPut your pinky rings up to the moon\nGirls, what y′all trying to do?\n24-karat magic in the air\nHead to toe, so player, uh, look out, uh\nSecond verse for the hustlas (hustlas)\nGangstas (gangstas)\nBad bitches and your ugly ass friends (haha)\nCan I preach? (Uh-oh)\nCan I preach? (Uh-oh)\nI gotta show ′em how a pimp get it in\nFirst, take your sip (sip)\nDo your dip (dip)\nSpend your money like money ain't shit\nOoh-ooh (we too fresh)\nGot to blame in on Jesus (hashtag blessed)\nThey ain′t ready for me, uh (whoo)\nI'm a dangerous man\nWith some money in my pocket (keep up, whoop)\nSo many pretty girls around me\nAnd they waking up the rocket (keep up, whoop)\nWhy you mad? Fix your face\nAin′t my fault that y'all be jocking (keep up, whoop)\nPlayers only, come on\nPut your pinky rings up to the moon (whoo)\nHey girls, what y′all tryin' to do? (What y'all tryin′ to do?)\n24-karat magic in the air (air, air)\nHead to toe, so player, ooh, ooh, look out, uh\n(Whoop!) Everywhere I go they be like, \"Ooh, so player\"\n(Whoop!) Everywhere I go they be like, \"Ooh, so player\" (ah)\n(Whoop!) Everywhere I go they be like, \"Ooh, so player, ooh\"\nNow, now, now, now watch me break it down like, ugh\n24-karat (whoop), 24-karat magic (what′s that sound?)\n24-karat, 24-karat magic (come on now)\n24-karat, 24-karat magic (ooh)\nDon't fight the feelin′, invite the feeling\nJust put your pinky rings up to the moon (whoo)\nGirls, what y'all trying to do? (Tell me what y′all trying to do)\n24-karat magic in the air (c'mon)\nHead to toe, so player (hands up)\nPut your pinky rings up to the moon (24-karat, 24-karat magic)\nGirls, what y′all trying to do? (24-karat, 24-karat magic)\n24-karat magic in the air (24-karat magic)\nHead to toe so player (24-karat), uh, look out (24-karat magic...)",
-      "selector_used": "__NEXT_DATA__:props.pageProps.data.trackInfo.data.lyrics.body",
+      "song_key": "unknown artist|24k magic",
+      "musixmatch_url": "https://www.musixmatch.com/lyrics/Unknown-Artist/24K-Magic",
+      "status": "fallback",
+      "lyrics": "",
+      "selector_used": "",
       "rating_label": "",
       "rating_code": "",
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T01:08:01.912576Z",
-      "error": "",
-      "attempted_urls": [],
+      "updated_at": "2026-04-15T01:40:19.029538Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/24K-Magic",
+      "attempted_urls": [
+        "https://www.musixmatch.com/lyrics/Unknown-Artist/24K-Magic"
+      ],
       "request_ids": [
         "|nb72258@stu.alaschools.org|https://open.spotify.com/track/6b8Be6ljOzmkOmFslEb23P?si=4674576dc0f44430"
       ]
     },
-    "lil uzi vert|xo tour llif3": {
+    "unknown artist|xo tour llif3": {
       "track_id": "7GX5flRQZVHRAGd6B4TmDO",
       "spotify_url": "https://open.spotify.com/track/7GX5flRQZVHRAGd6B4TmDO",
-      "artist": "Lil Uzi Vert",
+      "artist": "Unknown Artist",
       "song": "XO Tour Llif3",
-      "song_key": "lil uzi vert|xo tour llif3",
-      "musixmatch_url": "https://www.musixmatch.com/lyrics/Lil-Uzi-Vert/XO-Tour-Llif3",
-      "status": "success",
-      "lyrics": "Are you alright? I′m alright\nI'm quite alright and my money′s right\n(8) yeah\n(Countin' them bands all way to the top 'til they be fallin′ over)\n(Countin′ them bands, on my way to the top 'til we fallin′ over)\nI don't really care if you cry\nOn the real, you should′ve never lied\nShould've saw the way she looked me in my eyes\nShe said, \"Baby, I am not afraid to die\"\nPush me to the edge\nAll my friends are dead, push me to the edge\nAll my friends are dead, push me to the edge\nAll my friends are dead, push me to the edge\nPhantom that′s all red, inside all white\nLike something you ride a sled down, I just want that head\nMy Brittany got mad, I'm barely her man now\nEverybody got the same swag now, watch the way that I tear it down\nStackin' my bands all the way to the top, all the way ′til my bands fallin′ over\nEvery time that you leave your spot, your girlfriend call me like, \"Come on over\"\nI like the way that she treat me, gon' leave you, won′t leave me, I call it that Casanova\nShe say I'm insane, yeah, I might blow my brain out\n(Hey) Xanny help the pain, yeah, please, Xanny make it go away\nI′m committed, not addicted, but it keep control of me\nAll the pain, now I can't feel it, I swear that it′s slowin' me, yeah\nI don't really care if you cry\nOn the real, you should′ve never lied\nSaw the way she looked me in my eyes\nShe said, \"I am not afraid to die\"\nYeah, all my friends are dead\nPush me to the edge, all my friends are dead\nYeah, ooh, push me to the edge\nAll my friends are dead, yeah, all my friends are dead, yeah\nThat is not your swag, I swear you fake hard\nNow these niggas wanna take my cadence (yeah)\nRain on ′em, thunderstorm, rain on 'em (ooh, yeah)\nMedicine, lil′ nigga take some (yeah, yeah)\nFast car, Nascar, race on 'em\nIn the club, ain′t got no ones, then we would beg them (yeah)\nClothes from overseas, got them racks and they all C-Notes\nYou is not a G, though\nLookin' at you stackin′ all your money, it all green though\nI was countin' that and these all twenties, that's a G-roll\nShe say, \"You′re the worst, you′re the worst\"\nI cannot die because this my universe\nI don't really care if you cry\nOn the real, you should′ve never lied\nShould've saw the way she looked me in my eyes\nShe said, \"Baby, I am not afraid to die\"\nPush me to the edge\nAll my friends are dead, push me to the edge\nAll my friends are dead, push me to the edge\nAll my friends are dead, push me to the edge",
-      "selector_used": "__NEXT_DATA__:props.pageProps.data.trackInfo.data.lyrics.body",
+      "song_key": "unknown artist|xo tour llif3",
+      "musixmatch_url": "https://www.musixmatch.com/lyrics/Unknown-Artist/XO-Tour-Llif3",
+      "status": "fallback",
+      "lyrics": "",
+      "selector_used": "",
       "rating_label": "",
       "rating_code": "",
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T01:08:02.730179Z",
-      "error": "",
-      "attempted_urls": [],
+      "updated_at": "2026-04-15T01:40:20.625455Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/XO-Tour-Llif3",
+      "attempted_urls": [
+        "https://www.musixmatch.com/lyrics/Unknown-Artist/XO-Tour-Llif3"
+      ],
       "request_ids": [
         "||https://open.spotify.com/track/7GX5flRQZVHRAGd6B4TmDO"
       ]
     },
-    "kendrick lamar|humble.": {
+    "unknown artist|humble.": {
       "track_id": "7KXjTSCq5nL1LoYtL7XAwS",
       "spotify_url": "https://open.spotify.com/track/7KXjTSCq5nL1LoYtL7XAwS",
-      "artist": "Kendrick Lamar",
+      "artist": "Unknown Artist",
       "song": "HUMBLE.",
-      "song_key": "kendrick lamar|humble.",
-      "musixmatch_url": "https://www.musixmatch.com/lyrics/Kendrick-Lamar/HUMBLE",
-      "status": "success",
-      "lyrics": "Nobody pray for me\nIt been that day for me\nWay (yeah, yeah)\nAyy, I remember syrup sandwiches and crime allowances\nFinesse a nigga with some counterfeits, but now I′m countin' this\nParmesan where my accountant lives in fact, I′m downin' this\nD'USSÉ with my boo bae tastes like Kool-Aid for the analysts\nGirl, I can buy yo′ ass the world with my paystub\nOoh, that pussy good, won′t you sit it on my taste bloods?\nI get way too petty once you let me do the extras\nPull up on your block, then break it down, we playin' Tetris\nA.m. to the p.m., p.m. to the a.m., funk\nPiss out your per diem, you just gotta hate ′em, funk\nIf I quit your BM, I still ride Mercedes, funk\nIf I quit this season, I still be the greatest, funk\nMy left stroke just went viral\nRight stroke put lil' baby in a spiral\nSoprano C, we like to keep it on a high note\nIt′s levels to it, you and I know\nBitch, be humble (hol' up, bitch), sit down (hol′ up, lil'-, hol' up, lil′ bitch)\nBe humble (hol′ up, bitch), sit down (hol' up, sit down, lil′-, sit down, lil' bitch)\nBe humble (hol′ up, hol' up), bitch, sit down (hol′ up, hol' up, lil' bitch)\nBe humble (lil′ bitch, hol′ up, bitch), sit down (hol' up, hol′ up, hol' up, hol′ up)\nBe humble (hol' up, hol′ up), sit down (hol' up, hol' up, lil′-, hol′ up, lil' bitch)\nBe humble (hol′ up, bitch), sit down (hol' up, sit down, lil′-, sit down, lil' bitch)\nBe humble (hol′ up, hol' up), bitch, sit down (hol' up, hol′ up, lil′ bitch)\nBe humble (lil' bitch, hol′ up, bitch), sit down (hol' up, hol′ up, hol' up, hol′ up)\nWho that nigga thinkin' that he frontin' on Man-Man? (Man-Man)\nGet the fuck off my stage, I′m the Sandman (Sandman)\nGet the fuck off my dick, that ain′t right\nI make a play fuckin' up your whole life\nI′m so fuckin' sick and tired of the Photoshop\nShow me somethin′ natural like afro on Richard Pryor\nShow me somethin' natural like ass with some stretch marks\nStill′ll take you down right on your mama's couch in Polo sock\nAyy, this shit way too crazy, ayy, you do not amaze me, ayy\nI blew cool from AC, ayy, Obama just paged me, ayy\nI don't fabricate it, ayy, most of y′all be fakin′, ayy\nI stay modest 'bout it, ayy, she elaborate it, ayy\nThis that Grey Poupon, that Evian, that TED Talk, ayy\nWatch my soul speak, you let the meds talk, ayy\nIf I kill a nigga, it won′t be the alcohol, ayy\nI'm the realest nigga after all\nBitch, be humble (hol′ up, bitch), sit down (hol' up, lil′-, hol' up, lil' bitch)\nBe humble (hol′ up, bitch), sit down (hol′ up, sit down, lil'-, sit down, lil′ bitch)\nBe humble (hol' up, hol′ up), bitch, sit down (hol' up, hol′ up, lil' bitch)\nBe humble (lil' bitch, hol′ up, bitch), sit down (hol′ up, hol' up, hol′ up, hol' up)\nBe humble (hol′ up, hol' up), sit down (hol′ up, hol' up, lil'-, hol′ up, lil′ bitch)\nBe humble (hol' up, bitch), sit down (hol′ up, sit down, lil'-, sit down, lil′ bitch)\nBe humble (hol' up, hol′ up, hol' up, hol' up), bitch, sit down (hol′ up, hol′ up, lil' bitch)\nBe humble (lil′ bitch, hol' up, bitch), sit down (hol′ up, hol' up, hol′ up, hol' up)",
-      "selector_used": "__NEXT_DATA__:props.pageProps.data.trackInfo.data.lyrics.body",
+      "song_key": "unknown artist|humble.",
+      "musixmatch_url": "https://www.musixmatch.com/lyrics/Unknown-Artist/HUMBLE",
+      "status": "fallback",
+      "lyrics": "",
+      "selector_used": "",
       "rating_label": "",
       "rating_code": "",
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T01:08:03.478933Z",
-      "error": "",
-      "attempted_urls": [],
+      "updated_at": "2026-04-15T01:40:21.248135Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/HUMBLE",
+      "attempted_urls": [
+        "https://www.musixmatch.com/lyrics/Unknown-Artist/HUMBLE"
+      ],
       "request_ids": [
         "||https://open.spotify.com/track/7KXjTSCq5nL1LoYtL7XAwS"
       ]
     },
-    "ed sheeran|shape of you": {
+    "unknown artist|shape of you": {
       "track_id": "7qiZfU4dY1lWllzX7mPBI3",
       "spotify_url": "https://open.spotify.com/track/7qiZfU4dY1lWllzX7mPBI3",
-      "artist": "Ed Sheeran",
+      "artist": "Unknown Artist",
       "song": "Shape of You",
-      "song_key": "ed sheeran|shape of you",
-      "musixmatch_url": "https://www.musixmatch.com/lyrics/Ed-Sheeran/Shape-of-You",
-      "status": "success",
-      "lyrics": "The club isn′t the best place to find a lover\nSo the bar is where I go, mm\nMe and my friends at the table doin' shots\nDrinkin′ fast and then we talk slow, mm\nAnd you come over and start up a conversation with just me\nAnd trust me, I'll give it a chance now, mm\nTake my hand, stop, put Van the Man on the jukebox\nAnd then we start to dance, and now I'm singin′ like\n\"Girl, you know I want your love\nYour love was handmade for somebody like me\nCome on now, follow my lead\nI may be crazy, don′t mind me\"\nSay, \"Boy, let's not talk too much\nGrab on my waist and put that body on me\nCome on now, follow my lead\"\nCome, come on now, follow my lead, mm\nI′m in love with the shape of you\nWe push and pull like a magnet do\nAlthough my heart is fallin' too\nI′m in love with your body\nAnd last night, you were in my room\nAnd now my bedsheets smell like you\nEvery day, discoverin' somethin′ brand new\nWell, I'm in love with your body\nOh, I, oh, I, oh, I, oh, I\nWell, I'm in love with your body\nOh, I, oh, I, oh, I, oh, I\nWell, I′m in love with your body\nOh, I, oh, I, oh, I, oh, I\nWell, I′m in love with your body\nEvery day, discoverin' somethin′ brand new\nI'm in love with the shape of you\nOne week in, we let the story begin\nWe′re goin' out on our first date, mm\nYou and me are thrifty, so go all-you-can-eat\nFill up your bag and I fill up a plate, mm\nWe talk for hours and hours about the sweet and the sour\nAnd how your family is doin′ okay, mm\nAnd leave and get in a taxi, and kiss in the back seat\nTell the driver, \"Make the radio play,\" and I'm singin' like\n\"Girl, you know I want your love\nYour love was handmade for somebody like me\nCome on now, follow my lead\nI may be crazy, don′t mind me\"\nSay, \"Boy, let′s not talk too much\nGrab on my waist and put that body on me\nCome on now, follow my lead\"\nCome, come on now, follow my lead, mm\nI'm in love with the shape of you\nWe push and pull like a magnet do\nAlthough my heart is fallin′ too\nI'm in love with your body\nAnd last night, you were in my room\nAnd now my bedsheets smell like you\nEvery day, discoverin′ somethin' brand new\nWell, I′m in love with your body\nOh, I, oh, I, oh, I, oh, I\nWell, I'm in love with your body\nOh, I, oh, I, oh, I, oh, I\nWell, I'm in love with your body\nOh, I, oh, I, oh, I, oh, I\nWell, I′m in love with your body\nEvery day, discoverin′ somethin' brand new\nI′m in love with the shape of you\nCome on, be my baby, come on\nCome on, be my baby, come on\nCome on, be my baby, come on\nCome on, be my baby, come on\nCome on, be my baby, come on\nCome on, be my baby, come on\nCome on, be my baby, come on\nCome on, be my baby, come on\nI'm in love with the shape of you\nWe push and pull like a magnet do\nAlthough my heart is fallin′ too\nI'm in love with your body\nAnd last night, you were in my room\nAnd now my bedsheets smell like you\nEvery day, discoverin′ somethin' brand new\nWell, I'm in love with your body\nCome on, be my baby, come on\nCome on, be my baby, come on (I′m in love with your body)\nCome on, be my baby, come on\nCome on, be my baby, come on (oh, I′m in love with your body)\nCome on, be my baby, come on\nCome on, be my baby, come on (I'm in love with your body)\nEvery day, discoverin′ somethin' brand new\nI′m in love with the shape of you",
-      "selector_used": "__NEXT_DATA__:props.pageProps.data.trackInfo.data.lyrics.body",
+      "song_key": "unknown artist|shape of you",
+      "musixmatch_url": "https://www.musixmatch.com/lyrics/Unknown-Artist/Shape-of-You",
+      "status": "fallback",
+      "lyrics": "",
+      "selector_used": "",
       "rating_label": "",
       "rating_code": "",
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T01:08:04.193203Z",
-      "error": "",
-      "attempted_urls": [],
+      "updated_at": "2026-04-15T01:40:21.790406Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/Shape-of-You",
+      "attempted_urls": [
+        "https://www.musixmatch.com/lyrics/Unknown-Artist/Shape-of-You"
+      ],
       "request_ids": [
         "||https://open.spotify.com/track/7qiZfU4dY1lWllzX7mPBI3"
       ]
     },
-    "shaboozey|a bar song (tipsy)": {
+    "unknown artist|a bar song (tipsy)": {
       "track_id": "7wd9kz7UXhJr8pgdqpzKu5",
       "spotify_url": "https://open.spotify.com/track/7wd9kz7UXhJr8pgdqpzKu5",
-      "artist": "Shaboozey",
+      "artist": "Unknown Artist",
       "song": "A Bar Song (Tipsy)",
-      "song_key": "shaboozey|a bar song (tipsy)",
-      "musixmatch_url": "https://www.musixmatch.com/lyrics/Shaboozey/A-Bar-Song-Tipsy",
-      "status": "success",
-      "lyrics": "My baby want a Birkin, she′s been tellin' me all night long\nGasoline and groceries, the list goes on and on\nThis nine-to-five ain′t workin', why the hell do I work so hard?\nI can't worry ′bout my problems, I can′t take 'em when I′m gone, uh\nOne, here comes the two to the three to the four\nTell 'em \"Bring another round, we need plenty more\"\nTwo-steppin′ on the table, she don't need a dance floor\nOh my, good Lord\nSomeone pour me up a double shot of whiskey\nThey know me and Jack Daniel′s got a history\nThere's a party downtown near 5th Street\nEverybody at the bar gettin' tipsy\nEverybody at the bar gettin′ tipsy\nEverybody at the bar gettin′ tipsy\nI've been Boozey since I′ve left, I ain't changin′ for a check\nTell my ma I ain't forget (oh, Lord), I\nWoke up drunk at 10 a.m., we gon′ do this sh- again\nTell your girl to bring a friend (oh, Lord)\nOne, here comes the two to the three to the four\nTell 'em \"Bring another round, we need plenty more\"\nTwo-steppin' on the table, she don′t need a dance floor\nOh my, good Lord\nSomeone pour me up a double shot of whiskey (double shot of whiskey)\nThey know me and Jack Daniel′s got a history (way back)\nThere's a party downtown near 5th Street (okay, let′s go)\nEverybody at the bar gettin' tipsy (at the bar gettin′ tipsy)\nEverybody at the bar gettin' tipsy (at the bar gettin′ tipsy)\nEverybody at the bar gettin' tipsy\nOne, here comes the two to the three to the four\nWhen it's last call, and they kick us out the door\nIt′s gettin′ kind of late, but the ladies want some more\nOh my, good Lord (tell 'em drinks on me)\nSomeone pour me up a double shot of whiskey (double shot of whiskey)\nThey know me and Jack Daniel′s got a history (way back)\nThere's a party downtown near 5th Street (come on)\nEverybody at the bar gettin′ tipsy (whoo-ooh)\nSomeone pour me up a double shot of whiskey (double shot of double shot of whiskey)\nThey know me and Jack Daniel's got a history (it′s Jack D)\nAt the bottom of a bottle, don't miss me (baby, don't miss me)\nEverybody at the bar gettin′ tipsy (at the bar gettin′ tipsy)\nEverybody at the bar gettin' tipsy\nEverybody at the bar gettin′ tipsy\nThat's fuckin′ messed up, bro, they kicked me out the bar",
-      "selector_used": "__NEXT_DATA__:props.pageProps.data.trackInfo.data.lyrics.body",
+      "song_key": "unknown artist|a bar song (tipsy)",
+      "musixmatch_url": "https://www.musixmatch.com/lyrics/Unknown-Artist/A-Bar-Song-Tipsy",
+      "status": "fallback",
+      "lyrics": "",
+      "selector_used": "",
       "rating_label": "",
       "rating_code": "",
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T01:08:04.935006Z",
-      "error": "",
-      "attempted_urls": [],
+      "updated_at": "2026-04-15T01:40:23.329034Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/A-Bar-Song",
+      "attempted_urls": [
+        "https://www.musixmatch.com/lyrics/Unknown-Artist/A-Bar-Song-Tipsy",
+        "https://www.musixmatch.com/lyrics/Unknown-Artist/A-Bar-Song"
+      ],
       "request_ids": [
         "||https://open.spotify.com/track/7wd9kz7UXhJr8pgdqpzKu5?si=9d38bc6351be4ce4"
       ]
     },
-    "miley cyrus|when i look at you": {
+    "unknown artist|when i look at you": {
       "track_id": "7ywzEdEuVG1lsjsRCGJfLy",
       "spotify_url": "https://open.spotify.com/track/7ywzEdEuVG1lsjsRCGJfLy",
-      "artist": "Miley Cyrus",
+      "artist": "Unknown Artist",
       "song": "When I Look At You",
-      "song_key": "miley cyrus|when i look at you",
-      "musixmatch_url": "https://www.musixmatch.com/lyrics/Miley-Cyrus/When-I-Look-At-You",
-      "status": "success",
-      "lyrics": "Everybody needs inspiration\nEverybody needs a song\nA beautiful melody\nWhen the night′s so long\n'Cause there is no guarantee\nThat this life is easy\nYeah, when my world is falling apart\nWhen there′s no light to break up the dark\nThat's when I, I\nI look at you\nWhen the waves\nAre flooding the shore and I can't\nFind my way home anymore\nThat′s when I, I\nI look at you\nWhen I look at you, I see forgiveness\nI see the truth\nYou love me for who I am\nLike the stars hold the moon\nRight there where they belong\nAnd I know I′m not alone\nYeah, when my world is falling apart\nWhen there's no light to break up the dark\nThat′s when I, I\nI look at you\nWhen the waves\nAre flooding the shore and I can't\nFind my way home anymore\nThat′s when I, I\nI look at you\nYou appear just like a dream to me\nJust like Kaleidoscope colors that\nCover me, all I need\nEvery breath that I breathe\nDon't you know you′re beautiful?\nYeah, yeah, yeah\nWhen the waves\nAre flooding the shore and I can't\nFind my way home anymore\nThat's when I, I\nI look at you\nI look at you\nYou appear just like a dream\nTo me",
-      "selector_used": "__NEXT_DATA__:props.pageProps.data.trackInfo.data.lyrics.body",
+      "song_key": "unknown artist|when i look at you",
+      "musixmatch_url": "https://www.musixmatch.com/lyrics/Unknown-Artist/When-I-Look-At-You",
+      "status": "fallback",
+      "lyrics": "",
+      "selector_used": "",
       "rating_label": "",
       "rating_code": "",
       "rating_reason": "",
       "rating_selector_used": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-04-15T01:08:05.946574Z",
-      "error": "",
-      "attempted_urls": [],
+      "updated_at": "2026-04-15T01:40:24.131162Z",
+      "error": "404 Client Error: Not Found for url: https://www.musixmatch.com/lyrics/Unknown-Artist/When-I-Look-At-You",
+      "attempted_urls": [
+        "https://www.musixmatch.com/lyrics/Unknown-Artist/When-I-Look-At-You"
+      ],
       "request_ids": [
         "4/6/2026 15:08:22|noahmathmaster@gmail.com|https://open.spotify.com/track/7ywzEdEuVG1lsjsRCGJfLy?si=75ae6370785b4fe7"
       ]
