@@ -53,3 +53,13 @@ The workflow:
 ## 5) Important login note
 
 If playlists do not show in the picker, log out and log in again so Spotify re-grants playlist scopes (`playlist-read-private`, `playlist-read-collaborative`).
+
+## 6) GitHub Pages + live API note (HTTPS required)
+
+GitHub Pages is served over HTTPS (`https://...github.io`). Browsers will block calls to a plain HTTP lyrics API due to mixed-content rules.
+
+Recommended options:
+- Use Tailscale Serve to proxy your Pi’s local API as an HTTPS `.ts.net` URL, then set `CONFIG.lyricsApiBaseUrl` in [app.js](app.js) to that HTTPS URL.
+- Or keep the live API for LAN/local usage and rely on `lyrics-cache.json` as the backup path on GitHub Pages.
+
+Full step-by-step for the Tailscale Serve approach is in [RASPBERRY_PI_SETUP.md](RASPBERRY_PI_SETUP.md).

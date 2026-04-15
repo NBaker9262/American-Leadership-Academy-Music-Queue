@@ -305,6 +305,78 @@ That way the dashboard is also HTTP, and it can call the lyrics API on port `878
 
 (If you want to keep using GitHub Pages + live API, you’ll need an HTTPS front like Cloudflare Tunnel, or use Tailscale’s HTTPS serving features inside your tailnet.)
 
+#### B6) Recommended setup for GitHub Pages + Tailscale API (HTTPS, no domain)
+
+This is the cleanest way to keep using GitHub Pages (HTTPS) while your API lives on the Pi.
+
+How it works:
+- The Pi runs the API locally on `http://127.0.0.1:8787`.
+- Tailscale provides an HTTPS name like `https://<machine>.<tailnet>.ts.net`.
+- `tailscale serve` reverse-proxies HTTPS traffic to your local API.
+- The dashboard (on GitHub Pages) calls the HTTPS `.ts.net` URL.
+
+Prereqs from Tailscale’s docs:
+- Enable **MagicDNS** in the Tailscale admin console.
+- Enable **HTTPS Certificates** in the Tailscale admin console.
+
+Important privacy note:
+- Tailscale HTTPS uses public certificates. Certificate Transparency logs will include your device’s FQDN.
+- Rename your Pi in the Tailscale admin console first if you don’t want personal info in the name.
+
+On the Pi (once your API is running on 8787):
+
+1) Turn on HTTPS reverse proxy to the local API (run with `sudo` as needed):
+
+```bash
+sudo tailscale serve --bg 8787
+```
+
+If Serve prompts for consent/setup and you want to avoid interactive prompts, you can add `--yes`:
+
+```bash
+sudo tailscale serve --bg --yes 8787
+```
+
+2) Check what URL you got:
+
+```bash
+tailscale serve status
+```
+
+You should see an HTTPS address ending in `.ts.net`.
+
+3) Test from your Windows machine (with Tailscale connected):
+
+```bash
+curl "https://<machine>.<tailnet>.ts.net/health"
+curl "https://<machine>.<tailnet>.ts.net/lyrics?artist=The%20Weeknd&song=Blinding%20Lights"
+```
+
+If you run these in **Windows Command Prompt (cmd.exe)**, the `&` can be treated as a command separator.
+Use `^&` in cmd.exe, or run the commands in PowerShell:
+
+cmd.exe:
+
+```bat
+curl "https://<machine>.<tailnet>.ts.net/lyrics?artist=The%20Weeknd^&song=Blinding%20Lights"
+```
+
+PowerShell:
+
+```powershell
+curl.exe "https://<machine>.<tailnet>.ts.net/lyrics?artist=The%20Weeknd&song=Blinding%20Lights"
+```
+
+4) Configure the dashboard to use that API URL:
+
+- Open [app.js](app.js) and set `CONFIG.lyricsApiBaseUrl` to:
+   - `https://<machine>.<tailnet>.ts.net`
+
+Notes:
+- Every device that uses the GitHub Pages dashboard must also be signed into Tailscale, otherwise the `.ts.net` name won’t route to your Pi.
+- To undo Serve config, you can run:
+   - `sudo tailscale serve reset`
+
 ### Option C (recommended for HTTPS API URL): Cloudflare Tunnel “Quick Tunnel”
 
 Use this if you want an **HTTPS** URL to your lyrics API without buying a domain.

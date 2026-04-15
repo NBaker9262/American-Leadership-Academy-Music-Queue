@@ -41,7 +41,7 @@ const CONFIG = {
   manualSearchLimit: 8,
   userPlaylistFetchLimit: 50,
   playlistPickerCacheMs: 120000,
-  lyricsApiBaseUrl: "",
+  lyricsApiBaseUrl: "https://nbaker9262.tailfc647c.ts.net",
   lyricsApiTimeoutMs: 12000,
   // Cache is a fallback only (backup).
   lyricsCacheUseOnLoad: false,
