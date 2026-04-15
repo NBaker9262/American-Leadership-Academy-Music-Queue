@@ -1999,7 +1999,14 @@ async function getCurrentUserProfile() {
 }
 
 async function getTrackById(trackId) {
-  return spotifyFetchWithRetry(`/tracks/${encodeURIComponent(trackId)}?market=from_token`);
+  // Important: keep this as a single-attempt call.
+  // Higher-level callers (like getTrackByIdWithRetry / getTracksByIds) control retries
+  // to avoid retry-storms when Spotify is rate-limiting.
+  return spotifyFetchWithRetry(
+    `/tracks/${encodeURIComponent(trackId)}?market=from_token`,
+    {},
+    { maxAttempts: 1 }
+  );
 }
 
 const trackCacheById = new Map();
@@ -2027,8 +2034,16 @@ async function getTracksByIds(trackIds) {
   const ids = [...new Set((trackIds || []).map((id) => String(id || "").trim()).filter(Boolean))];
   const results = new Map();
 
-  for (let i = 0; i < ids.length; i += 50) {
-    const chunk = ids.slice(i, i + 50);
+  // Adaptive safety: keep bulk URLs short if a network filter / proxy blocks long query strings.
+  // This lowers the chance of 403s on /tracks?ids=... while still batching.
+  let bulkBatchSize = 50;
+
+  // Guardrail: if we fall back to per-track lookups, do not hammer Spotify for dozens of tracks.
+  // We'll stop early if we hit 429, and let the next sync attempt fill in remaining metadata.
+  const maxPerTrackFallback = 10;
+
+  for (let i = 0; i < ids.length; i += bulkBatchSize) {
+    const chunk = ids.slice(i, i + bulkBatchSize);
     if (!chunk.length) continue;
 
     // Note: Spotify expects comma-separated IDs. Encode each ID, but keep commas unescaped.
@@ -2039,21 +2054,58 @@ async function getTracksByIds(trackIds) {
       response = await spotifyFetchWithRetry(`/tracks?ids=${idsParam}&market=from_token`);
     } catch (error) {
       const status = getErrorStatusCode(error);
+      if (status === 403 && bulkBatchSize > 10) {
+        // Some environments appear to block longer /tracks?ids= URLs; retry with smaller batches.
+        bulkBatchSize = 10;
+        i -= bulkBatchSize;
+        logConsoleEvent(
+          "Spotify",
+          "Bulk track lookup returned 403; reducing batch size and retrying.",
+          { previousBatchSize: 50, nextBatchSize: bulkBatchSize, message: String(error?.message || "").slice(0, 160) },
+          "warn"
+        );
+        continue;
+      }
+
       if (status === 403 || status === 400) {
         logConsoleEvent(
           "Spotify",
           "Bulk track lookup failed; falling back to per-track fetch.",
-          { status, chunkSize: chunk.length },
+          { status, chunkSize: chunk.length, message: String(error?.message || "").slice(0, 200) },
           "warn"
         );
 
+        let perTrackCount = 0;
         for (const trackId of chunk) {
+          if (perTrackCount >= maxPerTrackFallback) {
+            logConsoleEvent(
+              "Spotify",
+              "Stopping per-track fallback early to avoid rate-limit storms.",
+              { attempted: perTrackCount, remaining: Math.max(0, chunk.length - perTrackCount) },
+              "warn"
+            );
+            break;
+          }
+
+          perTrackCount += 1;
+
           try {
             const track = await getTrackByIdWithRetry(trackId);
             const id = String(track?.id || "").trim();
             if (id) results.set(id, track);
           } catch (innerError) {
+            const innerStatus = getErrorStatusCode(innerError);
             console.warn("Per-track Spotify lookup failed:", { trackId, error: innerError });
+
+            if (innerStatus === 429) {
+              logConsoleEvent(
+                "Spotify",
+                "Hit Spotify rate limit during per-track fallback; pausing further lookups until next sync.",
+                { trackId },
+                "warn"
+              );
+              break;
+            }
           }
         }
 
@@ -5739,9 +5791,9 @@ async function init() {
 
   const hasToken = hasActiveSpotifyLogin || !!authGet(LS.accessToken);
   if (hasToken) {
-    startPlaybackPolling();
     startRequestAutoSyncTimer();
     await runRequestAutoSync("startup", { silent: true });
+    startPlaybackPolling();
   } else {
     stopRequestAutoSyncTimer();
     setRequestAutoSyncStatus("Login to enable request sync.", "warn");
