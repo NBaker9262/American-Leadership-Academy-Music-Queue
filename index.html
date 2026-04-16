@@ -47,6 +47,9 @@
             <button id="btnPlayPlaylistPicker" class="btn btn-primary" type="button">
               Play Playlist
             </button>
+            <button id="btnOpenPlaylistBuilder" class="btn btn-primary" type="button">
+              Playlist Builder
+            </button>
             <button id="btnOpenModeration" class="btn btn-moderation" type="button">
               Moderation Panel
             </button>
@@ -384,6 +387,137 @@
             </div>
           </section>
 
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- PLAYLIST BUILDER BACKDROP -->
+  <div id="playlistBuilderBackdrop" class="mod-backdrop"></div>
+
+  <!-- PLAYLIST BUILDER PANEL -->
+  <aside
+    id="playlistBuilderOverlay"
+    class="mod-overlay playlist-builder-overlay"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Playlist Builder"
+  >
+    <div class="mod-overlay-header">
+      <div class="mod-overlay-title-row">
+        <div>
+          <img
+            class="school-logo school-logo-small"
+            src="https://raw.githubusercontent.com/NBaker9262/Noah-ALA-File-Hosting/refs/heads/main/Images/ALA%20Bear%20No%20BG.png"
+            alt="ALA logo"
+            loading="lazy"
+          />
+          <p class="eyebrow">American Leadership Academy</p>
+          <h2>Playlist Builder</h2>
+          <div id="playlistBuilderStatus" class="summary-text">Choose a playlist, then search Spotify.</div>
+        </div>
+
+        <div class="mod-header-actions">
+          <div class="playlist-builder-selected-playlist">
+            <span class="chip-label">Selected Playlist</span>
+            <span id="playlistBuilderSelectedPlaylist" class="chip-value">None</span>
+          </div>
+          <button id="btnPlaylistBuilderChoosePlaylist" class="btn btn-small" type="button">
+            Choose Playlist
+          </button>
+          <button id="btnPlaylistBuilderClose" class="btn mod-close-btn" type="button">
+            &#x2715; Close
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="mod-overlay-body">
+      <div class="playlist-builder-grid">
+        <section class="card search-card neon-card playlist-builder-search-card">
+          <div class="section-heading">
+            <div>
+              <p class="section-kicker">Single Add</p>
+              <h2>Search Spotify</h2>
+            </div>
+          </div>
+
+          <div class="summary-text">Type a song name (optionally with an artist), review Musixmatch rating details, then add it to the selected playlist.</div>
+
+          <div class="search-controls">
+            <input
+              id="playlistBuilderSearchInput"
+              class="search-input"
+              type="search"
+              placeholder="Search by song title, artist, or both"
+              aria-label="Search Spotify tracks for playlist add"
+            />
+            <button id="btnPlaylistBuilderSearch" class="btn btn-small btn-primary" type="button">
+              Search
+            </button>
+          </div>
+
+          <div id="playlistBuilderSearchResults" class="requests-list">
+            <div class="empty-state">Search Spotify to get started.</div>
+          </div>
+        </section>
+
+        <div class="playlist-builder-right-stack">
+          <section class="card neon-card playlist-builder-review-card">
+            <div class="section-heading">
+              <div>
+                <p class="section-kicker">Review</p>
+                <h2>Rating Details</h2>
+              </div>
+              <div class="queue-nav">
+                <button id="btnPlaylistBuilderAddSelected" class="btn btn-small btn-primary" type="button" disabled>
+                  Add to Playlist
+                </button>
+              </div>
+            </div>
+
+            <div id="playlistBuilderReview" class="requests-list">
+              <div class="empty-state">Select a search result to preview rating details.</div>
+            </div>
+          </section>
+
+          <section class="card neon-card playlist-builder-bulk-card">
+            <div class="section-heading">
+              <div>
+                <p class="section-kicker">Bulk Add</p>
+                <h2>CSV of Spotify URLs</h2>
+              </div>
+              <div class="queue-nav">
+                <button id="btnPlaylistBuilderBulkLoad" class="btn btn-small" type="button">
+                  Load Tracks
+                </button>
+                <button id="btnPlaylistBuilderBulkAdd" class="btn btn-small btn-primary" type="button" disabled>
+                  Add Loaded
+                </button>
+              </div>
+            </div>
+
+            <div class="summary-text">Upload or paste a CSV containing Spotify track URLs. The selected playlist stays pinned so you can add song after song quickly.</div>
+
+            <div class="playlist-builder-bulk-controls">
+              <input id="playlistBuilderCsvFile" class="search-input" type="file" accept=".csv,text/csv" />
+              <textarea
+                id="playlistBuilderCsvText"
+                class="playlist-builder-csv-text"
+                rows="4"
+                placeholder="Or paste CSV / one Spotify URL per line"
+                aria-label="Bulk Spotify URL input"
+              ></textarea>
+              <button id="btnPlaylistBuilderBulkParse" class="btn btn-small" type="button">
+                Parse CSV
+              </button>
+              <div id="playlistBuilderBulkStatus" class="summary-text">No CSV loaded yet.</div>
+            </div>
+
+            <div id="playlistBuilderBulkList" class="requests-list">
+              <div class="empty-state">Parsed tracks will appear here.</div>
+            </div>
+          </section>
         </div>
       </div>
     </div>

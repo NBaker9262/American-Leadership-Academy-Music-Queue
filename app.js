@@ -157,7 +157,9 @@ const LS = {
   queuePointer: "ala_queue_pointer",
   djAssistedRequests: "ala_dj_assisted_requests",
   moderationOverrides: "ala_moderation_overrides",
-  requestAutoSyncEnabled: "ala_request_auto_sync_enabled"
+  requestAutoSyncEnabled: "ala_request_auto_sync_enabled",
+  playlistBuilderPlaylistId: "ala_playlist_builder_playlist_id",
+  playlistBuilderPlaylistName: "ala_playlist_builder_playlist_name"
 };
 
 const authStorage = window.sessionStorage;
@@ -225,11 +227,13 @@ const el = {
   btnPrevQueue: document.getElementById("btnPrevQueue"),
   btnNextQueue: document.getElementById("btnNextQueue"),
   btnPlayPlaylistPicker: document.getElementById("btnPlayPlaylistPicker"),
+  btnOpenPlaylistBuilder: document.getElementById("btnOpenPlaylistBuilder"),
   btnAddApprovedToQueue: document.getElementById("btnAddApprovedToQueue"),
   btnApproveAllCleanVisible: document.getElementById("btnApproveAllCleanVisible"),
   btnRemoveAllApproved: document.getElementById("btnRemoveAllApproved"),
   btnUndoModerationAction: document.getElementById("btnUndoModerationAction"),
   btnOpenModeration: document.getElementById("btnOpenModeration"),
+  btnCloseModeration: document.getElementById("btnCloseModeration"),
   btnSearchSongs: document.getElementById("btnSearchSongs"),
   btnNowPlayingLyrics: document.getElementById("btnNowPlayingLyrics"),
   btnPrevTrack: document.getElementById("btnPrevTrack"),
@@ -285,7 +289,26 @@ const el = {
   playlistPickerModal: document.getElementById("playlistPickerModal"),
   playlistPickerTitle: document.getElementById("playlistPickerTitle"),
   playlistPickerDescription: document.getElementById("playlistPickerDescription"),
-  playlistPickerList: document.getElementById("playlistPickerList")
+  playlistPickerList: document.getElementById("playlistPickerList"),
+
+  playlistBuilderBackdrop: document.getElementById("playlistBuilderBackdrop"),
+  playlistBuilderOverlay: document.getElementById("playlistBuilderOverlay"),
+  btnPlaylistBuilderClose: document.getElementById("btnPlaylistBuilderClose"),
+  playlistBuilderStatus: document.getElementById("playlistBuilderStatus"),
+  playlistBuilderSelectedPlaylist: document.getElementById("playlistBuilderSelectedPlaylist"),
+  btnPlaylistBuilderChoosePlaylist: document.getElementById("btnPlaylistBuilderChoosePlaylist"),
+  playlistBuilderSearchInput: document.getElementById("playlistBuilderSearchInput"),
+  btnPlaylistBuilderSearch: document.getElementById("btnPlaylistBuilderSearch"),
+  playlistBuilderSearchResults: document.getElementById("playlistBuilderSearchResults"),
+  playlistBuilderReview: document.getElementById("playlistBuilderReview"),
+  btnPlaylistBuilderAddSelected: document.getElementById("btnPlaylistBuilderAddSelected"),
+  playlistBuilderCsvFile: document.getElementById("playlistBuilderCsvFile"),
+  playlistBuilderCsvText: document.getElementById("playlistBuilderCsvText"),
+  btnPlaylistBuilderBulkParse: document.getElementById("btnPlaylistBuilderBulkParse"),
+  btnPlaylistBuilderBulkLoad: document.getElementById("btnPlaylistBuilderBulkLoad"),
+  btnPlaylistBuilderBulkAdd: document.getElementById("btnPlaylistBuilderBulkAdd"),
+  playlistBuilderBulkStatus: document.getElementById("playlistBuilderBulkStatus"),
+  playlistBuilderBulkList: document.getElementById("playlistBuilderBulkList")
 };
 
 // --------------------
@@ -297,6 +320,19 @@ let localProgressTimer = null;
 const moderationHistory = [];
 let isUndoingModeration = false;
 let manualSearchResults = [];
+
+// Playlist Builder (add songs directly to a chosen playlist)
+let playlistBuilderSearchResults = [];
+let playlistBuilderSelectedTrackId = "";
+let playlistBuilderSelectedTrack = null;
+let playlistBuilderSelectedPlaylistId = "";
+let playlistBuilderSelectedPlaylistName = "";
+const playlistBuilderRatingCacheByTrackId = new Map();
+let playlistBuilderBulkParsedTrackIds = [];
+let playlistBuilderBulkTracksById = new Map();
+let playlistBuilderBulkAddQueue = [];
+let playlistBuilderBulkLoadInFlight = false;
+let playlistBuilderBulkAddInFlight = false;
 
 let currentNowPlayingTrack = null;
 let currentSpotifyQueueTracks = [];
@@ -1645,7 +1681,9 @@ async function fetchLyricsFromApi(artist, song) {
       ratingLabel: String(json?.rating_label || ""),
       ratingCode: String(json?.rating_code || ""),
       ratingReason: String(json?.rating_reason || ""),
-      ratingSelectorUsed: String(json?.rating_selector_used || "")
+      ratingSelectorUsed: String(json?.rating_selector_used || ""),
+      isInstrumental: !!json?.is_instrumental,
+      instrumentalSource: String(json?.instrumental_source || "")
     };
   } catch (error) {
     return {
@@ -3066,7 +3104,10 @@ function renderApprovedQueue() {
             <div class="request-title-row">
               <span class="queue-drag-handle" aria-hidden="true" title="Drag to reorder">::</span>
               <div class="queue-item-title">${escapeHtml(name)}</div>
-              ${sourceBadge}
+              <div class="request-title-badges">
+                <span class="badge ${badgeClassForFinalMarker(moderation?.finalMarker)}" title="${escapeHtml(String(moderation?.finalMarkerReason || "").trim() || "Final marker")}">${escapeHtml(moderation?.finalMarkerLabel || "Flag")}</span>
+                ${sourceBadge}
+              </div>
             </div>
             <div class="queue-item-artist">${escapeHtml(artist)}</div>
             <div class="request-status-tags">${buildRequestStatusTags(item, moderation)}</div>
@@ -3128,7 +3169,10 @@ function renderApprovedPreview() {
       <div class="request-main">
         <div class="request-title-row">
           <div class="request-song">${escapeHtml(item.name)}</div>
-          <span class="badge ${statusClass}">${statusBadge}</span>
+          <div class="request-title-badges">
+            <span class="badge ${badgeClassForFinalMarker(moderation?.finalMarker)}" title="${escapeHtml(String(moderation?.finalMarkerReason || "").trim() || "Final marker")}">${escapeHtml(moderation?.finalMarkerLabel || "Flag")}</span>
+            <span class="badge ${statusClass}">${statusBadge}</span>
+          </div>
         </div>
 
         <div class="request-artist">${escapeHtml(item.artist || "Unknown artist")}</div>
@@ -3524,7 +3568,9 @@ function closePlaylistPicker() {
 }
 
 function getPlaylistPickerModeLabel(mode) {
-  return mode === "add" ? "Choose Playlist for Moderated Song" : "Choose Playlist to Play";
+  if (mode === "add") return "Choose Playlist for Moderated Song";
+  if (mode === "builder") return "Choose Playlist for Playlist Builder";
+  return "Choose Playlist to Play";
 }
 
 function renderPlaylistPickerList(playlists) {
@@ -3620,7 +3666,8 @@ async function fetchSignedInUserPlaylists(forceRefresh = false) {
   return visiblePlaylists;
 }
 async function openPlaylistPicker(mode, forceRefresh = false) {
-  const safeMode = String(mode || "start").trim() === "add" ? "add" : "start";
+  const rawMode = String(mode || "start").trim().toLowerCase();
+  const safeMode = rawMode === "add" ? "add" : rawMode === "builder" ? "builder" : "start";
 
   if (!el.playlistPickerModal || !el.playlistPickerBackdrop || !el.playlistPickerList) {
     throw new Error("Playlist picker UI is not available.");
@@ -3639,7 +3686,9 @@ async function openPlaylistPicker(mode, forceRefresh = false) {
   if (el.playlistPickerDescription) {
     el.playlistPickerDescription.textContent = safeMode === "add"
       ? "Pick one of your playlists to store the currently selected moderated song."
-      : "Pick one of your playlists to start playback on the active Spotify device.";
+      : safeMode === "builder"
+        ? "Pick one of your playlists as the target for the Playlist Builder screen."
+        : "Pick one of your playlists to start playback on the active Spotify device.";
   }
 
   el.playlistPickerList.innerHTML = '<div class="empty-state">Loading playlists...</div>';
@@ -3661,7 +3710,7 @@ async function openPlaylistPicker(mode, forceRefresh = false) {
   renderPlaylistPickerList(playlists);
 
   if (el.playlistPickerDescription) {
-    el.playlistPickerDescription.textContent = `${playlists.length} playlist(s) available for ${safeMode === "add" ? "adding moderated songs" : "starting playback"}.`;
+    el.playlistPickerDescription.textContent = `${playlists.length} playlist(s) available for ${safeMode === "add" ? "adding moderated songs" : safeMode === "builder" ? "building playlists" : "starting playback"}.`;
   }
 
   logConsoleEvent("Playlists", `Loaded ${playlists.length} playlist(s) for picker.`, { mode: safeMode }, "success");
@@ -3676,6 +3725,13 @@ async function handlePlaylistPickerSelection(playlistId, playlistName) {
   }
 
   const mode = playlistPickerContext?.mode || "start";
+
+  if (mode === "builder") {
+    setPlaylistBuilderSelectedPlaylist(safePlaylistId, safePlaylistName);
+    setStatus(`Playlist Builder target set to: ${safePlaylistName}.`);
+    closePlaylistPicker();
+    return;
+  }
 
   if (mode === "add") {
     const item = await addSelectedApprovedToPlaylist(safePlaylistId);
@@ -4061,6 +4117,8 @@ function setRequestLyricsData(request, payload = {}) {
     ratingCode: String(payload.ratingCode ?? previous.ratingCode ?? "").trim(),
     ratingReason: String(payload.ratingReason ?? previous.ratingReason ?? "").trim(),
     ratingSelectorUsed: String(payload.ratingSelectorUsed ?? previous.ratingSelectorUsed ?? "").trim(),
+    isInstrumental: !!(payload.isInstrumental ?? previous.isInstrumental ?? false),
+    instrumentalSource: String(payload.instrumentalSource ?? previous.instrumentalSource ?? "").trim(),
     updatedAt: payload.updatedAt || new Date().toISOString()
   };
 
@@ -4083,6 +4141,8 @@ function setLyricsFetchStatus(requestId, state, detail = "", payload = {}) {
     ratingCode: String(payload.ratingCode ?? previous.ratingCode ?? "").trim(),
     ratingReason: String(payload.ratingReason ?? previous.ratingReason ?? "").trim(),
     ratingSelectorUsed: String(payload.ratingSelectorUsed ?? previous.ratingSelectorUsed ?? "").trim(),
+    isInstrumental: !!(payload.isInstrumental ?? previous.isInstrumental ?? false),
+    instrumentalSource: String(payload.instrumentalSource ?? previous.instrumentalSource ?? "").trim(),
     updatedAt: payload.updatedAt || new Date().toISOString()
   };
 
@@ -4104,6 +4164,8 @@ function setLyricsFetchStatus(requestId, state, detail = "", payload = {}) {
       ratingCode: nextState.ratingCode,
       ratingReason: nextState.ratingReason,
       ratingSelectorUsed: nextState.ratingSelectorUsed,
+      isInstrumental: nextState.isInstrumental,
+      instrumentalSource: nextState.instrumentalSource,
       updatedAt: nextState.updatedAt
     });
   }
@@ -4184,7 +4246,9 @@ function getStoredLyricsDataForRequest(request) {
       ratingLabel: String(requestLyrics.ratingLabel || ""),
       ratingCode: String(requestLyrics.ratingCode || ""),
       ratingReason: String(requestLyrics.ratingReason || ""),
-      ratingSelectorUsed: String(requestLyrics.ratingSelectorUsed || "")
+      ratingSelectorUsed: String(requestLyrics.ratingSelectorUsed || ""),
+      isInstrumental: !!requestLyrics.isInstrumental,
+      instrumentalSource: String(requestLyrics.instrumentalSource || "")
     };
   }
 
@@ -4199,7 +4263,9 @@ function getStoredLyricsDataForRequest(request) {
         ratingLabel: String(state.ratingLabel || ""),
         ratingCode: String(state.ratingCode || ""),
         ratingReason: String(state.ratingReason || ""),
-        ratingSelectorUsed: String(state.ratingSelectorUsed || "")
+        ratingSelectorUsed: String(state.ratingSelectorUsed || ""),
+        isInstrumental: !!state.isInstrumental,
+        instrumentalSource: String(state.instrumentalSource || "")
       };
     }
   }
@@ -4214,7 +4280,9 @@ function getStoredLyricsDataForRequest(request) {
       ratingLabel: String(cacheEntry.rating_label || ""),
       ratingCode: String(cacheEntry.rating_code || ""),
       ratingReason: String(cacheEntry.rating_reason || ""),
-      ratingSelectorUsed: String(cacheEntry.rating_selector_used || "")
+      ratingSelectorUsed: String(cacheEntry.rating_selector_used || ""),
+      isInstrumental: !!cacheEntry.is_instrumental,
+      instrumentalSource: String(cacheEntry.instrumental_source || "")
     };
   }
 
@@ -4360,6 +4428,8 @@ function applyLyricsCacheEntriesFromCache(requests, cacheData) {
         ratingCode: entry?.rating_code || "",
         ratingReason: entry?.rating_reason || "",
         ratingSelectorUsed: entry?.rating_selector_used || "",
+        isInstrumental: !!entry?.is_instrumental,
+        instrumentalSource: String(entry?.instrumental_source || ""),
         status: entry?.status || "success",
         updatedAt: entry?.updated_at || cacheData?.generated_at || new Date().toISOString()
       });
@@ -4379,6 +4449,8 @@ function applyLyricsCacheEntriesFromCache(requests, cacheData) {
         ratingCode: entry?.rating_code || "",
         ratingReason: entry?.rating_reason || "",
         ratingSelectorUsed: entry?.rating_selector_used || "",
+        isInstrumental: !!entry?.is_instrumental,
+        instrumentalSource: String(entry?.instrumental_source || ""),
         status: entry?.status || "fallback",
         updatedAt: entry?.updated_at || cacheData?.generated_at || new Date().toISOString()
       }
@@ -4654,6 +4726,8 @@ function moderationReasonHtml(request, moderation) {
   const lyricsRating = getLyricsRatingForRequest(request);
   const ratingLabel = String(request?.lyricsData?.ratingLabel || "").trim();
   const ratingReason = String(request?.lyricsData?.ratingReason || "").trim();
+  const isInstrumental = !!request?.lyricsData?.isInstrumental;
+  const instrumentalSource = String(request?.lyricsData?.instrumentalSource || "").trim();
   const ratingSummaryLabel = ratingLabel || (lyricsRating?.label ? String(lyricsRating.label).replace(/^Lyrics\s+/i, "") : "");
   const matchedTerms = Array.isArray(moderation?.themeTerms) && moderation.themeTerms.length
     ? moderation.themeTerms.join(", ")
@@ -4677,6 +4751,9 @@ function moderationReasonHtml(request, moderation) {
     ...(lyricsRating
       ? [statusTagHtml(lyricsRating.label, statusTagToneForLyricsRating(lyricsRating.code))]
       : []),
+    ...(isInstrumental
+      ? [statusTagHtml("Instrumental (Musixmatch)", "neutral")]
+      : []),
     statusTagHtml(
       `Theme: ${moderation?.themeLabel || "No Theme"}`,
       statusTagToneForTheme(moderation?.themeStatus),
@@ -4693,6 +4770,24 @@ function moderationReasonHtml(request, moderation) {
       <div class="moderation-bypass-actions">
         <button class="btn btn-small moderation-bypass-btn" data-request-id="${escapeHtml(requestIdValue)}" data-bypass-field="allow-all" type="button">
           Allow Now (Clean/Clear)
+        </button>
+        <button class="btn btn-small moderation-bypass-btn" data-request-id="${escapeHtml(requestIdValue)}" data-bypass-field="explicit" type="button">
+          Bypass Explicit Gate
+        </button>
+        <button class="btn btn-small moderation-bypass-btn" data-request-id="${escapeHtml(requestIdValue)}" data-bypass-field="theme" type="button">
+          Bypass Theme Gate
+        </button>
+        <button class="btn btn-small moderation-bypass-btn" data-request-id="${escapeHtml(requestIdValue)}" data-bypass-field="lyrics" type="button">
+          Bypass Lyrics Gate
+        </button>
+        <button class="btn btn-small moderation-bypass-btn" data-request-id="${escapeHtml(requestIdValue)}" data-bypass-field="force-clean" type="button">
+          Force Marker: Clean
+        </button>
+        <button class="btn btn-small moderation-bypass-btn" data-request-id="${escapeHtml(requestIdValue)}" data-bypass-field="force-flag" type="button">
+          Force Marker: Flag
+        </button>
+        <button class="btn btn-small moderation-bypass-btn" data-request-id="${escapeHtml(requestIdValue)}" data-bypass-field="force-explicit" type="button">
+          Force Marker: Explicit
         </button>
         <button class="btn btn-small moderation-bypass-btn moderation-bypass-reset-btn" data-request-id="${escapeHtml(requestIdValue)}" data-bypass-field="reset" type="button">
           Remove Override
@@ -4727,7 +4822,11 @@ function moderationReasonHtml(request, moderation) {
 
   return `
     <div class="moderation-reason-callout">
-      <span class="badge ${badgeClassForRecommendation(moderation)}">${escapeHtml(moderation?.recommendationLabel || "Flag")}</span>
+      <div class="request-title-badges">
+        <span class="badge ${badgeClassForFinalMarker(moderation?.finalMarker)}">${escapeHtml(moderation?.finalMarkerLabel || "Flag")}</span>
+        <span class="badge ${badgeClassForRecommendation(moderation)}">${escapeHtml(moderation?.recommendationLabel || "Flag")}</span>
+      </div>
+      <p>${escapeHtml(moderation?.finalMarkerReason || "Final marker computed from moderation signals.")}</p>
       <p>${escapeHtml(moderation?.recommendationReason || "Flagged for moderator review.")}</p>
     </div>
 
@@ -4764,6 +4863,7 @@ function moderationReasonHtml(request, moderation) {
       <ul class="moderation-reason-list">
         <li>${escapeHtml(moderation?.explicitReason || "No explicit reasoning available.")}</li>
         <li>${escapeHtml(moderation?.themeReason || "No theme reasoning available.")}</li>
+        ${isInstrumental ? `<li>${escapeHtml(`Musixmatch marked this track as instrumental${instrumentalSource ? ` (${instrumentalSource})` : ""}.`)}</li>` : ""}
         <li>${escapeHtml(lyricsStatus.detail || "Lyrics have not been fetched for this request.")}</li>
       </ul>
     </div>
@@ -5018,6 +5118,8 @@ async function openLyricsModal({ artist, song, fallbackUrl, requestId = "" }) {
         ratingCode: liveResult.ratingCode || "",
         ratingReason: liveResult.ratingReason || "",
         ratingSelectorUsed: liveResult.ratingSelectorUsed || "",
+        isInstrumental: !!liveResult.isInstrumental,
+        instrumentalSource: liveResult.instrumentalSource || "",
         status: "success",
         updatedAt: new Date().toISOString()
       });
@@ -5051,7 +5153,9 @@ async function openLyricsModal({ artist, song, fallbackUrl, requestId = "" }) {
       ratingLabel: cacheEntry.rating_label || "",
       ratingCode: cacheEntry.rating_code || "",
       ratingReason: cacheEntry.rating_reason || "",
-      ratingSelectorUsed: cacheEntry.rating_selector_used || ""
+      ratingSelectorUsed: cacheEntry.rating_selector_used || "",
+      isInstrumental: !!cacheEntry.is_instrumental,
+      instrumentalSource: String(cacheEntry.instrumental_source || "")
     };
 
     if (el.lyricsModalExternalLink && backupLyrics.url) {
@@ -5067,6 +5171,8 @@ async function openLyricsModal({ artist, song, fallbackUrl, requestId = "" }) {
         ratingCode: backupLyrics.ratingCode,
         ratingReason: backupLyrics.ratingReason,
         ratingSelectorUsed: backupLyrics.ratingSelectorUsed,
+        isInstrumental: !!backupLyrics.isInstrumental,
+        instrumentalSource: backupLyrics.instrumentalSource || "",
         status: "success",
         updatedAt: new Date().toISOString()
       });
@@ -5091,6 +5197,8 @@ async function openLyricsModal({ artist, song, fallbackUrl, requestId = "" }) {
       lyrics: "",
       source: liveResult.source || "Lyrics API",
       selectorUsed: liveResult.selectorUsed || "",
+      isInstrumental: false,
+      instrumentalSource: "",
       status: liveResult.status || fallbackState,
       updatedAt: new Date().toISOString()
     });
@@ -5351,6 +5459,569 @@ function closeModerationPanel() {
 }
 
 // ======================================================
+// PLAYLIST BUILDER PANEL
+// ======================================================
+function updatePlaylistBuilderStatus(message) {
+  const text = String(message || "").trim();
+  if (el.playlistBuilderStatus) {
+    el.playlistBuilderStatus.textContent = text || "Ready.";
+  }
+}
+
+function loadPlaylistBuilderSelectionFromStorage() {
+  const storedId = String(persistentStorage.getItem(LS.playlistBuilderPlaylistId) || "").trim();
+  const storedName = String(persistentStorage.getItem(LS.playlistBuilderPlaylistName) || "").trim();
+
+  playlistBuilderSelectedPlaylistId = storedId;
+  playlistBuilderSelectedPlaylistName = storedName;
+
+  if (el.playlistBuilderSelectedPlaylist) {
+    el.playlistBuilderSelectedPlaylist.textContent = storedName || (storedId ? "Selected" : "None");
+  }
+}
+
+function setPlaylistBuilderSelectedPlaylist(playlistId, playlistName) {
+  const safeId = String(playlistId || "").trim();
+  const safeName = String(playlistName || "").trim();
+
+  playlistBuilderSelectedPlaylistId = safeId;
+  playlistBuilderSelectedPlaylistName = safeName;
+
+  persistentStorage.setItem(LS.playlistBuilderPlaylistId, safeId);
+  persistentStorage.setItem(LS.playlistBuilderPlaylistName, safeName);
+
+  if (el.playlistBuilderSelectedPlaylist) {
+    el.playlistBuilderSelectedPlaylist.textContent = safeName || (safeId ? "Selected" : "None");
+  }
+
+  updatePlaylistBuilderActionState();
+}
+
+function openPlaylistBuilderPanel() {
+  closeModerationPanel();
+  closePlaylistPicker();
+
+  el.playlistBuilderOverlay?.classList.add("mod-is-open");
+  el.playlistBuilderBackdrop?.classList.add("mod-is-open");
+  document.body.classList.add("mod-panel-open");
+
+  loadPlaylistBuilderSelectionFromStorage();
+  updatePlaylistBuilderActionState();
+
+  updatePlaylistBuilderStatus("Choose a playlist, then search Spotify.");
+  el.playlistBuilderSearchInput?.focus();
+}
+
+function closePlaylistBuilderPanel() {
+  el.playlistBuilderOverlay?.classList.remove("mod-is-open");
+  el.playlistBuilderBackdrop?.classList.remove("mod-is-open");
+  document.body.classList.remove("mod-panel-open");
+
+  updatePlaylistBuilderStatus("Closed.");
+}
+
+function updatePlaylistBuilderActionState() {
+  const hasPlaylist = !!playlistBuilderSelectedPlaylistId;
+  const hasTrack = !!playlistBuilderSelectedTrack?.uri;
+
+  if (el.btnPlaylistBuilderAddSelected) {
+    el.btnPlaylistBuilderAddSelected.disabled = !(hasPlaylist && hasTrack);
+  }
+
+  if (el.btnPlaylistBuilderBulkAdd) {
+    el.btnPlaylistBuilderBulkAdd.disabled = !(hasPlaylist && Array.isArray(playlistBuilderBulkAddQueue) && playlistBuilderBulkAddQueue.length > 0);
+  }
+}
+
+function extractSpotifyTrackIdLoose(value) {
+  const direct = extractSpotifyTrackId(value);
+  if (direct) return direct;
+
+  const trimmed = String(value || "").trim();
+  if (!trimmed) return null;
+
+  // Allow raw Spotify IDs in CSVs (base62 strings are typically 22 chars).
+  if (/^[A-Za-z0-9]{10,32}$/.test(trimmed)) {
+    return trimmed;
+  }
+
+  return null;
+}
+
+function renderPlaylistBuilderSearchResults() {
+  if (!el.playlistBuilderSearchResults) return;
+
+  if (!Array.isArray(playlistBuilderSearchResults) || !playlistBuilderSearchResults.length) {
+    el.playlistBuilderSearchResults.innerHTML = '<div class="empty-state">Search Spotify to get started.</div>';
+    return;
+  }
+
+  el.playlistBuilderSearchResults.innerHTML = playlistBuilderSearchResults
+    .map((track) => {
+      const spotify = normalizeSpotifyTrack(track);
+      const isExplicit = spotify?.explicit === true;
+      const cached = spotify?.id ? playlistBuilderRatingCacheByTrackId.get(spotify.id) : null;
+      const ratingShort = cached?.ratingCode || normalizeLyricsRatingCode(cached?.ratingLabel || "");
+
+      return `
+        <div class="request-item">
+          <div class="request-art-wrap">
+            ${spotify?.image
+              ? `<img class="request-art" src="${escapeHtml(spotify.image)}" alt="${escapeHtml(spotify.name)} cover art">`
+              : `<div class="request-art request-art-placeholder">No Art</div>`
+            }
+          </div>
+
+          <div class="request-main">
+            <div class="request-title-row">
+              <div class="request-song">${escapeHtml(spotify?.name || "Unknown track")}</div>
+              <span class="badge ${isExplicit ? "badge-explicit" : "badge-clean"}">
+                ${isExplicit ? "Explicit" : "Clean"}
+              </span>
+            </div>
+
+            <div class="request-artist">${escapeHtml(spotify?.artist || "Unknown artist")}</div>
+            <div class="request-meta">
+              ${escapeHtml(spotify?.album || "Unknown Album")} - ${escapeHtml(msToMinSec(spotify?.durationMs || 0))}
+            </div>
+            ${ratingShort ? `<div class="request-submitted">Musixmatch rating: ${escapeHtml(ratingShort)}</div>` : ""}
+          </div>
+
+          <div class="request-actions">
+            <a class="ghost-btn" href="${escapeHtml(spotify?.externalUrl || "#")}" target="_blank" rel="noopener noreferrer">
+              Open in Spotify
+            </a>
+            <button class="playlist-builder-review-btn" data-track-id="${escapeHtml(spotify?.id || "")}">
+              Review Rating
+            </button>
+            <button class="playlist-builder-add-btn" data-track-id="${escapeHtml(spotify?.id || "")}">
+              Add to Playlist
+            </button>
+          </div>
+        </div>
+      `;
+    })
+    .join("");
+}
+
+async function runPlaylistBuilderSearch() {
+  const query = String(el.playlistBuilderSearchInput?.value || "").trim();
+  if (!query) {
+    playlistBuilderSearchResults = [];
+    renderPlaylistBuilderSearchResults();
+    updatePlaylistBuilderStatus("Enter a song or artist to search Spotify.");
+    return;
+  }
+
+  updatePlaylistBuilderStatus(`Searching Spotify for "${query}"...`);
+
+  const tracks = await searchSpotifyTracks(query);
+  playlistBuilderSearchResults = tracks;
+  renderPlaylistBuilderSearchResults();
+
+  if (!tracks.length) {
+    updatePlaylistBuilderStatus("No Spotify tracks matched that search.");
+    return;
+  }
+
+  updatePlaylistBuilderStatus(`Found ${tracks.length} Spotify track(s). Select one to review rating details.`);
+}
+
+async function fetchLyricsMetaFromApi(artist, song) {
+  const apiUrl = buildLyricsApiUrl(artist, song);
+  if (!apiUrl) {
+    return {
+      ok: false,
+      status: "not-configured",
+      reason: "Lyrics API is not configured."
+    };
+  }
+
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), CONFIG.lyricsApiTimeoutMs);
+
+  try {
+    const response = await fetch(apiUrl, {
+      method: "GET",
+      headers: { Accept: "application/json" },
+      signal: controller.signal
+    });
+
+    const json = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      const reason = String(json?.error || "").trim() || `Lyrics API responded with ${response.status}.`;
+      return { ok: false, status: "api-error", reason, json };
+    }
+
+    return {
+      ok: true,
+      status: "success",
+      json
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      status: error?.name === "AbortError" ? "timeout" : "request-failed",
+      reason: error?.name === "AbortError" ? "Lyrics API request timed out." : (error?.message || "Lyrics API request failed.")
+    };
+  } finally {
+    window.clearTimeout(timeoutId);
+  }
+}
+
+async function fetchPlaylistBuilderRatingDetails(spotify) {
+  const artist = String(spotify?.artist || "").trim();
+  const song = String(spotify?.name || "").trim();
+
+  if (!artist || !song) {
+    return {
+      ratingLabel: "",
+      ratingCode: "",
+      ratingReason: "",
+      ratingSelectorUsed: "",
+      isInstrumental: false,
+      instrumentalSource: "",
+      musixmatchUrl: "",
+      source: "missing-metadata"
+    };
+  }
+
+  if (!lyricsCacheSnapshot) {
+    await fetchLyricsCacheSnapshot({ quiet: true });
+  }
+
+  const cacheEntry = getLyricsCacheEntryByArtistSong(artist, song, lyricsCacheSnapshot);
+  if (cacheEntry) {
+    const ratingLabel = String(cacheEntry.rating_label || "").trim();
+    const ratingCode = String(cacheEntry.rating_code || "").trim();
+    const ratingReason = String(cacheEntry.rating_reason || "").trim();
+    const ratingSelectorUsed = String(cacheEntry.rating_selector_used || "").trim();
+    const isInstrumental = !!cacheEntry.is_instrumental;
+    const instrumentalSource = String(cacheEntry.instrumental_source || "").trim();
+    const musixmatchUrl = String(cacheEntry.musixmatch_url || cacheEntry.url || "").trim();
+
+    if (ratingLabel || ratingCode || ratingReason || isInstrumental) {
+      return {
+        ratingLabel,
+        ratingCode,
+        ratingReason,
+        ratingSelectorUsed,
+        isInstrumental,
+        instrumentalSource,
+        musixmatchUrl,
+        source: "lyrics-cache.json"
+      };
+    }
+  }
+
+  const apiResult = await fetchLyricsMetaFromApi(artist, song);
+  if (apiResult.ok) {
+    const json = apiResult.json || {};
+    return {
+      ratingLabel: String(json?.rating_label || "").trim(),
+      ratingCode: String(json?.rating_code || "").trim(),
+      ratingReason: String(json?.rating_reason || "").trim(),
+      ratingSelectorUsed: String(json?.rating_selector_used || "").trim(),
+      isInstrumental: !!json?.is_instrumental,
+      instrumentalSource: String(json?.instrumental_source || "").trim(),
+      musixmatchUrl: String(json?.url || "").trim(),
+      source: "Lyrics API"
+    };
+  }
+
+  return {
+    ratingLabel: "",
+    ratingCode: "",
+    ratingReason: "",
+    ratingSelectorUsed: "",
+    isInstrumental: false,
+    instrumentalSource: "",
+    musixmatchUrl: "",
+    source: apiResult.status || "unknown"
+  };
+}
+
+function renderPlaylistBuilderReview(track, details) {
+  if (!el.playlistBuilderReview) return;
+
+  if (!track) {
+    el.playlistBuilderReview.innerHTML = '<div class="empty-state">Select a search result to preview rating details.</div>';
+    return;
+  }
+
+  const spotify = normalizeSpotifyTrack(track);
+  const ratingCode = normalizeLyricsRatingCode(details?.ratingCode || "") || normalizeLyricsRatingCode(details?.ratingLabel || "");
+  const ratingShort = ratingCode || (String(details?.ratingLabel || "").replace(/^(?:Musixmatch\s+)?Rating:\s*/i, "").trim() || "Unknown");
+  const ratingTone = statusTagToneForLyricsRating(ratingCode);
+  const musixmatchUrl = String(details?.musixmatchUrl || "").trim();
+  const reason = String(details?.ratingReason || "").trim();
+  const selectorUsed = String(details?.ratingSelectorUsed || "").trim();
+  const isInstrumental = !!details?.isInstrumental;
+  const instrumentalSource = String(details?.instrumentalSource || "").trim();
+
+  el.playlistBuilderReview.innerHTML = `
+    <div class="request-item">
+      <div class="request-art-wrap">
+        ${spotify?.image
+          ? `<img class="request-art" src="${escapeHtml(spotify.image)}" alt="${escapeHtml(spotify.name)} cover art">`
+          : `<div class="request-art request-art-placeholder">No Art</div>`
+        }
+      </div>
+
+      <div class="request-main">
+        <div class="request-title-row">
+          <div class="request-song">${escapeHtml(spotify?.name || "Unknown track")}</div>
+        </div>
+        <div class="request-artist">${escapeHtml(spotify?.artist || "Unknown artist")}</div>
+        <div class="request-meta">
+          ${escapeHtml(spotify?.album || "Unknown Album")} - ${escapeHtml(msToMinSec(spotify?.durationMs || 0))}
+        </div>
+
+        <div class="request-status-tags moderation-tags-wrap" style="margin-top: 10px;">
+          ${statusTagHtml(`Musixmatch Rating: ${ratingShort}`, ratingTone)}
+          ${isInstrumental ? statusTagHtml("Instrumental (Musixmatch)", "neutral") : ""}
+        </div>
+
+        <details class="moderation-reason-details" open style="margin-top: 10px;">
+          <summary>Musixmatch rating explanation</summary>
+          <div class="summary-text">
+            ${escapeHtml(reason || "No rating explanation was scraped for this track.")}
+          </div>
+        </details>
+
+        <div class="summary-text" style="margin-top: 10px;">
+          Source: ${escapeHtml(details?.source || "unknown")}${selectorUsed ? ` | ${escapeHtml(selectorUsed)}` : ""}
+          ${isInstrumental && instrumentalSource ? `<br/>Instrumental source: ${escapeHtml(instrumentalSource)}` : ""}
+        </div>
+      </div>
+
+      <div class="request-actions">
+        <a class="ghost-btn" href="${escapeHtml(spotify?.externalUrl || "#")}" target="_blank" rel="noopener noreferrer">
+          Open in Spotify
+        </a>
+        ${musixmatchUrl ? `<a class="ghost-btn" href="${escapeHtml(musixmatchUrl)}" target="_blank" rel="noopener noreferrer">Open Musixmatch</a>` : ""}
+      </div>
+    </div>
+  `;
+}
+
+async function selectPlaylistBuilderTrack(trackId) {
+  const safeTrackId = String(trackId || "").trim();
+  if (!safeTrackId) return;
+
+  const track = playlistBuilderSearchResults.find((item) => String(item?.id || "") === safeTrackId);
+  if (!track) {
+    updatePlaylistBuilderStatus("Selected search result is no longer available.");
+    return;
+  }
+
+  playlistBuilderSelectedTrackId = safeTrackId;
+  playlistBuilderSelectedTrack = track;
+
+  updatePlaylistBuilderStatus("Fetching Musixmatch rating details...");
+  if (el.playlistBuilderReview) {
+    el.playlistBuilderReview.innerHTML = '<div class="empty-state">Loading rating details...</div>';
+  }
+  updatePlaylistBuilderActionState();
+
+  let details = playlistBuilderRatingCacheByTrackId.get(safeTrackId);
+  if (!details) {
+    details = await fetchPlaylistBuilderRatingDetails(normalizeSpotifyTrack(track));
+    playlistBuilderRatingCacheByTrackId.set(safeTrackId, details);
+  }
+
+  renderPlaylistBuilderReview(track, details);
+  updatePlaylistBuilderActionState();
+  updatePlaylistBuilderStatus("Review rating details, then add to the selected playlist.");
+}
+
+async function addPlaylistBuilderSelectedToPlaylist() {
+  const playlistId = String(playlistBuilderSelectedPlaylistId || "").trim();
+  const trackUri = String(playlistBuilderSelectedTrack?.uri || "").trim();
+
+  if (!playlistId) {
+    updatePlaylistBuilderStatus("Choose a playlist first.");
+    return;
+  }
+
+  if (!trackUri) {
+    updatePlaylistBuilderStatus("Select a track first.");
+    return;
+  }
+
+  const trackLabel = `${playlistBuilderSelectedTrack?.artist || "Unknown"} - ${playlistBuilderSelectedTrack?.name || "Unknown"}`;
+
+  try {
+    updatePlaylistBuilderStatus(`Adding to playlist: ${trackLabel}...`);
+    await addTrackToPlaylist(playlistId, trackUri);
+    updatePlaylistBuilderStatus(`Added: ${trackLabel}`);
+  } catch (error) {
+    updatePlaylistBuilderStatus(error?.message || "Failed to add track to playlist.");
+  }
+}
+
+function parsePlaylistBuilderCsvText(text) {
+  const raw = String(text || "");
+  if (!raw.trim()) return [];
+
+  const ids = [];
+  const lines = raw.split(/\r?\n/);
+
+  for (const line of lines) {
+    const cells = String(line || "").split(",");
+    for (const cell of cells) {
+      const id = extractSpotifyTrackIdLoose(cell);
+      if (id) ids.push(id);
+    }
+  }
+
+  return [...new Set(ids)];
+}
+
+function renderPlaylistBuilderBulkList() {
+  if (!el.playlistBuilderBulkList) return;
+
+  const ids = Array.isArray(playlistBuilderBulkParsedTrackIds) ? playlistBuilderBulkParsedTrackIds : [];
+  if (!ids.length) {
+    el.playlistBuilderBulkList.innerHTML = '<div class="empty-state">Parsed tracks will appear here.</div>';
+    return;
+  }
+
+  el.playlistBuilderBulkList.innerHTML = ids
+    .map((trackId) => {
+      const track = playlistBuilderBulkTracksById?.get(trackId) || null;
+      const spotify = track ? normalizeSpotifyTrack(track) : null;
+      const label = spotify ? `${spotify.artist} - ${spotify.name}` : `Track ID: ${trackId}`;
+      const meta = spotify ? `${spotify.album || "Unknown Album"} - ${msToMinSec(spotify.durationMs || 0)}` : "Not loaded yet";
+
+      return `
+        <div class="request-item">
+          <div class="request-art-wrap">
+            ${spotify?.image
+              ? `<img class="request-art" src="${escapeHtml(spotify.image)}" alt="${escapeHtml(spotify.name)} cover art">`
+              : `<div class="request-art request-art-placeholder">${spotify ? "No Art" : "--"}</div>`
+            }
+          </div>
+          <div class="request-main">
+            <div class="request-song">${escapeHtml(label)}</div>
+            <div class="request-meta">${escapeHtml(meta)}</div>
+          </div>
+        </div>
+      `;
+    })
+    .join("");
+}
+
+function readPlaylistBuilderBulkInputText() {
+  const pasted = String(el.playlistBuilderCsvText?.value || "");
+  if (pasted.trim()) return pasted;
+  return "";
+}
+
+async function parsePlaylistBuilderBulkInput() {
+  let text = readPlaylistBuilderBulkInputText();
+
+  if (!text && el.playlistBuilderCsvFile?.files?.length) {
+    const file = el.playlistBuilderCsvFile.files[0];
+    text = await file.text();
+    if (el.playlistBuilderCsvText) {
+      el.playlistBuilderCsvText.value = text.slice(0, 200000);
+    }
+  }
+
+  const ids = parsePlaylistBuilderCsvText(text);
+  playlistBuilderBulkParsedTrackIds = ids;
+  playlistBuilderBulkTracksById = new Map();
+  playlistBuilderBulkAddQueue = [];
+
+  if (el.playlistBuilderBulkStatus) {
+    el.playlistBuilderBulkStatus.textContent = ids.length ? `Parsed ${ids.length} unique Spotify track ID(s).` : "No Spotify track URLs were found in that CSV.";
+  }
+
+  renderPlaylistBuilderBulkList();
+  updatePlaylistBuilderActionState();
+}
+
+async function loadPlaylistBuilderBulkTracks() {
+  if (playlistBuilderBulkLoadInFlight) return;
+
+  const ids = Array.isArray(playlistBuilderBulkParsedTrackIds) ? playlistBuilderBulkParsedTrackIds : [];
+  if (!ids.length) {
+    if (el.playlistBuilderBulkStatus) el.playlistBuilderBulkStatus.textContent = "Parse a CSV first.";
+    return;
+  }
+
+  playlistBuilderBulkLoadInFlight = true;
+  try {
+    if (el.playlistBuilderBulkStatus) el.playlistBuilderBulkStatus.textContent = `Loading ${ids.length} Spotify track(s)...`;
+
+    const fetched = await getTracksByIds(ids);
+    playlistBuilderBulkTracksById = fetched;
+
+    const loaded = Array.from(fetched.values()).filter(Boolean);
+    playlistBuilderBulkAddQueue = loaded
+      .map((track) => normalizeSpotifyTrack(track))
+      .filter((spotify) => spotify?.uri);
+
+    if (el.playlistBuilderBulkStatus) {
+      el.playlistBuilderBulkStatus.textContent = `Loaded ${playlistBuilderBulkAddQueue.length}/${ids.length} track(s) from Spotify.`;
+    }
+
+    renderPlaylistBuilderBulkList();
+    updatePlaylistBuilderActionState();
+  } catch (error) {
+    if (el.playlistBuilderBulkStatus) {
+      el.playlistBuilderBulkStatus.textContent = error?.message || "Failed to load tracks from Spotify.";
+    }
+  } finally {
+    playlistBuilderBulkLoadInFlight = false;
+  }
+}
+
+async function addPlaylistBuilderBulkTracksToPlaylist() {
+  if (playlistBuilderBulkAddInFlight) return;
+
+  const playlistId = String(playlistBuilderSelectedPlaylistId || "").trim();
+  if (!playlistId) {
+    if (el.playlistBuilderBulkStatus) el.playlistBuilderBulkStatus.textContent = "Choose a playlist first.";
+    return;
+  }
+
+  const queue = Array.isArray(playlistBuilderBulkAddQueue) ? playlistBuilderBulkAddQueue : [];
+  if (!queue.length) {
+    if (el.playlistBuilderBulkStatus) el.playlistBuilderBulkStatus.textContent = "Load tracks first.";
+    return;
+  }
+
+  playlistBuilderBulkAddInFlight = true;
+  try {
+    let added = 0;
+    for (let i = 0; i < queue.length; i += 1) {
+      const spotify = queue[i];
+      if (!spotify?.uri) continue;
+
+      if (el.playlistBuilderBulkStatus) {
+        el.playlistBuilderBulkStatus.textContent = `Adding ${i + 1}/${queue.length}: ${spotify.artist} - ${spotify.name}`;
+      }
+
+      await addTrackToPlaylist(playlistId, spotify.uri);
+      added += 1;
+    }
+
+    if (el.playlistBuilderBulkStatus) {
+      el.playlistBuilderBulkStatus.textContent = `Done. Added ${added}/${queue.length} track(s) to the selected playlist.`;
+    }
+  } catch (error) {
+    if (el.playlistBuilderBulkStatus) {
+      el.playlistBuilderBulkStatus.textContent = error?.message || "Bulk add failed.";
+    }
+  } finally {
+    playlistBuilderBulkAddInFlight = false;
+  }
+}
+
+// ======================================================
 // EVENT WIRING
 // ======================================================
 function wireStaticEvents() {
@@ -5395,6 +6066,82 @@ function wireStaticEvents() {
       console.error(error);
       setStatus(error?.message || "Could not open playlist picker.");
     }
+  });
+
+  // Playlist Builder panel
+  el.btnOpenPlaylistBuilder?.addEventListener("click", () => {
+    openPlaylistBuilderPanel();
+  });
+
+  el.btnPlaylistBuilderClose?.addEventListener("click", () => closePlaylistBuilderPanel());
+  el.playlistBuilderBackdrop?.addEventListener("click", () => closePlaylistBuilderPanel());
+
+  el.btnPlaylistBuilderChoosePlaylist?.addEventListener("click", async () => {
+    try {
+      await openPlaylistPicker("builder", false);
+    } catch (error) {
+      console.error(error);
+      setStatus(error?.message || "Could not open playlist picker for Playlist Builder.");
+    }
+  });
+
+  el.btnPlaylistBuilderSearch?.addEventListener("click", async () => {
+    try {
+      await runPlaylistBuilderSearch();
+    } catch (error) {
+      console.error(error);
+      updatePlaylistBuilderStatus(error?.message || "Spotify search failed.");
+    }
+  });
+
+  el.playlistBuilderSearchInput?.addEventListener("keydown", async (event) => {
+    if (event.key !== "Enter") return;
+    event.preventDefault();
+
+    try {
+      await runPlaylistBuilderSearch();
+    } catch (error) {
+      console.error(error);
+      updatePlaylistBuilderStatus(error?.message || "Spotify search failed.");
+    }
+  });
+
+  el.playlistBuilderSearchResults?.addEventListener("click", async (event) => {
+    const reviewBtn = event.target.closest(".playlist-builder-review-btn");
+    const addBtn = event.target.closest(".playlist-builder-add-btn");
+
+    if (reviewBtn) {
+      await selectPlaylistBuilderTrack(reviewBtn.dataset.trackId || "");
+      return;
+    }
+
+    if (addBtn) {
+      await selectPlaylistBuilderTrack(addBtn.dataset.trackId || "");
+      await addPlaylistBuilderSelectedToPlaylist();
+    }
+  });
+
+  el.btnPlaylistBuilderAddSelected?.addEventListener("click", async () => {
+    await addPlaylistBuilderSelectedToPlaylist();
+  });
+
+  el.btnPlaylistBuilderBulkParse?.addEventListener("click", async () => {
+    try {
+      await parsePlaylistBuilderBulkInput();
+    } catch (error) {
+      console.error(error);
+      if (el.playlistBuilderBulkStatus) {
+        el.playlistBuilderBulkStatus.textContent = error?.message || "Failed to parse CSV.";
+      }
+    }
+  });
+
+  el.btnPlaylistBuilderBulkLoad?.addEventListener("click", async () => {
+    await loadPlaylistBuilderBulkTracks();
+  });
+
+  el.btnPlaylistBuilderBulkAdd?.addEventListener("click", async () => {
+    await addPlaylistBuilderBulkTracksToPlaylist();
   });
 
   el.btnAddApprovedToQueue?.addEventListener("click", async () => {
@@ -5628,7 +6375,7 @@ function wireStaticEvents() {
   });
 
   el.btnOpenModeration?.addEventListener("click", () => openModerationPanel());
-  document.getElementById("btnCloseModeration")?.addEventListener("click", () => closeModerationPanel());
+  el.btnCloseModeration?.addEventListener("click", () => closeModerationPanel());
   document.getElementById("modBackdrop")?.addEventListener("click", () => closeModerationPanel());
 
   el.btnCloseModerationReason?.addEventListener("click", () => closeModerationReasonModal());
@@ -5809,21 +6556,29 @@ function wireStaticEvents() {
   });
 
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") {
-      if (el.playlistPickerModal?.classList.contains("playlist-picker-is-open")) {
-        closePlaylistPicker();
-        return;
-      }
-      if (el.lyricsModal?.classList.contains("lyrics-is-open")) {
-        closeLyricsModal();
-        return;
-      }
-      if (el.moderationReasonModal?.classList.contains("moderation-reason-is-open")) {
-        closeModerationReasonModal();
-        return;
-      }
-      closeModerationPanel();
+    if (e.key !== "Escape") return;
+
+    if (el.playlistPickerModal?.classList.contains("playlist-picker-is-open")) {
+      closePlaylistPicker();
+      return;
     }
+
+    if (el.playlistBuilderOverlay?.classList.contains("mod-is-open")) {
+      closePlaylistBuilderPanel();
+      return;
+    }
+
+    if (el.lyricsModal?.classList.contains("lyrics-is-open")) {
+      closeLyricsModal();
+      return;
+    }
+
+    if (el.moderationReasonModal?.classList.contains("moderation-reason-is-open")) {
+      closeModerationReasonModal();
+      return;
+    }
+
+    closeModerationPanel();
   });
 
   document.addEventListener("visibilitychange", () => {

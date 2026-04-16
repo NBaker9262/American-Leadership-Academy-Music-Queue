@@ -570,6 +570,8 @@ def build_cache(
             "rating_code": "",
             "rating_reason": "",
             "rating_selector_used": "",
+            "is_instrumental": False,
+            "instrumental_source": "",
             "source": "github-actions-cache",
             "updated_at": now_iso(),
             "error": "",
@@ -592,6 +594,8 @@ def build_cache(
                 entry["rating_code"] = result.rating_code
                 entry["rating_reason"] = result.rating_reason
                 entry["rating_selector_used"] = result.rating_selector_used
+                entry["is_instrumental"] = bool(getattr(result, "is_instrumental", False))
+                entry["instrumental_source"] = str(getattr(result, "instrumental_source", "") or "")
                 scrape_success_count += 1
             else:
                 entry["status"] = "fallback"

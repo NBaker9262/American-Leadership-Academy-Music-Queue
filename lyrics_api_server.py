@@ -14,6 +14,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import sys
 from dataclasses import dataclass
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Iterable
@@ -87,10 +88,16 @@ class LyricsResult:
     url: str
     selector_used: str
     lyrics: str
+    is_instrumental: bool = False
+    instrumental_source: str = ""
     rating_label: str = ""
     rating_code: str = ""
     rating_reason: str = ""
     rating_selector_used: str = ""
+    canonical_url: str = ""
+    canonical_artist_slug: str = ""
+    canonical_song_slug: str = ""
+    match_strategy: str = ""
 
 
 def slugify_for_musixmatch(value: str) -> str:
@@ -108,6 +115,33 @@ def build_musixmatch_url(artist: str, song: str) -> str:
     artist_slug = slugify_for_musixmatch(artist)
     song_slug = slugify_for_musixmatch(song)
     return f"https://www.musixmatch.com/lyrics/{artist_slug}/{song_slug}"
+
+
+def extract_canonical_musixmatch_url(html: str) -> str:
+    """Extract canonical Musixmatch URL from og:url or <link rel=canonical> tags."""
+
+    text = str(html or "")
+    if not text:
+        return ""
+
+    soup = BeautifulSoup(text, "html.parser")
+
+    meta = soup.select_one('meta[property="og:url"][content]')
+    if meta and meta.get("content"):
+        return str(meta.get("content") or "").strip()
+
+    link = soup.select_one('link[rel="canonical"][href]')
+    if link and link.get("href"):
+        return str(link.get("href") or "").strip()
+
+    return ""
+
+
+def parse_musixmatch_artist_song_slugs(url: str) -> tuple[str, str]:
+    match = re.search(r"musixmatch\.com/lyrics/([^/]+)/([^/?#]+)", str(url or ""))
+    if not match:
+        return "", ""
+    return match.group(1), match.group(2)
 
 
 def iter_musixmatch_artist_slug_variants(artist: str, max_suffix: int = 8) -> list[str]:
@@ -153,7 +187,7 @@ def fetch_musixmatch_lyrics_with_disambiguation(
     selector: str = DEFAULT_SELECTOR,
     max_artist_suffix: int | None = None,
 ) -> tuple[LyricsResult, list[str]]:
-    """Fetch Musixmatch lyrics, trying artist slug numeric suffixes on 404."""
+    """Fetch Musixmatch lyrics, trying artist slug numeric suffixes and a canonical retry."""
 
     max_suffix = max_artist_suffix
     if max_suffix is None:
@@ -162,21 +196,84 @@ def fetch_musixmatch_lyrics_with_disambiguation(
         except ValueError:
             max_suffix = 8
 
+    base_artist_slug = slugify_for_musixmatch(artist)
     song_slug = slugify_for_musixmatch(song)
     tried_urls: list[str] = []
     last_non_404_error: Exception | None = None
 
-    for candidate_artist_slug in iter_musixmatch_artist_slug_variants(artist, max_suffix=max_suffix):
+    variants = iter_musixmatch_artist_slug_variants(artist, max_suffix=max_suffix)
+
+    for index, candidate_artist_slug in enumerate(variants):
         url = f"https://www.musixmatch.com/lyrics/{candidate_artist_slug}/{song_slug}"
         tried_urls.append(url)
 
+        match_strategy = "direct" if (index == 0 and candidate_artist_slug == base_artist_slug) else "artist-suffix"
+
         try:
-            return fetch_musixmatch_lyrics(url=url, selector=selector), tried_urls
+            fetched = fetch_musixmatch_lyrics(url=url, selector=selector)
+            return (
+                LyricsResult(
+                    url=fetched.url,
+                    selector_used=fetched.selector_used,
+                    lyrics=fetched.lyrics,
+                    is_instrumental=fetched.is_instrumental,
+                    instrumental_source=fetched.instrumental_source,
+                    rating_label=fetched.rating_label,
+                    rating_code=fetched.rating_code,
+                    rating_reason=fetched.rating_reason,
+                    rating_selector_used=fetched.rating_selector_used,
+                    canonical_url=fetched.canonical_url,
+                    canonical_artist_slug=fetched.canonical_artist_slug,
+                    canonical_song_slug=fetched.canonical_song_slug,
+                    match_strategy=match_strategy,
+                ),
+                tried_urls,
+            )
         except requests.HTTPError as error:
             status_code = getattr(error.response, "status_code", None)
-            if status_code == 404:
-                continue
-            raise
+            if status_code != 404:
+                raise
+
+            html = ""
+            response = getattr(error, "response", None)
+            if response is not None:
+                try:
+                    html = response.text or ""
+                except Exception:  # noqa: BLE001
+                    html = ""
+
+            canonical_url = extract_canonical_musixmatch_url(html)
+            if canonical_url and canonical_url != url and canonical_url not in tried_urls:
+                tried_urls.append(canonical_url)
+                try:
+                    fetched = fetch_musixmatch_lyrics(url=canonical_url, selector=selector)
+                    return (
+                        LyricsResult(
+                            url=fetched.url,
+                            selector_used=fetched.selector_used,
+                            lyrics=fetched.lyrics,
+                            is_instrumental=fetched.is_instrumental,
+                            instrumental_source=fetched.instrumental_source,
+                            rating_label=fetched.rating_label,
+                            rating_code=fetched.rating_code,
+                            rating_reason=fetched.rating_reason,
+                            rating_selector_used=fetched.rating_selector_used,
+                            canonical_url=fetched.canonical_url,
+                            canonical_artist_slug=fetched.canonical_artist_slug,
+                            canonical_song_slug=fetched.canonical_song_slug,
+                            match_strategy="canonical-retry",
+                        ),
+                        tried_urls,
+                    )
+                except requests.HTTPError as canonical_error:
+                    if getattr(canonical_error.response, "status_code", None) != 404:
+                        raise
+                except LyricsFetchError as canonical_error:
+                    if "captcha" in str(canonical_error).lower():
+                        raise
+                    last_non_404_error = canonical_error
+
+            continue
         except LyricsFetchError as error:
             # Don't loop on captcha/bot pages.
             if "captcha" in str(error).lower():
@@ -297,6 +394,83 @@ def extract_lyrics_from_next_data(soup: BeautifulSoup) -> tuple[str, str] | None
         cleaned = normalize_embedded_lyrics(value)
         if looks_like_lyrics(cleaned):
             return cleaned, f"__NEXT_DATA__:{path}"
+
+    return None
+
+
+def extract_rating_from_next_data(soup: BeautifulSoup) -> tuple[str, str, str, str] | None:
+    node = soup.select_one("#__NEXT_DATA__")
+    if not node:
+        return None
+
+    raw_json = node.string or node.get_text(strip=True)
+    if not raw_json:
+        return None
+
+    try:
+        payload = json.loads(raw_json)
+    except json.JSONDecodeError:
+        return None
+
+    rating_paths = [
+        ["props", "pageProps", "data", "trackInfo", "data", "track", "lens", "rating"],
+        ["props", "pageProps", "data", "track", "lens", "rating"],
+    ]
+
+    for path in rating_paths:
+        current: object = payload
+        for key in path:
+            if not isinstance(current, dict) or key not in current:
+                current = None
+                break
+            current = current[key]
+
+        if not isinstance(current, dict):
+            continue
+
+        audience = str(current.get("audience") or "").strip()
+        descriptor = str(current.get("descriptor") or current.get("description") or "").strip()
+        if not audience and not descriptor:
+            continue
+
+        rating_code = normalize_rating_code(audience)
+        label_value = rating_code or audience
+        rating_label = f"Rating: {label_value}" if label_value else ""
+        rating_reason = clean_rating_reason_text(descriptor)
+        return rating_label, rating_code, rating_reason, f"__NEXT_DATA__:{'.'.join(path)}"
+
+    return None
+
+
+def extract_instrumental_from_next_data(soup: BeautifulSoup) -> tuple[bool, str] | None:
+    node = soup.select_one("#__NEXT_DATA__")
+    if not node:
+        return None
+
+    raw_json = node.string or node.get_text(strip=True)
+    if not raw_json:
+        return None
+
+    try:
+        payload = json.loads(raw_json)
+    except json.JSONDecodeError:
+        return None
+
+    instrumental_paths = [
+        ["props", "pageProps", "data", "trackInfo", "data", "track", "isInstrumental"],
+        ["props", "pageProps", "data", "track", "isInstrumental"],
+    ]
+
+    for path in instrumental_paths:
+        current: object = payload
+        for key in path:
+            if not isinstance(current, dict) or key not in current:
+                current = None
+                break
+            current = current[key]
+
+        if isinstance(current, bool):
+            return current, f"__NEXT_DATA__:{'.'.join(path)}"
 
     return None
 
@@ -439,6 +613,16 @@ def extract_rating_popup_reason(
     return "", ""
 
 
+def extract_instrumental_from_html(html: str) -> tuple[bool, str]:
+    soup = BeautifulSoup(html, "html.parser")
+
+    next_data_result = extract_instrumental_from_next_data(soup)
+    if next_data_result:
+        return next_data_result
+
+    return False, ""
+
+
 def extract_rating_from_html(html: str, primary_selector: str = RATING_SELECTOR) -> tuple[str, str, str, str]:
     soup = BeautifulSoup(html, "html.parser")
 
@@ -447,16 +631,23 @@ def extract_rating_from_html(html: str, primary_selector: str = RATING_SELECTOR)
     rating_reason = ""
     selector_used = ""
 
-    for selector in rating_selector_candidates(primary_selector):
-        node = soup.select_one(selector)
-        if not node:
-            continue
+    got_next_data = False
+    next_data_result = extract_rating_from_next_data(soup)
+    if next_data_result:
+        rating_label, rating_code, rating_reason, selector_used = next_data_result
+        got_next_data = True
 
-        parsed = parse_rating_text(inline_text_from_tag(node))
-        if parsed:
-            rating_label, rating_code, rating_reason = parsed
-            selector_used = selector
-            break
+    if not got_next_data:
+        for selector in rating_selector_candidates(primary_selector):
+            node = soup.select_one(selector)
+            if not node:
+                continue
+
+            parsed = parse_rating_text(inline_text_from_tag(node))
+            if parsed:
+                rating_label, rating_code, rating_reason = parsed
+                selector_used = selector
+                break
 
     # If we didn't find the rating badge/button, try reading the popup directly.
     if not rating_label and not rating_code:
@@ -567,16 +758,25 @@ def fetch_musixmatch_lyrics(url: str, selector: str = DEFAULT_SELECTOR) -> Lyric
     if "captcha" in lower_html and "musixmatch" in lower_html:
         raise LyricsFetchError("Musixmatch returned a bot/captcha page. Retry later or from a normal browser session.")
 
+    canonical_url = extract_canonical_musixmatch_url(html)
+    canonical_artist_slug, canonical_song_slug = parse_musixmatch_artist_song_slugs(canonical_url)
+
     lyrics, selector_used = extract_lyrics_from_html(html, primary_selector=selector)
+    is_instrumental, instrumental_source = extract_instrumental_from_html(html)
     rating_label, rating_code, rating_reason, rating_selector_used = extract_rating_from_html(html)
     return LyricsResult(
         url=url,
         selector_used=selector_used,
         lyrics=lyrics,
+        is_instrumental=is_instrumental,
+        instrumental_source=instrumental_source,
         rating_label=rating_label,
         rating_code=rating_code,
         rating_reason=rating_reason,
         rating_selector_used=rating_selector_used,
+        canonical_url=canonical_url,
+        canonical_artist_slug=canonical_artist_slug,
+        canonical_song_slug=canonical_song_slug,
     )
 
 
@@ -685,10 +885,16 @@ class LyricsApiHandler(BaseHTTPRequestHandler):
                 "url": result.url,
                 "selector_used": result.selector_used,
                 "lyrics": result.lyrics,
+                "is_instrumental": result.is_instrumental,
+                "instrumental_source": result.instrumental_source,
                 "rating_label": result.rating_label,
                 "rating_code": result.rating_code,
                 "rating_reason": result.rating_reason,
                 "rating_selector_used": result.rating_selector_used,
+                "canonical_url": result.canonical_url,
+                "canonical_artist_slug": result.canonical_artist_slug,
+                "canonical_song_slug": result.canonical_song_slug,
+                "match_strategy": result.match_strategy,
                 "source": "lyrics_api_server.py",
             },
         )
@@ -703,4 +909,37 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+    if len(sys.argv) >= 2 and sys.argv[1] in {"--test", "test"}:
+        artist = sys.argv[2] if len(sys.argv) > 2 else ""
+        song = sys.argv[3] if len(sys.argv) > 3 else ""
+        if not artist or not song:
+            print("Usage: python lyrics_api_server.py --test <artist> <song>")
+            raise SystemExit(2)
+
+        try:
+            result, tried_urls = fetch_musixmatch_lyrics_with_disambiguation(artist=artist, song=song)
+        except Exception as error:  # noqa: BLE001
+            print(f"Test fetch failed: {error}")
+            raise SystemExit(1)
+
+        print(
+            json.dumps(
+                {
+                    "artist": artist,
+                    "song": song,
+                    "match_strategy": result.match_strategy,
+                    "chosen_url": result.url,
+                    "is_instrumental": result.is_instrumental,
+                    "instrumental_source": result.instrumental_source,
+                    "canonical_url": result.canonical_url,
+                    "canonical_artist_slug": result.canonical_artist_slug,
+                    "canonical_song_slug": result.canonical_song_slug,
+                    "tried_urls": tried_urls,
+                },
+                ensure_ascii=False,
+                indent=2,
+            )
+        )
+        raise SystemExit(0)
+
     main()
