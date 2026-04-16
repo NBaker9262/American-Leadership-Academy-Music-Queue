@@ -366,24 +366,14 @@
                 <button id="btnAddApprovedToQueue" class="btn btn-small btn-primary" type="button">
                   Add to Queue
                 </button>
+                <button id="btnAddSelectedToPlaylistPicker" class="btn btn-small" type="button">
+                  Add to Playlist
+                </button>
               </div>
             </div>
 
             <div id="approvedPreviewTable" class="requests-list approved-preview-large">
               <div class="empty-state">No approved songs yet.</div>
-            </div>
-
-            <div class="playlist-routing-panel">
-              <p class="playlist-routing-title">Vetted Song Playlist Routing</p>
-              <p class="summary-text">
-                Save the selected vetted song into your event playlists before the event.
-              </p>
-
-              <div class="playlist-routing-actions">
-                <button id="btnAddSelectedToPlaylistPicker" class="btn btn-small" type="button">
-                  Add to Playlist
-                </button>
-              </div>
             </div>
           </section>
 
@@ -557,6 +547,49 @@
       <div class="empty-state">Loading playlists...</div>
     </div>
   </aside>
+
+  <!-- PLAYLIST DUPLICATES BACKDROP -->
+  <div id="playlistDuplicateBackdrop" class="playlist-duplicate-backdrop"></div>
+
+  <!-- PLAYLIST DUPLICATES MODAL -->
+  <aside
+    id="playlistDuplicateModal"
+    class="playlist-duplicate-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Playlist Duplicate Review"
+  >
+    <div class="playlist-duplicate-header">
+      <div>
+        <p class="section-kicker">Playlist Safety</p>
+        <h2 id="playlistDuplicateTitle">Duplicates Found</h2>
+      </div>
+      <button id="btnClosePlaylistDuplicateModal" class="btn lyrics-close-btn" type="button">
+        &#x2715; Close
+      </button>
+    </div>
+
+    <div id="playlistDuplicateDescription" class="summary-text playlist-duplicate-description">
+      Review duplicates before adding.
+    </div>
+
+    <div id="playlistDuplicateList" class="playlist-duplicate-list">
+      <div class="empty-state">No duplicates.</div>
+    </div>
+
+    <div class="playlist-duplicate-actions">
+      <button id="btnPlaylistDuplicateAddAnyway" class="btn btn-small btn-primary" type="button">
+        Add Anyway
+      </button>
+      <button id="btnPlaylistDuplicateDelete" class="btn btn-small" type="button">
+        Delete
+      </button>
+      <button id="btnPlaylistDuplicateCancel" class="btn btn-small" type="button">
+        Cancel
+      </button>
+    </div>
+  </aside>
+
   <!-- MODERATION REASONING BACKDROP -->
   <div id="moderationReasonBackdrop" class="moderation-reason-backdrop"></div>
 

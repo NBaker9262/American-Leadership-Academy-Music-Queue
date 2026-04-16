@@ -180,111 +180,187 @@ def iter_musixmatch_artist_slug_variants(artist: str, max_suffix: int = 8) -> li
     return variants
 
 
+def iter_musixmatch_song_slug_variants(song: str, max_suffix: int = 3) -> list[str]:
+    """Return likely Musixmatch song slug variants.
+
+    Musixmatch sometimes disambiguates songs by appending a numeric suffix
+    (for example, "god-s-plan-1") and sometimes uses a collapsed form without
+    hyphens (for example, "brainstew").
+    """
+
+    safe_slug = slugify_for_musixmatch(song)
+    collapsed_slug = safe_slug.replace("-", "")
+
+    variants: list[str] = []
+    seen: set[str] = set()
+
+    def add(value: str) -> None:
+        value = str(value or "").strip()
+        if not value or value in seen:
+            return
+        seen.add(value)
+        variants.append(value)
+
+    # If the slug already ends with "-<number>", try the root too.
+    match = re.match(r"^(.*?)-(\d+)$", safe_slug)
+    root = ""
+    if match:
+        root = match.group(1).strip("-")
+        if root:
+            add(root)
+        add(safe_slug)
+    else:
+        add(safe_slug)
+
+    if collapsed_slug and collapsed_slug != safe_slug:
+        add(collapsed_slug)
+
+    max_suffix = max(0, int(max_suffix))
+    for suffix in range(1, max_suffix + 1):
+        add(f"{safe_slug}-{suffix}")
+        if collapsed_slug and collapsed_slug != safe_slug:
+            add(f"{collapsed_slug}-{suffix}")
+        if root and root != safe_slug:
+            add(f"{root}-{suffix}")
+
+    return variants
+
+
 def fetch_musixmatch_lyrics_with_disambiguation(
     *,
     artist: str,
     song: str,
     selector: str = DEFAULT_SELECTOR,
     max_artist_suffix: int | None = None,
+    max_song_suffix: int | None = None,
 ) -> tuple[LyricsResult, list[str]]:
-    """Fetch Musixmatch lyrics, trying artist slug numeric suffixes and a canonical retry."""
+    """Fetch Musixmatch lyrics, trying slug variants and a canonical retry."""
 
-    max_suffix = max_artist_suffix
-    if max_suffix is None:
+    artist_suffix_max = max_artist_suffix
+    if artist_suffix_max is None:
         try:
-            max_suffix = int(os.environ.get("MUSIXMATCH_ARTIST_SUFFIX_MAX", "8"))
+            artist_suffix_max = int(os.environ.get("MUSIXMATCH_ARTIST_SUFFIX_MAX", "8"))
         except ValueError:
-            max_suffix = 8
+            artist_suffix_max = 8
+
+    song_suffix_max = max_song_suffix
+    if song_suffix_max is None:
+        try:
+            song_suffix_max = int(os.environ.get("MUSIXMATCH_SONG_SUFFIX_MAX", "3"))
+        except ValueError:
+            song_suffix_max = 3
 
     base_artist_slug = slugify_for_musixmatch(artist)
-    song_slug = slugify_for_musixmatch(song)
+    base_song_slug = slugify_for_musixmatch(song)
+
     tried_urls: list[str] = []
     last_non_404_error: Exception | None = None
 
-    variants = iter_musixmatch_artist_slug_variants(artist, max_suffix=max_suffix)
+    artist_variants = iter_musixmatch_artist_slug_variants(artist, max_suffix=artist_suffix_max)
+    song_variants = iter_musixmatch_song_slug_variants(song, max_suffix=song_suffix_max)
 
-    for index, candidate_artist_slug in enumerate(variants):
-        url = f"https://www.musixmatch.com/lyrics/{candidate_artist_slug}/{song_slug}"
-        tried_urls.append(url)
+    for song_index, candidate_song_slug in enumerate(song_variants):
+        for artist_index, candidate_artist_slug in enumerate(artist_variants):
+            url = f"https://www.musixmatch.com/lyrics/{candidate_artist_slug}/{candidate_song_slug}"
+            tried_urls.append(url)
 
-        match_strategy = "direct" if (index == 0 and candidate_artist_slug == base_artist_slug) else "artist-suffix"
+            if (
+                song_index == 0
+                and artist_index == 0
+                and candidate_artist_slug == base_artist_slug
+                and candidate_song_slug == base_song_slug
+            ):
+                match_strategy = "direct"
+            else:
+                parts: list[str] = []
+                if candidate_artist_slug != base_artist_slug:
+                    parts.append("artist-variant")
+                    if re.search(r"-\d+$", candidate_artist_slug):
+                        parts.append("artist-suffix")
+                if candidate_song_slug != base_song_slug:
+                    parts.append("song-variant")
+                    if candidate_song_slug == base_song_slug.replace("-", ""):
+                        parts.append("song-collapsed")
+                    if re.search(r"-\d+$", candidate_song_slug):
+                        parts.append("song-suffix")
+                match_strategy = "+".join(parts) or "variant"
 
-        try:
-            fetched = fetch_musixmatch_lyrics(url=url, selector=selector)
-            return (
-                LyricsResult(
-                    url=fetched.url,
-                    selector_used=fetched.selector_used,
-                    lyrics=fetched.lyrics,
-                    is_instrumental=fetched.is_instrumental,
-                    instrumental_source=fetched.instrumental_source,
-                    rating_label=fetched.rating_label,
-                    rating_code=fetched.rating_code,
-                    rating_reason=fetched.rating_reason,
-                    rating_selector_used=fetched.rating_selector_used,
-                    canonical_url=fetched.canonical_url,
-                    canonical_artist_slug=fetched.canonical_artist_slug,
-                    canonical_song_slug=fetched.canonical_song_slug,
-                    match_strategy=match_strategy,
-                ),
-                tried_urls,
-            )
-        except requests.HTTPError as error:
-            status_code = getattr(error.response, "status_code", None)
-            if status_code != 404:
-                raise
+            try:
+                fetched = fetch_musixmatch_lyrics(url=url, selector=selector)
+                return (
+                    LyricsResult(
+                        url=fetched.url,
+                        selector_used=fetched.selector_used,
+                        lyrics=fetched.lyrics,
+                        is_instrumental=fetched.is_instrumental,
+                        instrumental_source=fetched.instrumental_source,
+                        rating_label=fetched.rating_label,
+                        rating_code=fetched.rating_code,
+                        rating_reason=fetched.rating_reason,
+                        rating_selector_used=fetched.rating_selector_used,
+                        canonical_url=fetched.canonical_url,
+                        canonical_artist_slug=fetched.canonical_artist_slug,
+                        canonical_song_slug=fetched.canonical_song_slug,
+                        match_strategy=match_strategy,
+                    ),
+                    tried_urls,
+                )
+            except requests.HTTPError as error:
+                status_code = getattr(error.response, "status_code", None)
+                if status_code != 404:
+                    raise
 
-            html = ""
-            response = getattr(error, "response", None)
-            if response is not None:
-                try:
-                    html = response.text or ""
-                except Exception:  # noqa: BLE001
-                    html = ""
+                html = ""
+                response = getattr(error, "response", None)
+                if response is not None:
+                    try:
+                        html = response.text or ""
+                    except Exception:  # noqa: BLE001
+                        html = ""
 
-            canonical_url = extract_canonical_musixmatch_url(html)
-            if canonical_url and canonical_url != url and canonical_url not in tried_urls:
-                tried_urls.append(canonical_url)
-                try:
-                    fetched = fetch_musixmatch_lyrics(url=canonical_url, selector=selector)
-                    return (
-                        LyricsResult(
-                            url=fetched.url,
-                            selector_used=fetched.selector_used,
-                            lyrics=fetched.lyrics,
-                            is_instrumental=fetched.is_instrumental,
-                            instrumental_source=fetched.instrumental_source,
-                            rating_label=fetched.rating_label,
-                            rating_code=fetched.rating_code,
-                            rating_reason=fetched.rating_reason,
-                            rating_selector_used=fetched.rating_selector_used,
-                            canonical_url=fetched.canonical_url,
-                            canonical_artist_slug=fetched.canonical_artist_slug,
-                            canonical_song_slug=fetched.canonical_song_slug,
-                            match_strategy="canonical-retry",
-                        ),
-                        tried_urls,
-                    )
-                except requests.HTTPError as canonical_error:
-                    if getattr(canonical_error.response, "status_code", None) != 404:
-                        raise
-                except LyricsFetchError as canonical_error:
-                    if "captcha" in str(canonical_error).lower():
-                        raise
-                    last_non_404_error = canonical_error
+                canonical_url = extract_canonical_musixmatch_url(html)
+                if canonical_url and canonical_url != url and canonical_url not in tried_urls:
+                    tried_urls.append(canonical_url)
+                    try:
+                        fetched = fetch_musixmatch_lyrics(url=canonical_url, selector=selector)
+                        return (
+                            LyricsResult(
+                                url=fetched.url,
+                                selector_used=fetched.selector_used,
+                                lyrics=fetched.lyrics,
+                                is_instrumental=fetched.is_instrumental,
+                                instrumental_source=fetched.instrumental_source,
+                                rating_label=fetched.rating_label,
+                                rating_code=fetched.rating_code,
+                                rating_reason=fetched.rating_reason,
+                                rating_selector_used=fetched.rating_selector_used,
+                                canonical_url=fetched.canonical_url,
+                                canonical_artist_slug=fetched.canonical_artist_slug,
+                                canonical_song_slug=fetched.canonical_song_slug,
+                                match_strategy="canonical-retry",
+                            ),
+                            tried_urls,
+                        )
+                    except requests.HTTPError as canonical_error:
+                        if getattr(canonical_error.response, "status_code", None) != 404:
+                            raise
+                    except LyricsFetchError as canonical_error:
+                        if "captcha" in str(canonical_error).lower():
+                            raise
+                        last_non_404_error = canonical_error
 
-            continue
-        except LyricsFetchError as error:
-            # Don't loop on captcha/bot pages.
-            if "captcha" in str(error).lower():
-                raise
-            last_non_404_error = error
-            continue
+                continue
+            except LyricsFetchError as error:
+                # Don't loop on captcha/bot pages.
+                if "captcha" in str(error).lower():
+                    raise
+                last_non_404_error = error
+                continue
 
     if last_non_404_error:
         raise last_non_404_error
 
-    raise LyricsFetchError("Musixmatch page not found for any artist slug variant.")
+    raise LyricsFetchError("Musixmatch page not found for any slug variant.")
 
 
 def clean_lyrics_text(text: str) -> str:
