@@ -450,7 +450,44 @@ function decodeLeetspeak(value) {
     .replaceAll("3", "e")
     .replaceAll("4", "a")
     .replaceAll("5", "s")
-    .replaceAll("7", "t");
+    .replaceAll("6", "g")
+    .replaceAll("7", "t")
+    .replaceAll("8", "b")
+    .replaceAll("9", "g")
+    .replaceAll("@", "a")
+    .replaceAll("$", "s")
+    .replaceAll("!", "i")
+    .replaceAll("+", "t");
+}
+
+function despaceSingleLetterRuns(normalizedText) {
+  const text = String(normalizedText || "").trim();
+  if (!text) return "";
+
+  const tokens = text.split(" ").filter(Boolean);
+  if (tokens.length <= 1) return text;
+
+  const output = [];
+  let run = [];
+
+  const flushRun = () => {
+    if (!run.length) return;
+    output.push(run.join(""));
+    run = [];
+  };
+
+  for (const token of tokens) {
+    if (token.length === 1) {
+      run.push(token);
+      continue;
+    }
+
+    flushRun();
+    output.push(token);
+  }
+
+  flushRun();
+  return output.join(" ").trim();
 }
 
 function normalizeModerationText(value) {
@@ -467,13 +504,87 @@ function normalizeModerationText(value) {
 function normalizeModerationVariants(value) {
   const direct = normalizeModerationText(value);
   const decoded = normalizeModerationText(decodeLeetspeak(value));
-  if (!decoded || decoded === direct) return [direct].filter(Boolean);
-  return [direct, decoded].filter(Boolean);
+  const directDespaced = despaceSingleLetterRuns(direct);
+  const decodedDespaced = despaceSingleLetterRuns(decoded);
+
+  return [...new Set([direct, decoded, directDespaced, decodedDespaced].filter(Boolean))];
+}
+
+function applyExternalModerationWordlists() {
+  const payload = window.ALA_MODERATION_WORDLISTS;
+  const rules = Array.isArray(payload?.rules) ? payload.rules : [];
+  if (!rules.length) return;
+
+  const existingIds = new Set((CONFIG.themePolicyRules || []).map((r) => String(r?.id || "").trim()).filter(Boolean));
+
+  for (const rule of rules) {
+    const id = String(rule?.id || "").trim();
+    if (!id || existingIds.has(id)) continue;
+
+    const severity = String(rule?.severity || "review").trim().toLowerCase();
+    const safeSeverity = severity === "block" ? "block" : "review";
+
+    const category = String(rule?.category || "External List").trim() || "External List";
+    const terms = Array.isArray(rule?.terms) ? rule.terms : [];
+    const phrases = Array.isArray(rule?.phrases) ? rule.phrases : [];
+
+    CONFIG.themePolicyRules.push({
+      id,
+      category,
+      severity: safeSeverity,
+      terms,
+      phrases
+    });
+    existingIds.add(id);
+  }
+
+  logConsoleEvent(
+    "Moderation",
+    `Loaded ${rules.length} external wordlist rule(s).`,
+    {
+      generatedAt: String(payload?.generatedAt || ""),
+      sources: payload?.sources || []
+    },
+    "info"
+  );
 }
 
 function containsNormalizedPhrase(normalizedText, normalizedPhrase) {
   if (!normalizedText || !normalizedPhrase) return false;
   return ` ${normalizedText} `.includes(` ${normalizedPhrase} `);
+}
+
+function collectMaskedLanguageHits(entries) {
+  const hits = [];
+  const seen = new Set();
+
+  // Detect common censoring attempts like sh*t, f**k, b*tch.
+  // Keep the character set conservative to reduce false positives.
+  const maskedPattern = /\b[a-z]\s*[\*•·_]{1,}\s*[a-z]\b/gi;
+
+  for (const entry of entries || []) {
+    const raw = String(entry?.rawValue || "");
+    if (!raw) continue;
+
+    const matches = raw.match(maskedPattern) || [];
+    for (const match of matches) {
+      const key = `${entry.field}|${match.toLowerCase()}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+
+      hits.push({
+        ruleId: "masked-language-review",
+        category: "Censored Language",
+        severity: "review",
+        field: entry.field,
+        matchType: "pattern",
+        matchedText: match,
+        normalizedMatch: normalizeModerationText(match)
+      });
+    }
+  }
+
+  return hits;
 }
 
 function getModerationSearchEntries(request) {
@@ -494,10 +605,40 @@ function getModerationSearchEntries(request) {
   return baseEntries;
 }
 
+const themePolicyCandidateCache = new Map();
+
+function getCachedThemePolicyCandidates(rule) {
+  const ruleId = String(rule?.id || "").trim();
+  if (!ruleId) return [];
+
+  const terms = Array.isArray(rule?.terms) ? rule.terms : [];
+  const phrases = Array.isArray(rule?.phrases) ? rule.phrases : [];
+  const cacheKey = `${terms.length}::${phrases.length}`;
+
+  const cached = themePolicyCandidateCache.get(ruleId);
+  if (cached?.cacheKey === cacheKey && Array.isArray(cached?.candidates)) {
+    return cached.candidates;
+  }
+
+  const candidates = [
+    ...terms.map((term) => ({ type: "keyword", value: term })),
+    ...phrases.map((phrase) => ({ type: "phrase", value: phrase }))
+  ]
+    .map((candidate) => {
+      const normalized = normalizeModerationText(candidate.value);
+      return normalized ? { ...candidate, normalized } : null;
+    })
+    .filter(Boolean);
+
+  themePolicyCandidateCache.set(ruleId, { cacheKey, candidates });
+  return candidates;
+}
+
 function collectThemePolicyHits(request) {
   const entries = getModerationSearchEntries(request)
     .map((entry) => ({
       ...entry,
+      rawValue: entry.value,
       variants: normalizeModerationVariants(entry.value)
     }))
     .filter((entry) => entry.variants.length > 0);
@@ -506,15 +647,10 @@ function collectThemePolicyHits(request) {
   const hits = [];
 
   for (const rule of CONFIG.themePolicyRules || []) {
-    const terms = Array.isArray(rule.terms) ? rule.terms : [];
-    const phrases = Array.isArray(rule.phrases) ? rule.phrases : [];
-    const allCandidates = [
-      ...terms.map((term) => ({ type: "keyword", value: term })),
-      ...phrases.map((phrase) => ({ type: "phrase", value: phrase }))
-    ];
+    const allCandidates = getCachedThemePolicyCandidates(rule);
 
     for (const candidate of allCandidates) {
-      const normalizedCandidate = normalizeModerationText(candidate.value);
+      const normalizedCandidate = candidate.normalized;
       if (!normalizedCandidate) continue;
 
       for (const entry of entries) {
@@ -540,6 +676,8 @@ function collectThemePolicyHits(request) {
       }
     }
   }
+
+  hits.push(...collectMaskedLanguageHits(entries));
 
   return hits;
 }
@@ -6630,6 +6768,7 @@ function stopPlaybackPolling() {
 async function init() {
   clearLegacyAuthStorage();
   ensureStorageDefaults();
+  applyExternalModerationWordlists();
   enforceSpotifyScopesFingerprint();
   loadModerationOverridesFromStorage();
   loadRequestAutoSyncPreference();

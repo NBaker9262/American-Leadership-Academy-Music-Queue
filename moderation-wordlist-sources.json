@@ -1,0 +1,89 @@
+{
+  "version": 1,
+  "description": "Sources for building local moderation word/phrase lists. Add more sources here, then run scripts/build_moderation_wordlists.py.",
+  "sources": [
+    {
+      "id": "ldnoobw-en",
+      "label": "List of Dirty, Naughty, Obscene and Otherwise Bad Words (en)",
+      "url": "https://raw.githubusercontent.com/LDNOOBW/List-of-Dirty-Naughty-Obscene-and-Otherwise-Bad-Words/master/en",
+      "format": "newline",
+      "commentPrefixes": ["#"],
+      "severity": "block",
+      "category": "External Profanity List"
+    },
+    {
+      "id": "ldnoobw-es",
+      "label": "List of Dirty, Naughty, Obscene and Otherwise Bad Words (es)",
+      "url": "https://raw.githubusercontent.com/LDNOOBW/List-of-Dirty-Naughty-Obscene-and-Otherwise-Bad-Words/master/es",
+      "format": "newline",
+      "commentPrefixes": ["#"],
+      "severity": "block",
+      "category": "External Profanity List"
+    },
+    {
+      "id": "ldnoobw-fr",
+      "label": "List of Dirty, Naughty, Obscene and Otherwise Bad Words (fr)",
+      "url": "https://raw.githubusercontent.com/LDNOOBW/List-of-Dirty-Naughty-Obscene-and-Otherwise-Bad-Words/master/fr",
+      "format": "newline",
+      "commentPrefixes": ["#"],
+      "severity": "block",
+      "category": "External Profanity List"
+    },
+    {
+      "id": "ldnoobw-de",
+      "label": "List of Dirty, Naughty, Obscene and Otherwise Bad Words (de)",
+      "url": "https://raw.githubusercontent.com/LDNOOBW/List-of-Dirty-Naughty-Obscene-and-Otherwise-Bad-Words/master/de",
+      "format": "newline",
+      "commentPrefixes": ["#"],
+      "severity": "block",
+      "category": "External Profanity List"
+    },
+    {
+      "id": "ldnoobw-it",
+      "label": "List of Dirty, Naughty, Obscene and Otherwise Bad Words (it)",
+      "url": "https://raw.githubusercontent.com/LDNOOBW/List-of-Dirty-Naughty-Obscene-and-Otherwise-Bad-Words/master/it",
+      "format": "newline",
+      "commentPrefixes": ["#"],
+      "severity": "block",
+      "category": "External Profanity List"
+    },
+    {
+      "id": "ldnoobw-pt",
+      "label": "List of Dirty, Naughty, Obscene and Otherwise Bad Words (pt)",
+      "url": "https://raw.githubusercontent.com/LDNOOBW/List-of-Dirty-Naughty-Obscene-and-Otherwise-Bad-Words/master/pt",
+      "format": "newline",
+      "commentPrefixes": ["#"],
+      "severity": "block",
+      "category": "External Profanity List"
+    },
+    {
+      "id": "ldnoobw-tr",
+      "label": "List of Dirty, Naughty, Obscene and Otherwise Bad Words (tr)",
+      "url": "https://raw.githubusercontent.com/LDNOOBW/List-of-Dirty-Naughty-Obscene-and-Otherwise-Bad-Words/master/tr",
+      "format": "newline",
+      "commentPrefixes": ["#"],
+      "severity": "block",
+      "category": "External Profanity List"
+    },
+    {
+      "id": "zacanger-profane-words",
+      "label": "Profane words list (includes many slang/variant spellings)",
+      "url": "https://raw.githubusercontent.com/zacanger/profane-words/master/words.json",
+      "format": "json-array",
+      "jsonArrayKey": "",
+      "commentPrefixes": ["#"],
+      "severity": "block",
+      "category": "External Profanity (Slang & Variants)"
+    },
+    {
+      "id": "web-mech-badwords",
+      "label": "Badwords list (variants / leetspeak / spaced-out)",
+      "url": "https://raw.githubusercontent.com/web-mech/badwords/master/lib/lang.json",
+      "format": "json-object-array",
+      "jsonArrayKey": "words",
+      "commentPrefixes": ["#"],
+      "severity": "block",
+      "category": "External Profanity (Variants)"
+    }
+  ]
+}
