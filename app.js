@@ -41,6 +41,7 @@ const CONFIG = {
   manualSearchLimit: 8,
   userPlaylistFetchLimit: 50,
   playlistPickerCacheMs: 120000,
+  playlistDuplicateCacheMs: 120000,
   lyricsApiBaseUrl: "",
   lyricsApiTimeoutMs: 12000,
   // Cache is a fallback only (backup).
@@ -291,6 +292,16 @@ const el = {
   playlistPickerDescription: document.getElementById("playlistPickerDescription"),
   playlistPickerList: document.getElementById("playlistPickerList"),
 
+  playlistDuplicateBackdrop: document.getElementById("playlistDuplicateBackdrop"),
+  playlistDuplicateModal: document.getElementById("playlistDuplicateModal"),
+  playlistDuplicateTitle: document.getElementById("playlistDuplicateTitle"),
+  playlistDuplicateDescription: document.getElementById("playlistDuplicateDescription"),
+  playlistDuplicateList: document.getElementById("playlistDuplicateList"),
+  btnClosePlaylistDuplicateModal: document.getElementById("btnClosePlaylistDuplicateModal"),
+  btnPlaylistDuplicateAddAnyway: document.getElementById("btnPlaylistDuplicateAddAnyway"),
+  btnPlaylistDuplicateDelete: document.getElementById("btnPlaylistDuplicateDelete"),
+  btnPlaylistDuplicateCancel: document.getElementById("btnPlaylistDuplicateCancel"),
+
   playlistBuilderBackdrop: document.getElementById("playlistBuilderBackdrop"),
   playlistBuilderOverlay: document.getElementById("playlistBuilderOverlay"),
   btnPlaylistBuilderClose: document.getElementById("btnPlaylistBuilderClose"),
@@ -360,6 +371,9 @@ let requestAutoSyncCountdownTimer = null;
 let requestAutoSyncNextAtMs = 0;
 let playlistPickerContext = null;
 let playlistPickerCache = { items: [], fetchedAtMs: 0 };
+
+const playlistTrackUriCacheByPlaylistId = new Map();
+let playlistDuplicateModalContext = null;
 
 let isLoadingRequests = false;
 
@@ -3535,14 +3549,33 @@ function getSelectedApprovedItem() {
   return queue[pointer] || null;
 }
 
-async function addSelectedApprovedToPlaylist(playlistId) {
+async function addSelectedApprovedToPlaylist(playlistId, playlistName = "Playlist") {
   const item = getSelectedApprovedItem();
   if (!item?.spotify?.uri) {
     throw new Error("Selected approved song is missing Spotify track data.");
   }
 
-  await addTrackToPlaylist(playlistId, item.spotify.uri);
-  return item;
+  const track = {
+    uri: item.spotify.uri,
+    id: item.spotify.id,
+    name: item.spotify.name,
+    artist: item.spotify.artist,
+    requestId: item.requestId
+  };
+
+  const result = await addTracksToPlaylistWithDuplicateReview({
+    playlistId,
+    playlistName,
+    tracks: [track],
+    deleteLabel: "Delete from Approved Queue",
+    onDeleteDuplicates: () => {
+      removeApprovedItem(item.requestId, { silentStatus: true });
+      renderApprovedQueue();
+      renderApprovedPreview();
+    }
+  });
+
+  return { item, result };
 }
 
 function toSpotifyApiPath(value) {
@@ -3558,6 +3591,247 @@ function toSpotifyApiPath(value) {
   }
 
   return `/${raw.replace(/^\/+/, "")}`;
+}
+
+function normalizeSpotifyTrackUri(value) {
+  const trimmed = String(value || "").trim();
+  if (!trimmed) return "";
+
+  if (trimmed.startsWith("spotify:track:")) {
+    const id = extractSpotifyTrackId(trimmed);
+    return id ? `spotify:track:${id}` : trimmed;
+  }
+
+  const id = extractSpotifyTrackId(trimmed);
+  if (id) return `spotify:track:${id}`;
+
+  return trimmed;
+}
+
+async function fetchPlaylistTrackUriCounts(playlistId, { forceRefresh = false } = {}) {
+  const safePlaylistId = String(playlistId || "").trim();
+  if (!safePlaylistId) {
+    throw new Error("Missing playlist ID for duplicate check.");
+  }
+
+  const now = Date.now();
+  const ttlMs = Math.max(0, Number(CONFIG.playlistDuplicateCacheMs || 120000));
+  const cached = playlistTrackUriCacheByPlaylistId.get(safePlaylistId) || null;
+
+  if (!forceRefresh && cached?.uriCounts instanceof Map && now - Number(cached.fetchedAtMs || 0) < ttlMs) {
+    return cached.uriCounts;
+  }
+
+  const uriCounts = new Map();
+  const limit = 100;
+  let nextPath = `/playlists/${encodeURIComponent(safePlaylistId)}/tracks?limit=${limit}&fields=items(track(uri,id)),next`;
+  let fetched = 0;
+
+  while (nextPath) {
+    const page = await spotifyFetchWithRetry(nextPath);
+    const items = Array.isArray(page?.items) ? page.items : [];
+
+    for (const item of items) {
+      const uri = normalizeSpotifyTrackUri(item?.track?.uri || (item?.track?.id ? `spotify:track:${item.track.id}` : ""));
+      if (!uri) continue;
+      uriCounts.set(uri, Number(uriCounts.get(uri) || 0) + 1);
+    }
+
+    fetched += items.length;
+
+    if (fetched >= 7500) {
+      break;
+    }
+
+    nextPath = toSpotifyApiPath(page?.next);
+  }
+
+  playlistTrackUriCacheByPlaylistId.set(safePlaylistId, { uriCounts, fetchedAtMs: Date.now() });
+  return uriCounts;
+}
+
+function closePlaylistDuplicateModal() {
+  if (!el.playlistDuplicateModal || !el.playlistDuplicateBackdrop) return;
+  el.playlistDuplicateModal.classList.remove("playlist-duplicate-is-open");
+  el.playlistDuplicateBackdrop.classList.remove("playlist-duplicate-is-open");
+  playlistDuplicateModalContext = null;
+}
+
+function renderPlaylistDuplicateList(duplicates) {
+  if (!el.playlistDuplicateList) return;
+
+  if (!Array.isArray(duplicates) || !duplicates.length) {
+    el.playlistDuplicateList.innerHTML = '<div class="empty-state">No duplicates.</div>';
+    return;
+  }
+
+  el.playlistDuplicateList.innerHTML = duplicates
+    .map((dup) => {
+      const title = String(dup?.title || "Unknown track").trim() || "Unknown track";
+      const meta = String(dup?.meta || "Duplicate").trim() || "Duplicate";
+      return `
+        <div class="playlist-duplicate-item">
+          <div class="playlist-duplicate-item-title">${escapeHtml(title)}</div>
+          <div class="playlist-duplicate-item-meta">${escapeHtml(meta)}</div>
+        </div>
+      `;
+    })
+    .join("");
+}
+
+function openPlaylistDuplicateModal({ title = "Duplicates Found", description = "Review duplicates before adding.", duplicates = [], deleteLabel = "Delete" } = {}) {
+  if (!el.playlistDuplicateModal || !el.playlistDuplicateBackdrop) {
+    throw new Error("Duplicate review UI is not available.");
+  }
+
+  if (el.playlistDuplicateTitle) el.playlistDuplicateTitle.textContent = String(title || "Duplicates Found");
+  if (el.playlistDuplicateDescription) el.playlistDuplicateDescription.textContent = String(description || "Review duplicates before adding.");
+  if (el.btnPlaylistDuplicateDelete) el.btnPlaylistDuplicateDelete.textContent = String(deleteLabel || "Delete");
+
+  renderPlaylistDuplicateList(duplicates);
+
+  el.playlistDuplicateBackdrop.classList.add("playlist-duplicate-is-open");
+  el.playlistDuplicateModal.classList.add("playlist-duplicate-is-open");
+
+  return new Promise((resolve) => {
+    playlistDuplicateModalContext = { resolve };
+  });
+}
+
+function buildDuplicateMeta({ inPlaylistCount = 0, batchCount = 0 } = {}) {
+  const parts = [];
+  if (Number(inPlaylistCount || 0) > 0) {
+    parts.push(`Already in playlist (${Number(inPlaylistCount)}x)`);
+  }
+  if (Number(batchCount || 0) > 1) {
+    parts.push(`Repeated in this add (${Number(batchCount)}x)`);
+  }
+  return parts.join(" | ") || "Duplicate";
+}
+
+function splitTracksByDuplicateStatus(tracks, playlistUriCounts) {
+  const safeTracks = Array.isArray(tracks) ? tracks.filter(Boolean) : [];
+
+  const batchCounts = new Map();
+  const normalizedTracks = safeTracks
+    .map((track) => {
+      const uri = normalizeSpotifyTrackUri(track?.uri || track?.trackUri || track?.spotifyUri || "");
+      const id = String(track?.id || "").trim();
+      const name = String(track?.name || "").trim();
+      const artist = String(track?.artist || "").trim();
+      return { ...track, uri, id, name, artist };
+    })
+    .filter((track) => track.uri);
+
+  for (const track of normalizedTracks) {
+    batchCounts.set(track.uri, Number(batchCounts.get(track.uri) || 0) + 1);
+  }
+
+  const duplicatesByUri = new Map();
+
+  for (const track of normalizedTracks) {
+    const inPlaylistCount = Number(playlistUriCounts?.get(track.uri) || 0);
+    const batchCount = Number(batchCounts.get(track.uri) || 0);
+
+    if (inPlaylistCount > 0 || batchCount > 1) {
+      if (!duplicatesByUri.has(track.uri)) {
+        const label = track.artist || track.name ? `${track.artist || "Unknown"} - ${track.name || "Unknown"}` : track.uri;
+        duplicatesByUri.set(track.uri, {
+          uri: track.uri,
+          id: track.id,
+          title: label,
+          inPlaylistCount,
+          batchCount,
+          meta: buildDuplicateMeta({ inPlaylistCount, batchCount })
+        });
+      }
+    }
+  }
+
+  const uniqueToAdd = [];
+  const seenAdd = new Set();
+
+  for (const track of normalizedTracks) {
+    const inPlaylistCount = Number(playlistUriCounts?.get(track.uri) || 0);
+    if (inPlaylistCount > 0) continue;
+
+    if (seenAdd.has(track.uri)) {
+      continue;
+    }
+
+    seenAdd.add(track.uri);
+    uniqueToAdd.push(track);
+  }
+
+  return {
+    normalizedTracks,
+    uniqueToAdd,
+    duplicates: Array.from(duplicatesByUri.values())
+  };
+}
+
+async function addTracksToPlaylistWithDuplicateReview({ playlistId, playlistName = "Playlist", tracks = [], deleteLabel = "Delete", onDeleteDuplicates = null } = {}) {
+  const safePlaylistId = String(playlistId || "").trim();
+  if (!safePlaylistId) throw new Error("Missing playlist ID.");
+
+  const uriCounts = await fetchPlaylistTrackUriCounts(safePlaylistId);
+  const { normalizedTracks, uniqueToAdd, duplicates } = splitTracksByDuplicateStatus(tracks, uriCounts);
+
+  if (duplicates.length) {
+    const decision = await openPlaylistDuplicateModal({
+      title: "Duplicates Found",
+      description: `${duplicates.length} duplicate track(s) detected for ${playlistName}. Choose Add Anyway or Delete.`,
+      duplicates,
+      deleteLabel
+    });
+
+    if (decision === "cancel" || decision === "close") {
+      closePlaylistDuplicateModal();
+      return { decision: "cancel", added: 0, duplicates };
+    }
+
+    if (decision === "delete") {
+      closePlaylistDuplicateModal();
+
+      if (typeof onDeleteDuplicates === "function") {
+        onDeleteDuplicates(duplicates);
+      }
+
+      let added = 0;
+      for (const track of uniqueToAdd) {
+        await addTrackToPlaylist(safePlaylistId, track.uri);
+        added += 1;
+        uriCounts.set(track.uri, Number(uriCounts.get(track.uri) || 0) + 1);
+      }
+
+      return { decision: "delete", added, duplicates };
+    }
+
+    if (decision === "add-anyway") {
+      closePlaylistDuplicateModal();
+
+      let added = 0;
+      for (const track of normalizedTracks) {
+        await addTrackToPlaylist(safePlaylistId, track.uri);
+        added += 1;
+        uriCounts.set(track.uri, Number(uriCounts.get(track.uri) || 0) + 1);
+      }
+
+      return { decision: "add-anyway", added, duplicates };
+    }
+
+    closePlaylistDuplicateModal();
+    return { decision: "cancel", added: 0, duplicates };
+  }
+
+  let added = 0;
+  for (const track of uniqueToAdd) {
+    await addTrackToPlaylist(safePlaylistId, track.uri);
+    added += 1;
+    uriCounts.set(track.uri, Number(uriCounts.get(track.uri) || 0) + 1);
+  }
+
+  return { decision: "added", added, duplicates: [] };
 }
 
 function closePlaylistPicker() {
@@ -3734,13 +4008,35 @@ async function handlePlaylistPickerSelection(playlistId, playlistName) {
   }
 
   if (mode === "add") {
-    const item = await addSelectedApprovedToPlaylist(safePlaylistId);
-    setStatus(`Added to ${safePlaylistName}: ${item?.spotify?.artist || "Unknown Artist"} - ${item?.spotify?.name || "Unknown Song"}`);
-    logConsoleEvent("Moderation", "Added moderated song to playlist.", {
-      playlistId: safePlaylistId,
-      playlistName: safePlaylistName,
-      track: item?.spotify?.name || "Unknown Song"
-    }, "success");
+    const { item, result } = await addSelectedApprovedToPlaylist(safePlaylistId, safePlaylistName);
+
+    if (result?.decision === "cancel") {
+      setStatus("Playlist add canceled.");
+      closePlaylistPicker();
+      return;
+    }
+
+    const label = `${item?.spotify?.artist || "Unknown Artist"} - ${item?.spotify?.name || "Unknown Song"}`;
+
+    if (result?.decision === "delete" && Number(result?.added || 0) === 0) {
+      setStatus(`Duplicate already exists in ${safePlaylistName}. Deleted from Approved Queue: ${label}`);
+      closePlaylistPicker();
+      return;
+    }
+
+    setStatus(`Added to ${safePlaylistName}: ${label}`);
+    logConsoleEvent(
+      "Moderation",
+      "Added moderated song to playlist.",
+      {
+        playlistId: safePlaylistId,
+        playlistName: safePlaylistName,
+        track: item?.spotify?.name || "Unknown Song",
+        decision: result?.decision || "unknown",
+        added: Number(result?.added || 0)
+      },
+      "success"
+    );
     closePlaylistPicker();
     return;
   }
@@ -5456,6 +5752,7 @@ function closeModerationPanel() {
   closeModerationReasonModal();
   closeLyricsModal();
   closePlaylistPicker();
+  closePlaylistDuplicateModal();
 }
 
 // ======================================================
@@ -5517,6 +5814,7 @@ function closePlaylistBuilderPanel() {
   el.playlistBuilderBackdrop?.classList.remove("mod-is-open");
   document.body.classList.remove("mod-panel-open");
 
+  closePlaylistDuplicateModal();
   updatePlaylistBuilderStatus("Closed.");
 }
 
@@ -5838,7 +6136,9 @@ async function selectPlaylistBuilderTrack(trackId) {
 
 async function addPlaylistBuilderSelectedToPlaylist() {
   const playlistId = String(playlistBuilderSelectedPlaylistId || "").trim();
-  const trackUri = String(playlistBuilderSelectedTrack?.uri || "").trim();
+  const playlistName = String(playlistBuilderSelectedPlaylistName || "Selected playlist").trim() || "Selected playlist";
+  const spotify = normalizeSpotifyTrack(playlistBuilderSelectedTrack);
+  const trackUri = String(spotify?.uri || "").trim();
 
   if (!playlistId) {
     updatePlaylistBuilderStatus("Choose a playlist first.");
@@ -5850,12 +6150,42 @@ async function addPlaylistBuilderSelectedToPlaylist() {
     return;
   }
 
-  const trackLabel = `${playlistBuilderSelectedTrack?.artist || "Unknown"} - ${playlistBuilderSelectedTrack?.name || "Unknown"}`;
+  const trackLabel = `${spotify?.artist || "Unknown"} - ${spotify?.name || "Unknown"}`;
 
   try {
-    updatePlaylistBuilderStatus(`Adding to playlist: ${trackLabel}...`);
-    await addTrackToPlaylist(playlistId, trackUri);
-    updatePlaylistBuilderStatus(`Added: ${trackLabel}`);
+    updatePlaylistBuilderStatus(`Checking for duplicates: ${trackLabel}...`);
+
+    const result = await addTracksToPlaylistWithDuplicateReview({
+      playlistId,
+      playlistName,
+      tracks: [
+        {
+          uri: trackUri,
+          id: spotify?.id,
+          name: spotify?.name,
+          artist: spotify?.artist
+        }
+      ],
+      deleteLabel: "Delete Selection",
+      onDeleteDuplicates: () => {
+        playlistBuilderSelectedTrackId = "";
+        playlistBuilderSelectedTrack = null;
+        renderPlaylistBuilderReview(null, null);
+        updatePlaylistBuilderActionState();
+      }
+    });
+
+    if (result?.decision === "cancel") {
+      updatePlaylistBuilderStatus("Playlist add canceled.");
+      return;
+    }
+
+    if (result?.decision === "delete" && Number(result?.added || 0) === 0) {
+      updatePlaylistBuilderStatus(`Duplicate already exists in ${playlistName}. Deleted selection: ${trackLabel}`);
+      return;
+    }
+
+    updatePlaylistBuilderStatus(`Added to ${playlistName}: ${trackLabel}`);
   } catch (error) {
     updatePlaylistBuilderStatus(error?.message || "Failed to add track to playlist.");
   }
@@ -5983,6 +6313,8 @@ async function addPlaylistBuilderBulkTracksToPlaylist() {
   if (playlistBuilderBulkAddInFlight) return;
 
   const playlistId = String(playlistBuilderSelectedPlaylistId || "").trim();
+  const playlistName = String(playlistBuilderSelectedPlaylistName || "Selected playlist").trim() || "Selected playlist";
+
   if (!playlistId) {
     if (el.playlistBuilderBulkStatus) el.playlistBuilderBulkStatus.textContent = "Choose a playlist first.";
     return;
@@ -5996,21 +6328,55 @@ async function addPlaylistBuilderBulkTracksToPlaylist() {
 
   playlistBuilderBulkAddInFlight = true;
   try {
-    let added = 0;
-    for (let i = 0; i < queue.length; i += 1) {
-      const spotify = queue[i];
-      if (!spotify?.uri) continue;
-
-      if (el.playlistBuilderBulkStatus) {
-        el.playlistBuilderBulkStatus.textContent = `Adding ${i + 1}/${queue.length}: ${spotify.artist} - ${spotify.name}`;
-      }
-
-      await addTrackToPlaylist(playlistId, spotify.uri);
-      added += 1;
+    if (el.playlistBuilderBulkStatus) {
+      el.playlistBuilderBulkStatus.textContent = `Checking ${queue.length} track(s) for duplicates in ${playlistName}...`;
     }
 
+    const tracks = queue
+      .map((spotify) => ({
+        uri: spotify?.uri,
+        id: spotify?.id,
+        name: spotify?.name,
+        artist: spotify?.artist
+      }))
+      .filter((track) => String(track?.uri || "").trim());
+
+    const result = await addTracksToPlaylistWithDuplicateReview({
+      playlistId,
+      playlistName,
+      tracks,
+      deleteLabel: "Delete from Bulk List",
+      onDeleteDuplicates: (duplicates) => {
+        const dupUris = new Set((duplicates || []).map((d) => normalizeSpotifyTrackUri(d?.uri)).filter(Boolean));
+        if (!dupUris.size) return;
+
+        playlistBuilderBulkAddQueue = (Array.isArray(playlistBuilderBulkAddQueue) ? playlistBuilderBulkAddQueue : [])
+          .filter((spotify) => !dupUris.has(normalizeSpotifyTrackUri(spotify?.uri || "")));
+
+        playlistBuilderBulkParsedTrackIds = (Array.isArray(playlistBuilderBulkParsedTrackIds) ? playlistBuilderBulkParsedTrackIds : [])
+          .filter((trackId) => {
+            const id = String(trackId || "").trim();
+            if (!id) return false;
+            const track = playlistBuilderBulkTracksById?.get(id) || null;
+            const uri = normalizeSpotifyTrackUri(track?.uri || (id ? `spotify:track:${id}` : ""));
+            return uri ? !dupUris.has(uri) : true;
+          });
+
+        renderPlaylistBuilderBulkList();
+        updatePlaylistBuilderActionState();
+      }
+    });
+
+    if (result?.decision === "cancel") {
+      if (el.playlistBuilderBulkStatus) el.playlistBuilderBulkStatus.textContent = "Bulk add canceled.";
+      return;
+    }
+
+    const attempted = tracks.length;
+    const added = Number(result?.added || 0);
+
     if (el.playlistBuilderBulkStatus) {
-      el.playlistBuilderBulkStatus.textContent = `Done. Added ${added}/${queue.length} track(s) to the selected playlist.`;
+      el.playlistBuilderBulkStatus.textContent = `Done. Added ${added}/${attempted} track(s) to ${playlistName}.`;
     }
   } catch (error) {
     if (el.playlistBuilderBulkStatus) {
@@ -6425,6 +6791,40 @@ function wireStaticEvents() {
     } catch (error) {
       console.error(error);
       setStatus(error?.message || "Could not apply playlist picker selection.");
+    }
+  });
+
+  // Playlist duplicate review
+  el.btnClosePlaylistDuplicateModal?.addEventListener("click", () => {
+    const resolve = playlistDuplicateModalContext?.resolve;
+    if (typeof resolve === "function") resolve("close");
+  });
+
+  el.playlistDuplicateBackdrop?.addEventListener("click", () => {
+    const resolve = playlistDuplicateModalContext?.resolve;
+    if (typeof resolve === "function") resolve("close");
+  });
+
+  el.btnPlaylistDuplicateAddAnyway?.addEventListener("click", () => {
+    const resolve = playlistDuplicateModalContext?.resolve;
+    if (typeof resolve === "function") resolve("add-anyway");
+  });
+
+  el.btnPlaylistDuplicateDelete?.addEventListener("click", () => {
+    const resolve = playlistDuplicateModalContext?.resolve;
+    if (typeof resolve === "function") resolve("delete");
+  });
+
+  el.btnPlaylistDuplicateCancel?.addEventListener("click", () => {
+    const resolve = playlistDuplicateModalContext?.resolve;
+    if (typeof resolve === "function") resolve("cancel");
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape") return;
+    if (el.playlistDuplicateModal?.classList.contains("playlist-duplicate-is-open")) {
+      const resolve = playlistDuplicateModalContext?.resolve;
+      if (typeof resolve === "function") resolve("cancel");
     }
   });
 
