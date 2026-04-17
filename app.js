@@ -366,6 +366,8 @@ let spotifyDevicesCache = { value: null, fetchedAtMs: 0 };
 
 let isLoadingRequests = false;
 
+let spotifyBulkTrackLookupDisabled = false;
+
 // ======================================================
 // BASIC HELPERS
 // ======================================================
@@ -2131,14 +2133,14 @@ async function getTrackByIdWithRetry(trackId) {
       const statusCode = getErrorStatusCode(error);
       const isLastAttempt = attempt === maxAttempts;
 
-      if (statusCode === 429 && !isLastAttempt) {
-        const retryAfterMs = normalizeSpotifyRetryAfterMs(
-          error?.retryAfterMs,
-          CONFIG.trackLookupRetryDelayMs * attempt
-        );
-        const jitterMs = 120 + attempt * 80;
-        noteSpotifyRateLimit(retryAfterMs + jitterMs);
-        await waitForSpotifyGlobalBackoff();
+      if (statusCode === 429) {
+        // Do not re-try per-track lookups within the same sync.
+        // Global backoff is already set in spotifyFetch(); this prevents 429 retry loops.
+        throw error;
+      }
+
+      if (!isLastAttempt) {
+        await wait(120 + attempt * 80);
         continue;
       }
 
@@ -2399,11 +2401,14 @@ async function getTracksByIds(trackIds) {
     return results;
   }
 
+  const maxPerTrackLookups = spotifyBulkTrackLookupDisabled ? 5 : 12;
+  let perTrackLookupsUsed = 0;
+
   // Adaptive strategy:
   // - Prefer /tracks?ids=... batches to minimize calls.
   // - If we see 403/400 (proxy filters, URL-length limits, or transient failures), shrink the batch and retry.
   // - Avoid per-track fallback storms; only use /tracks/{id} once batch size reaches 1.
-  let bulkBatchSize = 50;
+  let bulkBatchSize = spotifyBulkTrackLookupDisabled ? 1 : 50;
   let i = 0;
 
   while (i < idsNeedingFetch.length) {
@@ -2411,7 +2416,18 @@ async function getTracksByIds(trackIds) {
     if (!chunk.length) break;
 
     if (bulkBatchSize <= 1) {
+      if (perTrackLookupsUsed >= maxPerTrackLookups) {
+        logConsoleEvent(
+          "Spotify",
+          "Skipping remaining per-track lookups to reduce API usage.",
+          { attempted: perTrackLookupsUsed, remaining: Math.max(0, idsNeedingFetch.length - i) },
+          "warn"
+        );
+        return results;
+      }
+
       const trackId = chunk[0];
+      perTrackLookupsUsed += 1;
       try {
         const track = await getTrackByIdWithRetry(trackId);
         const id = String(track?.id || "").trim();
@@ -2467,9 +2483,21 @@ async function getTracksByIds(trackIds) {
         return results;
       }
 
-      if ((status === 403 || status === 400) && bulkBatchSize > 1) {
+      if (status === 403) {
+        spotifyBulkTrackLookupDisabled = true;
+        bulkBatchSize = 1;
+        logConsoleEvent(
+          "Spotify",
+          "Bulk track lookup returned 403. Switching to per-track mode.",
+          { status, message: String(error?.message || "").slice(0, 200) },
+          "warn"
+        );
+        continue;
+      }
+
+      if (status === 400 && bulkBatchSize > 1) {
         const previous = bulkBatchSize;
-        bulkBatchSize = Math.max(1, Math.floor(previous / 2));
+        bulkBatchSize = 1;
         logConsoleEvent(
           "Spotify",
           "Bulk track lookup failed; shrinking batch size and retrying.",
@@ -6891,7 +6919,7 @@ function wireStaticEvents() {
     if (pausedAutoSyncForHiddenTab && hasToken && requestAutoSyncEnabled) {
       pausedAutoSyncForHiddenTab = false;
       startRequestAutoSyncTimer();
-      void runRequestAutoSync("resume", { silent: true });
+      // Intentionally do not immediately sync on tab return.
     } else {
       pausedAutoSyncForHiddenTab = false;
     }
