@@ -35,6 +35,9 @@ const CONFIG = {
   playbackPollMs: 2500,
   localProgressTickMs: 250,
   transportSyncDelaysMs: [120, 420, 950],
+  // Guardrail: Spotify will return 429s if we fan out too many API calls.
+  // Keep concurrency low; the UI is fine with slightly slower lookups.
+  spotifyMaxConcurrentRequests: 2,
   trackLookupConcurrency: 5,
   trackLookupRetryCount: 2,
   trackLookupRetryDelayMs: 500,
@@ -1033,12 +1036,36 @@ function wait(ms) {
 let spotifyGlobalBackoffUntilMs = 0;
 let spotifyLastRateLimitAtMs = 0;
 
+let spotifyInFlightRequests = 0;
+const spotifyInFlightWaiters = [];
+
+async function acquireSpotifyRequestSlot() {
+  const limit = Math.max(1, Math.floor(Number(CONFIG.spotifyMaxConcurrentRequests || 2)));
+
+  if (spotifyInFlightRequests < limit) {
+    spotifyInFlightRequests += 1;
+    return;
+  }
+
+  await new Promise((resolve) => spotifyInFlightWaiters.push(resolve));
+  spotifyInFlightRequests += 1;
+}
+
+function releaseSpotifyRequestSlot() {
+  spotifyInFlightRequests = Math.max(0, spotifyInFlightRequests - 1);
+
+  if (spotifyInFlightWaiters.length && spotifyInFlightRequests < Math.max(1, Math.floor(Number(CONFIG.spotifyMaxConcurrentRequests || 2)))) {
+    const next = spotifyInFlightWaiters.shift();
+    if (next) next();
+  }
+}
+
 function normalizeSpotifyRetryAfterMs(valueMs, fallbackMs = 5000) {
   const parsed = Number(valueMs);
   if (Number.isFinite(parsed) && parsed > 0) {
-    return Math.min(30000, Math.max(250, Math.round(parsed)));
+    return Math.min(120000, Math.max(250, Math.round(parsed)));
   }
-  return Math.min(30000, Math.max(250, Math.round(Number(fallbackMs) || 5000)));
+  return Math.min(120000, Math.max(250, Math.round(Number(fallbackMs) || 5000)));
 }
 
 function noteSpotifyRateLimit(waitMs) {
@@ -2012,35 +2039,43 @@ async function spotifyFetch(path, options = {}) {
     throw new Error("Spotify login required.");
   }
 
-  await waitForSpotifyGlobalBackoff();
+  // Concurrency + global backoff guardrail to reduce 429 storms.
+  await acquireSpotifyRequestSlot();
+  try {
+    await waitForSpotifyGlobalBackoff();
+    // Backoff might have been extended while waiting for a slot.
+    await waitForSpotifyGlobalBackoff();
 
-  const response = await fetch(`https://api.spotify.com/v1${path}`, {
-    ...options,
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-      ...(options.headers || {})
-    }
-  });
+    const response = await fetch(`https://api.spotify.com/v1${path}`, {
+      ...options,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+        ...(options.headers || {})
+      }
+    });
 
-  if (response.status === 204) return null;
+    if (response.status === 204) return null;
 
-  if (!response.ok) {
-    if (response.status === 429) {
-      const error = new Error("429 Rate limited by Spotify.");
-      error.status = 429;
-      error.retryAfterMs = getSpotifyRetryAfterMs(response);
-      noteSpotifyRateLimit(error.retryAfterMs);
+    if (!response.ok) {
+      if (response.status === 429) {
+        const error = new Error("429 Rate limited by Spotify.");
+        error.status = 429;
+        error.retryAfterMs = getSpotifyRetryAfterMs(response);
+        noteSpotifyRateLimit(error.retryAfterMs);
+        throw error;
+      }
+
+      const text = await response.text();
+      const error = new Error(`${response.status} ${text}`);
+      error.status = response.status;
       throw error;
     }
 
-    const text = await response.text();
-    const error = new Error(`${response.status} ${text}`);
-    error.status = response.status;
-    throw error;
+    return response.json();
+  } finally {
+    releaseSpotifyRequestSlot();
   }
-
-  return response.json();
 }
 
 async function spotifyFetchWithRetry(path, options = {}, config = {}) {
@@ -2075,16 +2110,23 @@ async function spotifyNoContent(path, options = {}) {
     const token = await getAccessToken();
     if (!token) throw new Error("Spotify login required.");
 
-    await waitForSpotifyGlobalBackoff();
+    await acquireSpotifyRequestSlot();
+    let response;
+    try {
+      await waitForSpotifyGlobalBackoff();
+      await waitForSpotifyGlobalBackoff();
 
-    const response = await fetch(`https://api.spotify.com/v1${path}`, {
-      ...options,
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-        ...(options.headers || {})
-      }
-    });
+      response = await fetch(`https://api.spotify.com/v1${path}`, {
+        ...options,
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+          ...(options.headers || {})
+        }
+      });
+    } finally {
+      releaseSpotifyRequestSlot();
+    }
 
     if (response.ok || response.status === 204) {
       return true;
@@ -2341,17 +2383,24 @@ async function addTrackToSpotifyQueue(trackUri) {
     const token = await getAccessToken();
     if (!token) throw new Error("Spotify login required.");
 
-    await waitForSpotifyGlobalBackoff();
+    await acquireSpotifyRequestSlot();
+    let response;
+    try {
+      await waitForSpotifyGlobalBackoff();
+      await waitForSpotifyGlobalBackoff();
 
-    const url = new URL("https://api.spotify.com/v1/me/player/queue");
-    url.searchParams.set("uri", trackUri);
+      const url = new URL("https://api.spotify.com/v1/me/player/queue");
+      url.searchParams.set("uri", trackUri);
 
-    const response = await fetch(url.toString(), {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    });
+      response = await fetch(url.toString(), {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+    } finally {
+      releaseSpotifyRequestSlot();
+    }
 
     if (response.ok || response.status === 204) {
       return;
