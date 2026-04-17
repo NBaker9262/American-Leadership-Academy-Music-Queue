@@ -362,6 +362,8 @@ let requestAutoSyncNextAtMs = 0;
 let playlistPickerContext = null;
 let playlistPickerCache = { items: [], fetchedAtMs: 0 };
 
+let spotifyDevicesCache = { value: null, fetchedAtMs: 0 };
+
 let isLoadingRequests = false;
 
 // ======================================================
@@ -2104,6 +2106,8 @@ function logoutSpotify() {
   lastSpotifyQueueFetchAtMs = 0;
   spotifyGlobalBackoffUntilMs = 0;
   spotifyLastRateLimitAtMs = 0;
+  spotifyRateLimitStrikeCount = 0;
+  spotifyDevicesCache = { value: null, fetchedAtMs: 0 };
   currentPlaybackProgressMs = 0;
   currentPlaybackDurationMs = 0;
   isPlaybackActive = false;
@@ -2503,7 +2507,15 @@ async function getCurrentlyPlaying() {
 }
 
 async function getAvailableDevices() {
-  return spotifyFetchWithRetry("/me/player/devices");
+  const now = Date.now();
+  const ageMs = now - Number(spotifyDevicesCache?.fetchedAtMs || 0);
+  if (spotifyDevicesCache?.value && ageMs >= 0 && ageMs < 5000) {
+    return spotifyDevicesCache.value;
+  }
+
+  const value = await spotifyFetchWithRetry("/me/player/devices");
+  spotifyDevicesCache = { value, fetchedAtMs: now };
+  return value;
 }
 
 async function getSpotifyQueue() {
@@ -6902,7 +6914,13 @@ async function playbackPollTick() {
   if (!playbackPollingActive) return;
 
   const baseDelayMs = Math.max(1000, Number(CONFIG.playbackPollMs || 2500));
-  const delayMs = document.hidden ? Math.max(15000, baseDelayMs) : baseDelayMs;
+  const recentlyRateLimited = Date.now() - Number(spotifyLastRateLimitAtMs || 0) < 30000;
+
+  const delayMs = document.hidden
+    ? Math.max(15000, baseDelayMs)
+    : recentlyRateLimited
+      ? Math.max(15000, baseDelayMs)
+      : baseDelayMs;
 
   try {
     await refreshPlayback();
