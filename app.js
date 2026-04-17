@@ -270,6 +270,17 @@ const el = {
   approvedQueueList: document.getElementById("approvedQueueList"),
   approvedPreviewTable: document.getElementById("approvedPreviewTable"),
   spotifyQueueList: document.getElementById("spotifyQueueList"),
+
+  btnLyricsDebugRefresh: document.getElementById("btnLyricsDebugRefresh"),
+  btnLyricsDebugRefreshProxies: document.getElementById("btnLyricsDebugRefreshProxies"),
+  lyricsDebugStatus: document.getElementById("lyricsDebugStatus"),
+  lyricsDebugApiBase: document.getElementById("lyricsDebugApiBase"),
+  lyricsDebugProxyCount: document.getElementById("lyricsDebugProxyCount"),
+  lyricsDebugCurrentProxy: document.getElementById("lyricsDebugCurrentProxy"),
+  lyricsDebugCacheExpiry: document.getElementById("lyricsDebugCacheExpiry"),
+  lyricsDebugUpdatedAt: document.getElementById("lyricsDebugUpdatedAt"),
+  lyricsDebugError: document.getElementById("lyricsDebugError"),
+  lyricsDebugRaw: document.getElementById("lyricsDebugRaw"),
   manualSearchInput: document.getElementById("manualSearchInput"),
   manualSearchResults: document.getElementById("manualSearchResults"),
   djStudentNameInput: document.getElementById("djStudentNameInput"),
@@ -338,6 +349,8 @@ let playlistBuilderBulkAddInFlight = false;
 let currentNowPlayingTrack = null;
 let currentSpotifyQueueTracks = [];
 let currentPlaybackProgressMs = 0;
+
+let lyricsApiDebugTimer = null;
 let currentPlaybackDurationMs = 0;
 let isPlaybackActive = false;
 let currentVolumePercent = 0;
@@ -1162,13 +1175,19 @@ function wait(ms) {
 let spotifyGlobalBackoffUntilMs = 0;
 let spotifyLastRateLimitAtMs = 0;
 let spotifyRateLimitStrikeCount = 0;
+let spotifyLastCooldownNoticeAtMs = 0;
+
+const SPOTIFY_MAX_BACKOFF_MS = 24 * 60 * 60 * 1000;
+const SPOTIFY_MAX_INLINE_BACKOFF_WAIT_MS = 15000;
+
+function getSpotifyCooldownRemainingMs() {
+  return Math.max(0, spotifyGlobalBackoffUntilMs - Date.now());
+}
 
 function normalizeSpotifyRetryAfterMs(valueMs, fallbackMs = 5000) {
   const parsed = Number(valueMs);
-  if (Number.isFinite(parsed) && parsed > 0) {
-    return Math.min(120000, Math.max(250, Math.round(parsed)));
-  }
-  return Math.min(120000, Math.max(250, Math.round(Number(fallbackMs) || 5000)));
+  const selected = Number.isFinite(parsed) && parsed > 0 ? parsed : Number(fallbackMs) || 5000;
+  return Math.min(SPOTIFY_MAX_BACKOFF_MS, Math.max(250, Math.round(selected)));
 }
 
 function noteSpotifyRateLimit(waitMs) {
@@ -1186,25 +1205,52 @@ function noteSpotifyRateLimit(waitMs) {
   spotifyLastRateLimitAtMs = now;
 
   const baseMs = normalizeSpotifyRetryAfterMs(waitMs);
-  const boostedMs = Math.round(baseMs * (1 + spotifyRateLimitStrikeCount * 0.5) + 500);
+  // Only apply strike-based boosting to short cooldowns.
+  const boostedMs = baseMs < 120000
+    ? Math.round(baseMs * (1 + spotifyRateLimitStrikeCount * 0.5) + 500)
+    : baseMs;
   spotifyGlobalBackoffUntilMs = Math.max(spotifyGlobalBackoffUntilMs, now + normalizeSpotifyRetryAfterMs(boostedMs));
 }
 
 async function waitForSpotifyGlobalBackoff() {
-  const remainingMs = Math.max(0, spotifyGlobalBackoffUntilMs - Date.now());
-  if (remainingMs > 0) {
-    await wait(remainingMs);
+  const remainingMs = getSpotifyCooldownRemainingMs();
+  if (remainingMs <= 0) return;
+
+  // Waiting hours inline will freeze user actions and timers.
+  // For long cooldowns, fail fast so callers can skip work and retry later.
+  if (remainingMs > SPOTIFY_MAX_INLINE_BACKOFF_WAIT_MS) {
+    const error = new Error("429 Spotify cooldown active.");
+    error.status = 429;
+    error.retryAfterMs = remainingMs;
+    error.cooldownActive = true;
+    throw error;
   }
+
+  await wait(remainingMs);
 }
 
 function getSpotifyRetryAfterMs(response) {
   const raw = String(response?.headers?.get("Retry-After") || "").trim();
   const seconds = Number(raw);
   if (Number.isFinite(seconds) && seconds > 0) {
-    return Math.min(30000, Math.max(250, Math.round(seconds * 1000)));
+    // Spotify can return multi-hour cooldowns; respect them to avoid hammering.
+    return normalizeSpotifyRetryAfterMs(seconds * 1000, 5000);
   }
 
-  return 5000;
+  return normalizeSpotifyRetryAfterMs(null, 5000);
+}
+
+function maybeNotifySpotifyCooldown() {
+  const remainingMs = getSpotifyCooldownRemainingMs();
+  if (remainingMs < 60000) return;
+
+  const now = Date.now();
+  if (now - spotifyLastCooldownNoticeAtMs < 30000) return;
+  spotifyLastCooldownNoticeAtMs = now;
+
+  const until = new Date(now + remainingMs).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  const duration = formatElapsedShort(remainingMs);
+  setStatus(`Spotify rate limit cooldown active (~${duration}). Try again after ${until}.`);
 }
 
 function getErrorStatusCode(error) {
@@ -1758,6 +1804,131 @@ function getLyricsApiBaseUrl() {
   return "";
 }
 
+function buildLyricsApiDebugUrl({ refreshProxies = false } = {}) {
+  const base = getLyricsApiBaseUrl();
+  if (!base) return "";
+  const params = new URLSearchParams();
+  if (refreshProxies) params.set("refresh", "1");
+  const suffix = params.toString();
+  return suffix ? `${base}/debug?${suffix}` : `${base}/debug`;
+}
+
+function renderLyricsApiDebugPanel({ ok, payload, error, requestedRefreshProxies } = {}) {
+  if (!el.lyricsDebugStatus) return;
+
+  const apiBase = getLyricsApiBaseUrl() || "(disabled)";
+  if (el.lyricsDebugApiBase) el.lyricsDebugApiBase.textContent = apiBase;
+
+  if (!apiBase || apiBase === "(disabled)") {
+    el.lyricsDebugStatus.textContent = "Lyrics API is disabled for this host (or not configured).";
+  }
+
+  if (!ok) {
+    el.lyricsDebugStatus.textContent = "Lyrics API debug fetch failed.";
+    if (el.lyricsDebugError) el.lyricsDebugError.textContent = error || "";
+    if (el.lyricsDebugRaw) el.lyricsDebugRaw.textContent = payload ? JSON.stringify(payload, null, 2) : "";
+    if (el.lyricsDebugProxyCount) el.lyricsDebugProxyCount.textContent = "--";
+    if (el.lyricsDebugCurrentProxy) el.lyricsDebugCurrentProxy.textContent = "--";
+    if (el.lyricsDebugCacheExpiry) el.lyricsDebugCacheExpiry.textContent = "--";
+    if (el.lyricsDebugUpdatedAt) el.lyricsDebugUpdatedAt.textContent = "--";
+    return;
+  }
+
+  const swift = payload?.swiftshadow || {};
+  const proxyCount = Number.isFinite(Number(swift?.proxy_count)) ? String(swift.proxy_count) : "--";
+  const currentProxy = String(swift?.current_proxy || "") || "(none)";
+  const cacheExpiry = String(swift?.cache_expiry || "") || "--";
+  const updatedAt = String(swift?.last_update_at || payload?.server_time_utc || "") || "--";
+  const updateError = String(swift?.last_update_error || "").trim();
+  const initError = String(swift?.init_error || "").trim();
+
+  const badge = String(swift?.available ? "SwiftShadow available" : "SwiftShadow not available");
+  const refreshNote = requestedRefreshProxies ? " (proxy refresh requested)" : "";
+  el.lyricsDebugStatus.textContent = `${badge}${refreshNote}.`;
+
+  if (el.lyricsDebugProxyCount) el.lyricsDebugProxyCount.textContent = proxyCount;
+  if (el.lyricsDebugCurrentProxy) el.lyricsDebugCurrentProxy.textContent = currentProxy;
+  if (el.lyricsDebugCacheExpiry) el.lyricsDebugCacheExpiry.textContent = cacheExpiry;
+  if (el.lyricsDebugUpdatedAt) el.lyricsDebugUpdatedAt.textContent = updatedAt;
+  if (el.lyricsDebugError) el.lyricsDebugError.textContent = updateError || initError || "";
+  if (el.lyricsDebugRaw) el.lyricsDebugRaw.textContent = JSON.stringify(payload || {}, null, 2);
+}
+
+async function fetchLyricsApiDebug({ refreshProxies = false, silent = false } = {}) {
+  const url = buildLyricsApiDebugUrl({ refreshProxies });
+  if (!url) {
+    renderLyricsApiDebugPanel({ ok: false, payload: null, error: "Lyrics API debug endpoint not available.", requestedRefreshProxies: refreshProxies });
+    return { ok: false };
+  }
+
+  const controller = new AbortController();
+  const timeoutMs = Math.max(2000, Number(CONFIG.lyricsApiTimeoutMs || 12000));
+  const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
+
+  const startedAt = Date.now();
+
+  try {
+    const response = await fetch(url, {
+      method: "GET",
+      headers: { Accept: "application/json" },
+      signal: controller.signal
+    });
+
+    const elapsedMs = Date.now() - startedAt;
+    const payload = await response.json().catch(() => null);
+
+    if (!response.ok) {
+      const reason = String(payload?.error || "") || `HTTP ${response.status}`;
+      renderLyricsApiDebugPanel({ ok: false, payload, error: reason, requestedRefreshProxies: refreshProxies });
+      if (!silent) {
+        console.warn("[Lyrics API Debug] request failed", { url, elapsedMs, status: response.status, reason, payload });
+      }
+      return { ok: false, status: response.status, reason };
+    }
+
+    renderLyricsApiDebugPanel({ ok: true, payload, requestedRefreshProxies: refreshProxies });
+
+    if (!silent) {
+      const swift = payload?.swiftshadow || {};
+      console.groupCollapsed(`[Lyrics API Debug] ok (${elapsedMs}ms)`);
+      console.info("url", url);
+      console.info("swiftshadow.available", !!swift?.available);
+      console.info("swiftshadow.version", swift?.version || "");
+      console.info("swiftshadow.proxy_count", swift?.proxy_count);
+      console.info("swiftshadow.current_proxy", swift?.current_proxy);
+      if (swift?.last_update_error) console.warn("swiftshadow.last_update_error", swift.last_update_error);
+      if (swift?.init_error) console.warn("swiftshadow.init_error", swift.init_error);
+      console.debug("payload", payload);
+      console.groupEnd();
+    }
+
+    return { ok: true, payload };
+  } catch (error) {
+    const reason = error?.name === "AbortError" ? "Debug request timed out." : (error?.message || "Debug request failed.");
+    renderLyricsApiDebugPanel({ ok: false, payload: null, error: reason, requestedRefreshProxies: refreshProxies });
+    if (!silent) console.warn("[Lyrics API Debug] request error", { url, reason, error });
+    return { ok: false, reason };
+  } finally {
+    window.clearTimeout(timeoutId);
+  }
+}
+
+function startLyricsApiDebugAutoRefresh() {
+  stopLyricsApiDebugAutoRefresh();
+  if (!getLyricsApiBaseUrl()) return;
+
+  const intervalMs = 30000;
+  lyricsApiDebugTimer = window.setInterval(() => {
+    if (document.hidden) return;
+    void fetchLyricsApiDebug({ refreshProxies: false, silent: true });
+  }, intervalMs);
+}
+
+function stopLyricsApiDebugAutoRefresh() {
+  if (lyricsApiDebugTimer) window.clearInterval(lyricsApiDebugTimer);
+  lyricsApiDebugTimer = null;
+}
+
 function buildLyricsApiUrl(artist, song) {
   const base = getLyricsApiBaseUrl();
   if (!base) return "";
@@ -2179,6 +2350,7 @@ async function spotifyFetch(path, options = {}) {
       error.status = 429;
       error.retryAfterMs = getSpotifyRetryAfterMs(response);
       noteSpotifyRateLimit(error.retryAfterMs);
+      maybeNotifySpotifyCooldown();
       throw error;
     }
 
@@ -2201,11 +2373,17 @@ async function spotifyFetchWithRetry(path, options = {}, config = {}) {
       const status = getErrorStatusCode(error);
       const isLastAttempt = attempt === maxAttempts;
 
+      if (status === 429 && error?.cooldownActive) {
+        maybeNotifySpotifyCooldown();
+        throw error;
+      }
+
       if (status === 429 && !isLastAttempt) {
         const retryAfterMs = normalizeSpotifyRetryAfterMs(error?.retryAfterMs, 5000);
         const jitterMs = 120 + attempt * 80;
         logConsoleEvent("Spotify", "Rate limited (429). Backing off...", { attempt, retryAfterMs, path }, "warn");
         noteSpotifyRateLimit(retryAfterMs + jitterMs);
+        maybeNotifySpotifyCooldown();
         await waitForSpotifyGlobalBackoff();
         continue;
       }
@@ -5596,6 +5774,18 @@ function setRequestAutoSyncStatus(message, tone = "neutral") {
 async function runRequestAutoSync(reason = "manual", options = {}) {
   const silent = !!options.silent;
 
+  const cooldownRemainingMs = getSpotifyCooldownRemainingMs();
+  if (cooldownRemainingMs > 0) {
+    const until = new Date(Date.now() + cooldownRemainingMs).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    const duration = formatElapsedShort(cooldownRemainingMs);
+    setRequestAutoSyncStatus(`Auto-sync paused (Spotify rate limit ~${duration}).`, "warn");
+    setNextRequestSyncStatus(`Next sync: after ${until}`);
+    if (!silent) {
+      setStatus(`Spotify rate limited. Sync will resume after ${until}.`);
+    }
+    return false;
+  }
+
   if (requestAutoSyncInFlight) {
     if (!silent) {
       setStatus("Request sync is already running.");
@@ -6751,6 +6941,14 @@ function wireStaticEvents() {
     });
   });
 
+  el.btnLyricsDebugRefresh?.addEventListener("click", () => {
+    void fetchLyricsApiDebug({ refreshProxies: false });
+  });
+
+  el.btnLyricsDebugRefreshProxies?.addEventListener("click", () => {
+    void fetchLyricsApiDebug({ refreshProxies: true });
+  });
+
   document.addEventListener("click", (event) => {
     const lyricsButton = event.target.closest(".btn-lyrics-fetch");
     if (!lyricsButton) return;
@@ -6942,6 +7140,7 @@ async function playbackPollTick() {
   if (!playbackPollingActive) return;
 
   const baseDelayMs = Math.max(1000, Number(CONFIG.playbackPollMs || 2500));
+  const cooldownRemainingMs = getSpotifyCooldownRemainingMs();
   const recentlyRateLimited = Date.now() - Number(spotifyLastRateLimitAtMs || 0) < 30000;
 
   const delayMs = document.hidden
@@ -6949,6 +7148,14 @@ async function playbackPollTick() {
     : recentlyRateLimited
       ? Math.max(15000, baseDelayMs)
       : baseDelayMs;
+
+  if (cooldownRemainingMs > 0) {
+    maybeNotifySpotifyCooldown();
+    // Check back occasionally without hammering Spotify.
+    const nextDelayMs = Math.min(Math.max(15000, cooldownRemainingMs), 60000);
+    playbackTimer = window.setTimeout(playbackPollTick, nextDelayMs);
+    return;
+  }
 
   try {
     await refreshPlayback();
@@ -7021,6 +7228,13 @@ async function init() {
     await fetchLyricsCacheSnapshot();
   } catch (error) {
     console.warn("Initial lyrics cache fetch failed:", error);
+  }
+
+  try {
+    await fetchLyricsApiDebug({ refreshProxies: false, silent: true });
+    startLyricsApiDebugAutoRefresh();
+  } catch (error) {
+    console.warn("Initial lyrics debug fetch failed:", error);
   }
 
   const hasToken = hasActiveSpotifyLogin || !!authGet(LS.accessToken);

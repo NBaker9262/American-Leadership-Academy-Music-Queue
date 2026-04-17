@@ -165,6 +165,57 @@
         </div>
       </section>
 
+      <!-- LYRICS API DEBUG -->
+      <section class="card neon-card">
+        <div class="card-accent card-accent-violet"></div>
+
+        <div class="section-heading">
+          <div>
+            <p class="section-kicker">Lyrics API</p>
+            <h2>SwiftShadow Debug</h2>
+          </div>
+
+          <div class="queue-nav">
+            <button id="btnLyricsDebugRefresh" class="btn btn-small" type="button">
+              Refresh
+            </button>
+            <button id="btnLyricsDebugRefreshProxies" class="btn btn-small btn-primary" type="button">
+              Refresh Proxies
+            </button>
+          </div>
+        </div>
+
+        <div class="summary-text" id="lyricsDebugStatus">Waiting for debug status...</div>
+
+        <div class="transport-meta" aria-live="polite">
+          <div class="transport-chip">
+            <span class="chip-label">API Base</span>
+            <span class="chip-value" id="lyricsDebugApiBase">--</span>
+          </div>
+          <div class="transport-chip">
+            <span class="chip-label">Proxies</span>
+            <span class="chip-value" id="lyricsDebugProxyCount">--</span>
+          </div>
+          <div class="transport-chip">
+            <span class="chip-label">Current</span>
+            <span class="chip-value" id="lyricsDebugCurrentProxy">--</span>
+          </div>
+          <div class="transport-chip">
+            <span class="chip-label">Cache Expiry</span>
+            <span class="chip-value" id="lyricsDebugCacheExpiry">--</span>
+          </div>
+          <div class="transport-chip">
+            <span class="chip-label">Updated</span>
+            <span class="chip-value" id="lyricsDebugUpdatedAt">--</span>
+          </div>
+        </div>
+
+        <div class="lyrics-success-wrap">
+          <div class="summary-text" id="lyricsDebugError" aria-live="polite"></div>
+          <pre id="lyricsDebugRaw" class="lyrics-text-pre">Debug payload will appear here.</pre>
+        </div>
+      </section>
+
     </main>
   </div>
 

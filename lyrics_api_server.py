@@ -15,14 +15,98 @@ import json
 import os
 import re
 import sys
+import time
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from importlib.metadata import PackageNotFoundError, version as package_version
 from typing import Iterable
 from urllib.parse import parse_qs, urlparse
 
 import requests
 from bs4 import BeautifulSoup
 from bs4.element import Tag
+
+SWIFTSHADOW_AVAILABLE = False
+SWIFTSHADOW_IMPORT_ERROR = ""
+ProxyInterface = None  # type: ignore[assignment]
+
+try:
+    from swiftshadow.classes import ProxyInterface as _ProxyInterface
+
+    ProxyInterface = _ProxyInterface
+    SWIFTSHADOW_AVAILABLE = True
+except Exception as error:  # noqa: BLE001
+    SWIFTSHADOW_IMPORT_ERROR = str(error)
+
+
+SERVER_STARTED_AT = time.time()
+
+swiftshadow_state: dict[str, object] = {
+    "init_ok": False,
+    "init_error": "",
+    "last_update_at": None,
+    "last_update_error": "",
+}
+
+
+def _redact_proxy_string(proxy_url: str) -> str:
+    value = str(proxy_url or "").strip()
+    if not value:
+        return ""
+    match = re.match(r"^(https?://)([^:/]+)(?::(\\d+))?$", value)
+    if not match:
+        return "<redacted>"
+    scheme, host, port = match.group(1), match.group(2), match.group(3)
+
+    if "." in host and host.count(".") == 3:
+        parts = host.split(".")
+        parts[-1] = "x"
+        host = ".".join(parts)
+    elif ":" in host:
+        # IPv6: hide last group.
+        host = host.rsplit(":", 1)[0] + ":x"
+    else:
+        host = host[:2] + "…" if len(host) > 2 else "x"
+
+    if port:
+        return f"{scheme}{host}:{port}"
+    return f"{scheme}{host}"
+
+
+proxy_interface = None
+
+
+def get_proxy_interface() -> object | None:
+    global proxy_interface
+    if proxy_interface is not None:
+        return proxy_interface
+    if not SWIFTSHADOW_AVAILABLE or ProxyInterface is None:
+        return None
+
+    try:
+        # Keep proxy discovery out of server startup; only update when requested.
+        proxy_interface = ProxyInterface(autoRotate=True, maxProxies=5, debug=True, autoUpdate=False)
+        swiftshadow_state["init_ok"] = True
+        swiftshadow_state["init_error"] = ""
+    except Exception as error:  # noqa: BLE001
+        proxy_interface = None
+        swiftshadow_state["init_ok"] = False
+        swiftshadow_state["init_error"] = str(error)
+    return proxy_interface
+
+
+def swiftshadow_safe_update() -> None:
+    iface = get_proxy_interface()
+    if iface is None:
+        swiftshadow_state["last_update_error"] = swiftshadow_state.get("init_error") or "SwiftShadow not available"
+        return
+    try:
+        iface.update()  # type: ignore[attr-defined]
+        swiftshadow_state["last_update_at"] = datetime.now(timezone.utc).isoformat()
+        swiftshadow_state["last_update_error"] = ""
+    except Exception as error:  # noqa: BLE001
+        swiftshadow_state["last_update_error"] = str(error)
 
 DEFAULT_SELECTOR = (
     "#ritmo-portal > div:nth-child(1) > div > div:nth-child(1) > div:nth-child(1) > "
@@ -805,12 +889,84 @@ class LyricsApiHandler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:  # noqa: N802
         parsed = urlparse(self.path)
 
-        if parsed.path == "/health":
+        path = parsed.path
+        if path != "/" and path.endswith("/"):
+            path = path.rstrip("/")
+
+        if path == "/health":
             self._send_json(200, {"ok": True, "service": "lyrics-api"})
             return
 
-        if parsed.path != "/lyrics":
-            self._send_json(404, {"ok": False, "error": "Not found"})
+        if path == "/debug":
+            query = parse_qs(parsed.query)
+            refresh = (query.get("refresh") or [""])[0].strip() == "1"
+            allow_proxy_details = os.environ.get("ALLOW_DEBUG_PROXY_DETAILS", "").strip() == "1"
+            show_proxy = allow_proxy_details and (query.get("show_proxy") or [""])[0].strip() == "1"
+
+            if refresh:
+                swiftshadow_safe_update()
+
+            iface = get_proxy_interface()
+            proxy_count = 0
+            current_proxy = ""
+            cache_expiry = ""
+
+            if iface is not None:
+                try:
+                    proxy_count = int(len(getattr(iface, "proxies", []) or []))
+                except Exception:  # noqa: BLE001
+                    proxy_count = 0
+
+                try:
+                    current = getattr(iface, "current", None)
+                    current_proxy = current.as_string() if current else ""  # type: ignore[union-attr]
+                except Exception:  # noqa: BLE001
+                    current_proxy = ""
+
+                try:
+                    expiry = getattr(iface, "cacheExpiry", None)
+                    cache_expiry = expiry.isoformat() if expiry else ""
+                except Exception:  # noqa: BLE001
+                    cache_expiry = ""
+
+            try:
+                swiftshadow_version = package_version("swiftshadow")
+            except PackageNotFoundError:
+                swiftshadow_version = ""
+
+            payload = {
+                "ok": True,
+                "service": "lyrics-api",
+                "uptime_seconds": round(time.time() - SERVER_STARTED_AT, 2),
+                "server_time_utc": datetime.now(timezone.utc).isoformat(),
+                "swiftshadow": {
+                    "available": SWIFTSHADOW_AVAILABLE,
+                    "version": swiftshadow_version,
+                    "import_error": SWIFTSHADOW_IMPORT_ERROR,
+                    "init_ok": bool(swiftshadow_state.get("init_ok")),
+                    "init_error": str(swiftshadow_state.get("init_error") or ""),
+                    "last_update_at": swiftshadow_state.get("last_update_at"),
+                    "last_update_error": str(swiftshadow_state.get("last_update_error") or ""),
+                    "proxy_count": proxy_count,
+                    "cache_expiry": cache_expiry,
+                    "current_proxy": current_proxy if show_proxy else _redact_proxy_string(current_proxy),
+                    "proxy_redacted": not show_proxy,
+                },
+                "notes": [
+                    "This endpoint is for local debugging/observability.",
+                    "Proxy details are redacted by default.",
+                ],
+            }
+
+            self._send_json(200, payload)
+            return
+
+        if path != "/lyrics":
+            payload: dict[str, object] = {"ok": False, "error": "Not found"}
+            if os.environ.get("DEBUG_ECHO_PATH", "").strip() == "1":
+                payload["path_seen"] = path
+                payload["raw_path"] = self.path
+            self._send_json(404, payload)
             return
 
         query = parse_qs(parsed.query)
