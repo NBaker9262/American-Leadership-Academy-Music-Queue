@@ -123,14 +123,35 @@ def iter_json_entries(text: str, format: str, json_array_key: str) -> list[str]:
 def build_rules(sources: list[Source]) -> dict:
     # Group into rules by (severity, category)
     grouped: dict[tuple[str, str], dict[str, set[str]]] = {}
+    sources_ok = []
+    sources_failed = []
 
     for source in sources:
         print(f"Fetching {source.id}: {source.url}")
-        text = fetch_text(source.url)
-        if source.format == "newline":
-            entries = iter_newline_entries(text, source.comment_prefixes)
-        else:
-            entries = iter_json_entries(text, source.format, source.json_array_key)
+        try:
+            text = fetch_text(source.url)
+            if source.format == "newline":
+                entries = iter_newline_entries(text, source.comment_prefixes)
+            else:
+                entries = iter_json_entries(text, source.format, source.json_array_key)
+        except Exception as exc:  # noqa: BLE001
+            message = str(exc)
+            sources_failed.append(
+                {
+                    "id": source.id,
+                    "label": source.label,
+                    "url": source.url,
+                    "format": source.format,
+                    "jsonArrayKey": source.json_array_key,
+                    "severity": source.severity,
+                    "category": source.category,
+                    "error": message,
+                }
+            )
+            print(f"  !! Failed: {message}")
+            continue
+
+        sources_ok.append(source)
 
         key = (source.severity, source.category)
         if key not in grouped:
@@ -180,8 +201,9 @@ def build_rules(sources: list[Source]) -> dict:
                 "severity": s.severity,
                 "category": s.category,
             }
-            for s in sources
+            for s in sources_ok
         ],
+        "sourcesFailed": sources_failed,
         "rules": rules,
     }
 
@@ -203,6 +225,14 @@ def main() -> int:
     try:
         sources = load_sources()
         payload = build_rules(sources)
+
+        if not (payload.get("sources") or []):
+            print("No sources could be loaded successfully; refusing to overwrite outputs.", file=sys.stderr)
+            failed = payload.get("sourcesFailed") or []
+            if failed:
+                print(f"Failed sources: {len(failed)}", file=sys.stderr)
+            return 3
+
         write_outputs(payload)
         print(f"Wrote {OUT_JSON}")
         print(f"Wrote {OUT_JS}")
@@ -210,6 +240,11 @@ def main() -> int:
         total_phrases = sum(len(r.get('phrases') or []) for r in payload.get('rules') or [])
         print(f"Total terms: {total_terms}")
         print(f"Total phrases: {total_phrases}")
+
+        failed = payload.get("sourcesFailed") or []
+        if failed:
+            print(f"Warning: {len(failed)} source(s) failed; see moderation-wordlists.generated.json -> sourcesFailed")
+
         return 0
     except requests.RequestException as exc:
         print(f"Network error: {exc}", file=sys.stderr)

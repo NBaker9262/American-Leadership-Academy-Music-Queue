@@ -152,6 +152,7 @@ const LS = {
   refreshToken: "ala_dash_refresh_token",
   expiresAt: "ala_dash_expires_at",
   spotifyScopesFingerprint: "ala_dash_spotify_scopes_fingerprint",
+  spotifyTrackCache: "ala_spotify_track_cache_v1",
   approvedQueue: "ala_approved_queue",
   rejectedIds: "ala_rejected_ids",
   queuePointer: "ala_queue_pointer",
@@ -1156,19 +1157,33 @@ function wait(ms) {
 
 let spotifyGlobalBackoffUntilMs = 0;
 let spotifyLastRateLimitAtMs = 0;
+let spotifyRateLimitStrikeCount = 0;
 
 function normalizeSpotifyRetryAfterMs(valueMs, fallbackMs = 5000) {
   const parsed = Number(valueMs);
   if (Number.isFinite(parsed) && parsed > 0) {
-    return Math.min(30000, Math.max(250, Math.round(parsed)));
+    return Math.min(120000, Math.max(250, Math.round(parsed)));
   }
-  return Math.min(30000, Math.max(250, Math.round(Number(fallbackMs) || 5000)));
+  return Math.min(120000, Math.max(250, Math.round(Number(fallbackMs) || 5000)));
 }
 
 function noteSpotifyRateLimit(waitMs) {
   const now = Date.now();
+  const sinceLastMs = spotifyLastRateLimitAtMs ? now - spotifyLastRateLimitAtMs : Number.POSITIVE_INFINITY;
+
+  // If we're repeatedly rate-limited in a short window, gradually extend backoff
+  // to avoid endless 429 loops.
+  if (sinceLastMs < 15000) {
+    spotifyRateLimitStrikeCount = Math.min(6, spotifyRateLimitStrikeCount + 1);
+  } else {
+    spotifyRateLimitStrikeCount = 0;
+  }
+
   spotifyLastRateLimitAtMs = now;
-  spotifyGlobalBackoffUntilMs = Math.max(spotifyGlobalBackoffUntilMs, now + normalizeSpotifyRetryAfterMs(waitMs));
+
+  const baseMs = normalizeSpotifyRetryAfterMs(waitMs);
+  const boostedMs = Math.round(baseMs * (1 + spotifyRateLimitStrikeCount * 0.5) + 500);
+  spotifyGlobalBackoffUntilMs = Math.max(spotifyGlobalBackoffUntilMs, now + normalizeSpotifyRetryAfterMs(boostedMs));
 }
 
 async function waitForSpotifyGlobalBackoff() {
@@ -2249,6 +2264,132 @@ async function getTrackById(trackId) {
 
 const trackCacheById = new Map();
 
+let spotifyTrackCacheFlushTimer = null;
+let spotifyTrackCacheLastFlushedAtMs = 0;
+
+function loadSpotifyTrackCacheFromStorage() {
+  const stored = safeJsonParse(persistentStorage.getItem(LS.spotifyTrackCache), null);
+  const tracksById = stored?.tracksById && typeof stored.tracksById === "object" ? stored.tracksById : null;
+  if (!tracksById) return;
+
+  const now = Date.now();
+  const maxAgeMs = 7 * 24 * 60 * 60 * 1000;
+  const maxLoad = 800;
+  let loaded = 0;
+
+  for (const [id, entry] of Object.entries(tracksById)) {
+    if (loaded >= maxLoad) break;
+
+    const track = entry?.track;
+    const fetchedAtMs = Number(entry?.fetchedAtMs) || 0;
+    const trackId = String(track?.id || id || "").trim();
+    if (!trackId) continue;
+    if (fetchedAtMs && now - fetchedAtMs > maxAgeMs) continue;
+
+    trackCacheById.set(trackId, {
+      track,
+      fetchedAtMs: fetchedAtMs || now
+    });
+    loaded += 1;
+  }
+
+  if (loaded > 0) {
+    logConsoleEvent("Spotify", "Loaded cached track metadata.", { loaded }, "info");
+  }
+}
+
+async function loadSpotifyTrackCacheFromFile() {
+  // Optional: allow a repo-side cache seed file (hand-maintained or generated)
+  // at `spotify-track-cache.json` to reduce initial Spotify API calls.
+  // The browser cannot write this file; it must be created outside the app.
+  try {
+    const response = await fetch("spotify-track-cache.json", { cache: "no-store" });
+    if (!response.ok) return;
+
+    const json = await response.json();
+    const now = Date.now();
+    let loaded = 0;
+
+    const tryLoadTrack = (trackLike) => {
+      const compact = normalizeSpotifyTrack(trackLike);
+      const id = String(compact?.id || "").trim();
+      if (!id) return;
+      if (trackCacheById.has(id)) return;
+      trackCacheById.set(id, { track: compact, fetchedAtMs: now });
+      loaded += 1;
+    };
+
+    if (Array.isArray(json)) {
+      for (const item of json) tryLoadTrack(item);
+    } else if (json && typeof json === "object") {
+      if (json.tracksById && typeof json.tracksById === "object") {
+        for (const entry of Object.values(json.tracksById)) {
+          if (entry?.track) tryLoadTrack(entry.track);
+        }
+      } else if (Array.isArray(json.tracks)) {
+        for (const item of json.tracks) tryLoadTrack(item);
+      } else {
+        // Assume { [id]: track }
+        for (const value of Object.values(json)) {
+          tryLoadTrack(value);
+        }
+      }
+    }
+
+    if (loaded > 0) {
+      logConsoleEvent("Spotify", "Loaded track cache seed file.", { loaded }, "info");
+      scheduleSpotifyTrackCacheFlush();
+    }
+  } catch {
+    // Ignore missing/invalid seed file.
+  }
+}
+
+function scheduleSpotifyTrackCacheFlush() {
+  if (spotifyTrackCacheFlushTimer) return;
+
+  spotifyTrackCacheFlushTimer = window.setTimeout(() => {
+    spotifyTrackCacheFlushTimer = null;
+    flushSpotifyTrackCacheToStorage();
+  }, 1500);
+}
+
+function flushSpotifyTrackCacheToStorage() {
+  const now = Date.now();
+  if (now - spotifyTrackCacheLastFlushedAtMs < 8000) {
+    scheduleSpotifyTrackCacheFlush();
+    return;
+  }
+
+  spotifyTrackCacheLastFlushedAtMs = now;
+
+  try {
+    const maxSave = 800;
+    const entries = [...trackCacheById.entries()]
+      .map(([id, value]) => ({
+        id,
+        fetchedAtMs: Number(value?.fetchedAtMs) || 0,
+        track: value?.track || null
+      }))
+      .filter((entry) => !!entry.id && !!entry.track);
+
+    entries.sort((a, b) => (b.fetchedAtMs || 0) - (a.fetchedAtMs || 0));
+
+    const tracksById = {};
+    for (const entry of entries.slice(0, maxSave)) {
+      tracksById[entry.id] = { track: entry.track, fetchedAtMs: entry.fetchedAtMs || now };
+    }
+
+    persistentStorage.setItem(
+      LS.spotifyTrackCache,
+      JSON.stringify({ version: 1, savedAtMs: now, tracksById })
+    );
+  } catch (error) {
+    // LocalStorage may fill up; caching is a best-effort optimization.
+    console.warn("Failed to persist Spotify track cache:", error);
+  }
+}
+
 function getCachedSpotifyTrack(trackId) {
   const key = String(trackId || "").trim();
   if (!key) return null;
@@ -2260,7 +2401,12 @@ function setCachedSpotifyTrack(trackId, track) {
   const key = String(trackId || "").trim();
   if (!key || !track) return;
 
-  trackCacheById.set(key, { track, fetchedAtMs: Date.now() });
+  // Store a compact representation to keep memory + localStorage reasonable.
+  const compact = normalizeSpotifyTrack(track);
+  if (!compact) return;
+
+  trackCacheById.set(key, { track: compact, fetchedAtMs: Date.now() });
+  scheduleSpotifyTrackCacheFlush();
 
   if (trackCacheById.size > 2000) {
     const firstKey = trackCacheById.keys().next().value;
@@ -2272,17 +2418,51 @@ async function getTracksByIds(trackIds) {
   const ids = [...new Set((trackIds || []).map((id) => String(id || "").trim()).filter(Boolean))];
   const results = new Map();
 
-  // Adaptive safety: keep bulk URLs short if a network filter / proxy blocks long query strings.
-  // This lowers the chance of 403s on /tracks?ids=... while still batching.
+  // Adaptive strategy:
+  // - Prefer /tracks?ids=... batches to minimize calls.
+  // - If we see 403/400 (proxy filters, URL-length limits, or transient failures), shrink the batch and retry.
+  // - Avoid per-track fallback storms; only use /tracks/{id} once batch size reaches 1.
   let bulkBatchSize = 50;
+  let i = 0;
 
-  // Guardrail: if we fall back to per-track lookups, do not hammer Spotify for dozens of tracks.
-  // We'll stop early if we hit 429, and let the next sync attempt fill in remaining metadata.
-  const maxPerTrackFallback = 10;
-
-  for (let i = 0; i < ids.length; i += bulkBatchSize) {
+  while (i < ids.length) {
     const chunk = ids.slice(i, i + bulkBatchSize);
-    if (!chunk.length) continue;
+    if (!chunk.length) break;
+
+    if (bulkBatchSize <= 1) {
+      const trackId = chunk[0];
+      try {
+        const track = await getTrackByIdWithRetry(trackId);
+        const id = String(track?.id || "").trim();
+        if (id) results.set(id, track);
+      } catch (error) {
+        const status = getErrorStatusCode(error);
+        console.warn("Per-track Spotify lookup failed:", { trackId, error });
+
+        if (status === 429) {
+          logConsoleEvent(
+            "Spotify",
+            "Rate limited (429). Pausing remaining lookups until backoff expires.",
+            { remaining: Math.max(0, ids.length - i) },
+            "warn"
+          );
+          return results;
+        }
+
+        if (status === 403 && isInsufficientSpotifyScopeError(error)) {
+          logConsoleEvent(
+            "Spotify",
+            "Spotify permissions look insufficient. Please Logout + Login again.",
+            { message: String(error?.message || "").slice(0, 200) },
+            "warn"
+          );
+          return results;
+        }
+      }
+
+      i += 1;
+      continue;
+    }
 
     // Note: Spotify expects comma-separated IDs. Encode each ID, but keep commas unescaped.
     const idsParam = chunk.map((id) => encodeURIComponent(id)).join(",");
@@ -2292,61 +2472,26 @@ async function getTracksByIds(trackIds) {
       response = await spotifyFetchWithRetry(`/tracks?ids=${idsParam}&market=from_token`);
     } catch (error) {
       const status = getErrorStatusCode(error);
-      if (status === 403 && bulkBatchSize > 10) {
-        // Some environments appear to block longer /tracks?ids= URLs; retry with smaller batches.
-        bulkBatchSize = 10;
-        i -= bulkBatchSize;
+
+      if (status === 429) {
         logConsoleEvent(
           "Spotify",
-          "Bulk track lookup returned 403; reducing batch size and retrying.",
-          { previousBatchSize: 50, nextBatchSize: bulkBatchSize, message: String(error?.message || "").slice(0, 160) },
+          "Rate limited (429). Pausing remaining lookups until backoff expires.",
+          { remaining: Math.max(0, ids.length - i) },
           "warn"
         );
-        continue;
+        return results;
       }
 
-      if (status === 403 || status === 400) {
+      if ((status === 403 || status === 400) && bulkBatchSize > 1) {
+        const previous = bulkBatchSize;
+        bulkBatchSize = Math.max(1, Math.floor(previous / 2));
         logConsoleEvent(
           "Spotify",
-          "Bulk track lookup failed; falling back to per-track fetch.",
-          { status, chunkSize: chunk.length, message: String(error?.message || "").slice(0, 200) },
+          "Bulk track lookup failed; shrinking batch size and retrying.",
+          { status, previousBatchSize: previous, nextBatchSize: bulkBatchSize, message: String(error?.message || "").slice(0, 180) },
           "warn"
         );
-
-        let perTrackCount = 0;
-        for (const trackId of chunk) {
-          if (perTrackCount >= maxPerTrackFallback) {
-            logConsoleEvent(
-              "Spotify",
-              "Stopping per-track fallback early to avoid rate-limit storms.",
-              { attempted: perTrackCount, remaining: Math.max(0, chunk.length - perTrackCount) },
-              "warn"
-            );
-            break;
-          }
-
-          perTrackCount += 1;
-
-          try {
-            const track = await getTrackByIdWithRetry(trackId);
-            const id = String(track?.id || "").trim();
-            if (id) results.set(id, track);
-          } catch (innerError) {
-            const innerStatus = getErrorStatusCode(innerError);
-            console.warn("Per-track Spotify lookup failed:", { trackId, error: innerError });
-
-            if (innerStatus === 429) {
-              logConsoleEvent(
-                "Spotify",
-                "Hit Spotify rate limit during per-track fallback; pausing further lookups until next sync.",
-                { trackId },
-                "warn"
-              );
-              break;
-            }
-          }
-        }
-
         continue;
       }
 
@@ -2358,6 +2503,8 @@ async function getTracksByIds(trackIds) {
       const id = String(track?.id || "").trim();
       if (id) results.set(id, track);
     }
+
+    i += chunk.length;
   }
 
   return results;
@@ -6719,12 +6866,47 @@ function wireStaticEvents() {
     closeModerationPanel();
   });
 
+  let pausedAutoSyncForHiddenTab = false;
+  let pausedPlaybackForHiddenTab = false;
+
   document.addEventListener("visibilitychange", () => {
-    if (document.hidden) return;
-    if (!playbackPollingActive) return;
-    if (playbackTimer) window.clearTimeout(playbackTimer);
-    playbackTimer = null;
-    void playbackPollTick();
+    const hasToken = !!authGet(LS.accessToken);
+
+    if (document.hidden) {
+      // Fully pause Spotify network usage while hidden.
+      pausedAutoSyncForHiddenTab = !!requestAutoSyncTimer;
+      pausedPlaybackForHiddenTab = playbackPollingActive;
+
+      if (pausedAutoSyncForHiddenTab) {
+        stopRequestAutoSyncTimer();
+        setRequestAutoSyncStatus("Auto-sync paused (tab hidden).", "neutral");
+        setNextRequestSyncStatus("Next sync: tab hidden");
+      }
+
+      if (pausedPlaybackForHiddenTab) {
+        stopPlaybackPolling();
+      }
+
+      // Local-only; keep UI timers quiet while hidden.
+      stopLocalProgressTimer();
+      return;
+    }
+
+    // Resume when visible again.
+    if (pausedAutoSyncForHiddenTab && hasToken && requestAutoSyncEnabled) {
+      pausedAutoSyncForHiddenTab = false;
+      startRequestAutoSyncTimer();
+      void runRequestAutoSync("resume", { silent: true });
+    } else {
+      pausedAutoSyncForHiddenTab = false;
+    }
+
+    if (pausedPlaybackForHiddenTab && hasToken) {
+      pausedPlaybackForHiddenTab = false;
+      startPlaybackPolling();
+    } else {
+      pausedPlaybackForHiddenTab = false;
+    }
   });
 }
 
@@ -6768,6 +6950,8 @@ function stopPlaybackPolling() {
 async function init() {
   clearLegacyAuthStorage();
   ensureStorageDefaults();
+  loadSpotifyTrackCacheFromStorage();
+  await loadSpotifyTrackCacheFromFile();
   applyExternalModerationWordlists();
   enforceSpotifyScopesFingerprint();
   loadModerationOverridesFromStorage();

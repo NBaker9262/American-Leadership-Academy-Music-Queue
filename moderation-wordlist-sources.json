@@ -84,6 +84,26 @@
       "commentPrefixes": ["#"],
       "severity": "block",
       "category": "External Profanity (Variants)"
+    },
+    {
+      "id": "washyourmouth-en",
+      "label": "WashYourMouthOutWithSoap build list (en)",
+      "url": "https://raw.githubusercontent.com/thisandagain/washyourmouthoutwithsoap/master/data/build.json",
+      "format": "json-object-array",
+      "jsonArrayKey": "en",
+      "commentPrefixes": ["#"],
+      "severity": "block",
+      "category": "External Profanity (Broad)"
+    },
+    {
+      "id": "wordfilter-badwords",
+      "label": "wordfilter badwords list",
+      "url": "https://raw.githubusercontent.com/dariusk/wordfilter/master/lib/badwords.json",
+      "format": "json-array",
+      "jsonArrayKey": "",
+      "commentPrefixes": ["#"],
+      "severity": "block",
+      "category": "External Profanity (Broad)"
     }
   ]
 }
