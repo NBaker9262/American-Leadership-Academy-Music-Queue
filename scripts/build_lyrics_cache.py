@@ -516,7 +516,11 @@ def build_cache(
     refresh_minutes: int,
     scrape_delay_ms: int,
     max_tracks: int,
+    existing_cache: dict | None = None,
 ) -> dict:
+    existing_cache = existing_cache or {}
+    existing_by_track_id: dict[str, dict] = dict(existing_cache.get("by_track_id") or {})
+
     grouped_request_ids: dict[str, list[str]] = {}
 
     for row in request_rows:
@@ -537,21 +541,49 @@ def build_cache(
     for index, track_id in enumerate(track_ids):
         request_ids = grouped_request_ids.get(track_id, [])
 
+        existing_entry = existing_by_track_id.get(track_id) if isinstance(existing_by_track_id, dict) else None
+        if not isinstance(existing_entry, dict):
+            existing_entry = None
+
         try:
             track_meta = resolve_track_meta(track_id)
             resolved_count += 1
         except Exception as error:  # noqa: BLE001
             scrape_failure_count += 1
-            by_track_id[track_id] = {
-                "track_id": track_id,
-                "spotify_url": spotify_track_url(track_id),
-                "status": "fallback",
-                "lyrics": "",
-                "error": f"Spotify metadata lookup failed: {error}",
-                "updated_at": now_iso(),
-                "request_ids": request_ids,
-            }
+            if existing_entry:
+                kept = dict(existing_entry)
+                kept["request_ids"] = request_ids
+                by_track_id[track_id] = kept
+            else:
+                by_track_id[track_id] = {
+                    "track_id": track_id,
+                    "spotify_url": spotify_track_url(track_id),
+                    "status": "fallback",
+                    "lyrics": "",
+                    "error": f"Spotify metadata lookup failed: {error}",
+                    "updated_at": now_iso(),
+                    "request_ids": request_ids,
+                }
             continue
+
+        # If Spotify parsing degraded (often happens under bot protection), prefer prior known-good meta.
+        if existing_entry:
+            prior_artist = str(existing_entry.get("artist") or "").strip()
+            prior_song = str(existing_entry.get("song") or "").strip()
+            if (not track_meta.artist or track_meta.artist.lower() == "unknown artist") and prior_artist:
+                track_meta = TrackMeta(
+                    track_id=track_meta.track_id,
+                    spotify_url=track_meta.spotify_url,
+                    song=track_meta.song,
+                    artist=prior_artist,
+                )
+            if (not track_meta.song or track_meta.song.lower() == "unknown song") and prior_song:
+                track_meta = TrackMeta(
+                    track_id=track_meta.track_id,
+                    spotify_url=track_meta.spotify_url,
+                    song=prior_song,
+                    artist=track_meta.artist,
+                )
 
         musixmatch_urls = build_musixmatch_url_candidates(track_meta.artist, track_meta.song)
         primary_url = musixmatch_urls[0] if musixmatch_urls else build_musixmatch_url(track_meta.artist, track_meta.song)
@@ -606,6 +638,17 @@ def build_cache(
             entry["error"] = f"Unexpected scrape error: {error}"
             scrape_failure_count += 1
 
+        # If current run failed (captcha/block/selector drift), keep the previous successful scrape.
+        if entry.get("status") != "success" and existing_entry:
+            if str(existing_entry.get("status") or "").strip().lower() == "success":
+                kept = dict(existing_entry)
+                kept["request_ids"] = request_ids
+                by_track_id[track_id] = kept
+                song_key = str(kept.get("song_key") or "").strip()
+                if song_key:
+                    by_song_key[song_key] = kept
+                continue
+
         by_track_id[track_id] = entry
 
         song_key = entry.get("song_key") or ""
@@ -618,7 +661,7 @@ def build_cache(
     generated_at = now_iso()
     next_refresh = (datetime.now(UTC) + timedelta(minutes=refresh_minutes)).isoformat().replace("+00:00", "Z")
 
-    return {
+    cache_out = {
         "generated_at": generated_at,
         "next_refresh_at": next_refresh,
         "refresh_interval_minutes": refresh_minutes,
@@ -637,6 +680,16 @@ def build_cache(
         "by_song_key": by_song_key,
     }
 
+    # Avoid rewriting the cache if entries are identical (prevents commit spam on cron).
+    if isinstance(existing_cache, dict):
+        prior_by_track_id = existing_cache.get("by_track_id")
+        prior_by_song_key = existing_cache.get("by_song_key")
+        if isinstance(prior_by_track_id, dict) and isinstance(prior_by_song_key, dict):
+            if prior_by_track_id == by_track_id and prior_by_song_key == by_song_key:
+                return existing_cache
+
+    return cache_out
+
 
 def write_cache_if_changed(cache_data: dict, cache_path: Path) -> bool:
     next_text = json.dumps(cache_data, ensure_ascii=False, indent=2) + "\n"
@@ -650,18 +703,29 @@ def write_cache_if_changed(cache_data: dict, cache_path: Path) -> bool:
     return True
 
 
+def load_existing_cache(cache_path: Path) -> dict:
+    if not cache_path.exists():
+        return {}
+    try:
+        return json.loads(cache_path.read_text(encoding="utf-8"))
+    except Exception:  # noqa: BLE001
+        return {}
+
+
 def main() -> int:
     csv_url = os.environ.get("REQUESTS_CSV_URL", DEFAULT_REQUESTS_CSV_URL)
     refresh_minutes = max(1, int(os.environ.get("LYRICS_CACHE_REFRESH_MINUTES", "5")))
     scrape_delay_ms = max(0, int(os.environ.get("LYRICS_SCRAPE_DELAY_MS", "250")))
     max_tracks = max(1, int(os.environ.get("LYRICS_CACHE_MAX_TRACKS", "120")))
 
+    existing_cache = load_existing_cache(CACHE_PATH)
     request_rows = build_request_rows(csv_url)
     cache_data = build_cache(
         request_rows=request_rows,
         refresh_minutes=refresh_minutes,
         scrape_delay_ms=scrape_delay_ms,
         max_tracks=max_tracks,
+        existing_cache=existing_cache,
     )
 
     changed = write_cache_if_changed(cache_data, CACHE_PATH)

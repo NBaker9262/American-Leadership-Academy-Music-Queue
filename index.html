@@ -457,11 +457,14 @@
             <div class="section-heading">
               <div>
                 <p class="section-kicker">Bulk Add</p>
-                <h2>CSV of Spotify URLs</h2>
+                <h2>CSV / Song List</h2>
               </div>
               <div class="queue-nav">
                 <button id="btnPlaylistBuilderBulkLoad" class="btn btn-small" type="button">
                   Load Tracks
+                </button>
+                <button id="btnPlaylistBuilderBulkAddClean" class="btn btn-small" type="button" disabled>
+                  Add Clean Only
                 </button>
                 <button id="btnPlaylistBuilderBulkAdd" class="btn btn-small btn-primary" type="button" disabled>
                   Add Loaded
@@ -469,7 +472,7 @@
               </div>
             </div>
 
-            <div class="summary-text">Upload or paste a CSV containing Spotify track URLs. The selected playlist stays pinned so you can add song after song quickly.</div>
+            <div class="summary-text">Upload/paste Spotify track URLs/IDs, or one song per line like “Artist - Song”. The selected playlist stays pinned so you can add song after song quickly.</div>
 
             <div class="playlist-builder-bulk-controls">
               <input id="playlistBuilderCsvFile" class="search-input" type="file" accept=".csv,text/csv" />
@@ -477,7 +480,7 @@
                 id="playlistBuilderCsvText"
                 class="playlist-builder-csv-text"
                 rows="4"
-                placeholder="Or paste CSV / one Spotify URL per line"
+                placeholder="Paste Spotify URLs/IDs, or lines like: Whitney Houston - I Wanna Dance with Somebody"
                 aria-label="Bulk Spotify URL input"
               ></textarea>
               <button id="btnPlaylistBuilderBulkParse" class="btn btn-small" type="button">

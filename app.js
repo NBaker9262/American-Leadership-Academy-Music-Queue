@@ -20,7 +20,7 @@ const CONFIG = {
   slowPlaylistId: "36GLC9OyT3WQ8YA2yBQhFJ",
   funPlaylistId: "0hVO11nm205QK7BCfLyXNh",
   requestsCsvUrl:
-    "https://docs.google.com/spreadsheets/d/e/2PACX-1vQyc3RRDmjc-nN-XgMMDocbnn1tlxue5ynNoNnYSxnRKxgp2LRGNmYZXnVgAFLH7IViwTAtmIAkvDsK/pub?output=csv",
+    "https://docs.google.com/spreadsheets/d/e/2PACX-1vRZhkBaoWlH5Ku0WiUPOqs6hPDD02eAn7nPds0x3mC4GFNRBRB1g5a6kA0nIlj7NRjzxExmTmQAmmoD/pub?output=csv",
   scopes: [
     "user-read-private",
     "user-read-email",
@@ -32,9 +32,11 @@ const CONFIG = {
     "playlist-modify-public",
     "playlist-modify-private"
   ],
+  spotifyMarket: "US",
   playbackPollMs: 2500,
   localProgressTickMs: 250,
   transportSyncDelaysMs: [120, 420, 950],
+  playbackTransportFadeMs: 650,
   // Guardrail: Spotify will return 429s if we fan out too many API calls.
   // Keep concurrency low; the UI is fine with slightly slower lookups.
   spotifyMaxConcurrentRequests: 2,
@@ -146,6 +148,12 @@ const CONFIG = {
   ]
 };
 
+function getSpotifyMarketParam() {
+  const market = String(CONFIG.spotifyMarket || "").trim();
+  if (!market) return "";
+  return `market=${encodeURIComponent(market)}`;
+}
+
 // --------------------
 // STORAGE KEYS
 // --------------------
@@ -164,7 +172,13 @@ const LS = {
   moderationOverrides: "ala_moderation_overrides",
   requestAutoSyncEnabled: "ala_request_auto_sync_enabled",
   playlistBuilderPlaylistId: "ala_playlist_builder_playlist_id",
-  playlistBuilderPlaylistName: "ala_playlist_builder_playlist_name"
+  playlistBuilderPlaylistName: "ala_playlist_builder_playlist_name",
+  playlistBuilderRatingCache: "ala_playlist_builder_rating_cache_v1",
+  spotifySearchCache: "ala_spotify_search_cache_v1"
+};
+
+const SS = {
+  spotifyBulkTracksBlocked: "ala_spotify_bulk_tracks_blocked_v1"
 };
 
 const authStorage = window.sessionStorage;
@@ -180,6 +194,18 @@ function authGet(key) {
 
 function authRemove(key) {
   authStorage.removeItem(key);
+}
+
+function isSpotifyBulkTracksBlocked() {
+  return authStorage.getItem(SS.spotifyBulkTracksBlocked) === "1";
+}
+
+function setSpotifyBulkTracksBlocked(blocked) {
+  if (blocked) {
+    authStorage.setItem(SS.spotifyBulkTracksBlocked, "1");
+  } else {
+    authStorage.removeItem(SS.spotifyBulkTracksBlocked);
+  }
 }
 
 // Clears old auth values that may still exist from prior localStorage-based versions.
@@ -325,6 +351,7 @@ const el = {
   playlistBuilderCsvText: document.getElementById("playlistBuilderCsvText"),
   btnPlaylistBuilderBulkParse: document.getElementById("btnPlaylistBuilderBulkParse"),
   btnPlaylistBuilderBulkLoad: document.getElementById("btnPlaylistBuilderBulkLoad"),
+  btnPlaylistBuilderBulkAddClean: document.getElementById("btnPlaylistBuilderBulkAddClean"),
   btnPlaylistBuilderBulkAdd: document.getElementById("btnPlaylistBuilderBulkAdd"),
   playlistBuilderBulkStatus: document.getElementById("playlistBuilderBulkStatus"),
   playlistBuilderBulkList: document.getElementById("playlistBuilderBulkList")
@@ -348,10 +375,199 @@ let playlistBuilderSelectedPlaylistId = "";
 let playlistBuilderSelectedPlaylistName = "";
 const playlistBuilderRatingCacheByTrackId = new Map();
 let playlistBuilderBulkParsedTrackIds = [];
+let playlistBuilderBulkParsedItems = [];
 let playlistBuilderBulkTracksById = new Map();
+let playlistBuilderBulkResolvedTrackByKey = new Map();
 let playlistBuilderBulkAddQueue = [];
 let playlistBuilderBulkLoadInFlight = false;
 let playlistBuilderBulkAddInFlight = false;
+
+// Persistent caches to avoid repeat API calls across CSV parses.
+const PLAYLIST_BUILDER_RATING_CACHE_TTL_MS = 1000 * 60 * 60 * 24 * 60; // 60 days
+const PLAYLIST_BUILDER_RATING_CACHE_MAX_ENTRIES = 2500;
+const SPOTIFY_SEARCH_CACHE_TTL_MS = 1000 * 60 * 60 * 24 * 30; // 30 days
+const SPOTIFY_SEARCH_CACHE_MAX_ENTRIES = 2500;
+
+const spotifySearchCacheByQuery = new Map();
+let playlistBuilderRatingCacheSaveTimer = null;
+let spotifySearchCacheSaveTimer = null;
+
+function pruneSimpleCacheMap(cacheMap, { ttlMs, maxEntries } = {}, nowMs = Date.now()) {
+  for (const [key, entry] of cacheMap.entries()) {
+    const cachedAtMs = Number(entry?.cachedAtMs || 0);
+    if (!cachedAtMs || nowMs - cachedAtMs > ttlMs) {
+      cacheMap.delete(key);
+    }
+  }
+
+  if (cacheMap.size <= maxEntries) return;
+
+  const ordered = [...cacheMap.entries()].sort(
+    (a, b) => Number(b?.[1]?.cachedAtMs || 0) - Number(a?.[1]?.cachedAtMs || 0)
+  );
+  cacheMap.clear();
+  for (const [key, entry] of ordered.slice(0, maxEntries)) {
+    cacheMap.set(key, entry);
+  }
+}
+
+function schedulePersistPlaylistBuilderRatingCache() {
+  if (playlistBuilderRatingCacheSaveTimer) window.clearTimeout(playlistBuilderRatingCacheSaveTimer);
+  playlistBuilderRatingCacheSaveTimer = window.setTimeout(() => {
+    playlistBuilderRatingCacheSaveTimer = null;
+    persistPlaylistBuilderRatingCacheNow();
+  }, 1200);
+}
+
+function persistPlaylistBuilderRatingCacheNow() {
+  try {
+    pruneSimpleCacheMap(playlistBuilderRatingCacheByTrackId, {
+      ttlMs: PLAYLIST_BUILDER_RATING_CACHE_TTL_MS,
+      maxEntries: PLAYLIST_BUILDER_RATING_CACHE_MAX_ENTRIES
+    });
+
+    const payload = {
+      v: 1,
+      savedAtMs: Date.now(),
+      entries: [...playlistBuilderRatingCacheByTrackId.entries()].map(([trackId, entry]) => ({
+        trackId,
+        cachedAtMs: Number(entry?.cachedAtMs || entry?.fetchedAtMs || 0) || Date.now(),
+        details: entry?.details || entry || null
+      }))
+    };
+
+    persistentStorage.setItem(LS.playlistBuilderRatingCache, JSON.stringify(payload));
+  } catch (error) {
+    console.warn("Could not persist Playlist Builder rating cache:", error);
+  }
+}
+
+function loadPlaylistBuilderRatingCacheFromStorage() {
+  const raw = persistentStorage.getItem(LS.playlistBuilderRatingCache);
+  if (!raw) return;
+
+  try {
+    const parsed = JSON.parse(raw);
+    if (!parsed || parsed.v !== 1 || !Array.isArray(parsed.entries)) return;
+
+    for (const row of parsed.entries) {
+      const trackId = String(row?.trackId || "").trim();
+      if (!trackId) continue;
+      const cachedAtMs = Number(row?.cachedAtMs || 0);
+      const details = row?.details || null;
+      if (!cachedAtMs || !details) continue;
+      playlistBuilderRatingCacheByTrackId.set(trackId, { cachedAtMs, details });
+    }
+
+    pruneSimpleCacheMap(playlistBuilderRatingCacheByTrackId, {
+      ttlMs: PLAYLIST_BUILDER_RATING_CACHE_TTL_MS,
+      maxEntries: PLAYLIST_BUILDER_RATING_CACHE_MAX_ENTRIES
+    });
+  } catch (error) {
+    console.warn("Playlist Builder rating cache invalid; clearing.", error);
+    persistentStorage.removeItem(LS.playlistBuilderRatingCache);
+  }
+}
+
+function getCachedPlaylistBuilderRatingDetails(trackId) {
+  const safeId = String(trackId || "").trim();
+  if (!safeId) return null;
+  const entry = playlistBuilderRatingCacheByTrackId.get(safeId) || null;
+  const details = entry?.details || (entry && !entry.details ? entry : null);
+  const cachedAtMs = Number(entry?.cachedAtMs || 0);
+  if (!details || !cachedAtMs) return null;
+  if (Date.now() - cachedAtMs > PLAYLIST_BUILDER_RATING_CACHE_TTL_MS) return null;
+  return details;
+}
+
+function setCachedPlaylistBuilderRatingDetails(trackId, details) {
+  const safeId = String(trackId || "").trim();
+  if (!safeId || !details) return;
+  playlistBuilderRatingCacheByTrackId.set(safeId, { cachedAtMs: Date.now(), details });
+  pruneSimpleCacheMap(playlistBuilderRatingCacheByTrackId, {
+    ttlMs: PLAYLIST_BUILDER_RATING_CACHE_TTL_MS,
+    maxEntries: PLAYLIST_BUILDER_RATING_CACHE_MAX_ENTRIES
+  });
+  schedulePersistPlaylistBuilderRatingCache();
+}
+
+function schedulePersistSpotifySearchCache() {
+  if (spotifySearchCacheSaveTimer) window.clearTimeout(spotifySearchCacheSaveTimer);
+  spotifySearchCacheSaveTimer = window.setTimeout(() => {
+    spotifySearchCacheSaveTimer = null;
+    persistSpotifySearchCacheNow();
+  }, 1200);
+}
+
+function persistSpotifySearchCacheNow() {
+  try {
+    pruneSimpleCacheMap(spotifySearchCacheByQuery, {
+      ttlMs: SPOTIFY_SEARCH_CACHE_TTL_MS,
+      maxEntries: SPOTIFY_SEARCH_CACHE_MAX_ENTRIES
+    });
+
+    const payload = {
+      v: 1,
+      savedAtMs: Date.now(),
+      entries: [...spotifySearchCacheByQuery.entries()].map(([queryKey, entry]) => ({
+        queryKey,
+        cachedAtMs: Number(entry?.cachedAtMs || 0),
+        trackId: String(entry?.trackId || "")
+      }))
+    };
+
+    persistentStorage.setItem(LS.spotifySearchCache, JSON.stringify(payload));
+  } catch (error) {
+    console.warn("Could not persist Spotify search cache:", error);
+  }
+}
+
+function loadSpotifySearchCacheFromStorage() {
+  const raw = persistentStorage.getItem(LS.spotifySearchCache);
+  if (!raw) return;
+
+  try {
+    const parsed = JSON.parse(raw);
+    if (!parsed || parsed.v !== 1 || !Array.isArray(parsed.entries)) return;
+
+    for (const row of parsed.entries) {
+      const queryKey = String(row?.queryKey || "").trim();
+      const trackId = String(row?.trackId || "").trim();
+      const cachedAtMs = Number(row?.cachedAtMs || 0);
+      if (!queryKey || !trackId || !cachedAtMs) continue;
+      spotifySearchCacheByQuery.set(queryKey, { trackId, cachedAtMs });
+    }
+
+    pruneSimpleCacheMap(spotifySearchCacheByQuery, {
+      ttlMs: SPOTIFY_SEARCH_CACHE_TTL_MS,
+      maxEntries: SPOTIFY_SEARCH_CACHE_MAX_ENTRIES
+    });
+  } catch (error) {
+    console.warn("Spotify search cache invalid; clearing.", error);
+    persistentStorage.removeItem(LS.spotifySearchCache);
+  }
+}
+
+function getCachedSpotifySearchTrackId(query) {
+  const key = String(query || "").trim().toLowerCase();
+  if (!key) return "";
+  const entry = spotifySearchCacheByQuery.get(key) || null;
+  if (!entry?.trackId) return "";
+  if (Date.now() - Number(entry?.cachedAtMs || 0) > SPOTIFY_SEARCH_CACHE_TTL_MS) return "";
+  return String(entry.trackId || "").trim();
+}
+
+function setCachedSpotifySearchTrackId(query, trackId) {
+  const key = String(query || "").trim().toLowerCase();
+  const id = String(trackId || "").trim();
+  if (!key || !id) return;
+  spotifySearchCacheByQuery.set(key, { trackId: id, cachedAtMs: Date.now() });
+  pruneSimpleCacheMap(spotifySearchCacheByQuery, {
+    ttlMs: SPOTIFY_SEARCH_CACHE_TTL_MS,
+    maxEntries: SPOTIFY_SEARCH_CACHE_MAX_ENTRIES
+  });
+  schedulePersistSpotifySearchCache();
+}
 
 let currentNowPlayingTrack = null;
 let currentSpotifyQueueTracks = [];
@@ -359,6 +575,7 @@ let currentPlaybackProgressMs = 0;
 let currentPlaybackDurationMs = 0;
 let isPlaybackActive = false;
 let currentVolumePercent = 0;
+let lastNonZeroVolumePercent = 50;
 let moderationDetailContext = null;
 let draggingApprovedRequestId = null;
 const lyricsFetchStateByRequestId = new Map();
@@ -452,7 +669,8 @@ function buildRequestId(row) {
     return String(row.requestId);
   }
 
-  return [row.timestamp || "", row.email || "", row.spotifyLink || ""].join("|");
+  const identity = row.email || row.studentName || "";
+  return [row.timestamp || "", identity, row.spotifyLink || ""].join("|");
 }
 
 function formatTimestamp(dateLike) {
@@ -1040,6 +1258,10 @@ function wait(ms) {
 
 let spotifyGlobalBackoffUntilMs = 0;
 let spotifyLastRateLimitAtMs = 0;
+let spotifyLastCooldownNoticeAtMs = 0;
+
+let lyricsApiBackoffUntilMs = 0;
+let lyricsApiLastBackoffNoticeAtMs = 0;
 
 let spotifyInFlightRequests = 0;
 const spotifyInFlightWaiters = [];
@@ -1068,15 +1290,27 @@ function releaseSpotifyRequestSlot() {
 function normalizeSpotifyRetryAfterMs(valueMs, fallbackMs = 5000) {
   const parsed = Number(valueMs);
   if (Number.isFinite(parsed) && parsed > 0) {
-    return Math.min(120000, Math.max(250, Math.round(parsed)));
+    // Spotify can return long Retry-After windows (minutes/hours) during cooldowns.
+    // Keep an upper bound so we don't accidentally sleep for days.
+    return Math.min(12 * 60 * 60 * 1000, Math.max(250, Math.round(parsed)));
   }
-  return Math.min(120000, Math.max(250, Math.round(Number(fallbackMs) || 5000)));
+  return Math.min(12 * 60 * 60 * 1000, Math.max(250, Math.round(Number(fallbackMs) || 5000)));
 }
 
 function noteSpotifyRateLimit(waitMs) {
   const now = Date.now();
   spotifyLastRateLimitAtMs = now;
   spotifyGlobalBackoffUntilMs = Math.max(spotifyGlobalBackoffUntilMs, now + normalizeSpotifyRetryAfterMs(waitMs));
+
+  const remainingMs = Math.max(0, spotifyGlobalBackoffUntilMs - now);
+  if (remainingMs >= 5 * 60 * 1000 && now - spotifyLastCooldownNoticeAtMs > 15000) {
+    spotifyLastCooldownNoticeAtMs = now;
+    stopPlaybackPolling();
+    stopRequestAutoSyncTimer();
+    setRequestAutoSyncStatus(`Spotify cooldown: waiting ~${formatElapsedShort(remainingMs)}. Auto-sync paused.`, "warn");
+    setNextRequestSyncStatus("Next sync: paused (Spotify cooldown)");
+    setStatus(`Spotify rate limited. Cooling down for ~${formatElapsedShort(remainingMs)}.`);
+  }
 }
 
 async function waitForSpotifyGlobalBackoff() {
@@ -1090,7 +1324,7 @@ function getSpotifyRetryAfterMs(response) {
   const raw = String(response?.headers?.get("Retry-After") || "").trim();
   const seconds = Number(raw);
   if (Number.isFinite(seconds) && seconds > 0) {
-    return Math.min(30000, Math.max(250, Math.round(seconds * 1000)));
+    return Math.min(12 * 60 * 60 * 1000, Math.max(250, Math.round(seconds * 1000)));
   }
 
   return 5000;
@@ -1108,6 +1342,22 @@ function getErrorStatusCode(error) {
 function isInsufficientSpotifyScopeError(error) {
   const message = String(error?.message || "");
   return message.includes("Insufficient client scope");
+}
+
+function noteLyricsApiBackoff(waitMs, message) {
+  const now = Date.now();
+  const normalized = Math.max(5000, Math.min(60 * 60 * 1000, Math.round(Number(waitMs) || 0)));
+  lyricsApiBackoffUntilMs = Math.max(lyricsApiBackoffUntilMs, now + normalized);
+
+  if (now - lyricsApiLastBackoffNoticeAtMs > 15000) {
+    lyricsApiLastBackoffNoticeAtMs = now;
+    const remainingMs = Math.max(0, lyricsApiBackoffUntilMs - now);
+    setStatus(`${message} (cooling down ~${formatElapsedShort(remainingMs)}).`);
+  }
+}
+
+function getLyricsApiBackoffRemainingMs() {
+  return Math.max(0, lyricsApiBackoffUntilMs - Date.now());
 }
 
 function pushModerationHistory(action) {
@@ -1153,6 +1403,10 @@ function updatePlaybackProgressUI(progressMs, durationMs) {
 function updateVolumeUI(volumePercent) {
   const safeVolume = Number.isFinite(volumePercent) ? Math.max(0, Math.min(100, volumePercent)) : 0;
   currentVolumePercent = safeVolume;
+
+  if (safeVolume > 0) {
+    lastNonZeroVolumePercent = safeVolume;
+  }
 
   if (el.nowPlayingVolumeBar) {
     el.nowPlayingVolumeBar.style.width = `${safeVolume}%`;
@@ -1660,6 +1914,15 @@ function buildLyricsApiUrl(artist, song) {
 }
 
 async function fetchLyricsFromApi(artist, song) {
+  const remainingBackoffMs = getLyricsApiBackoffRemainingMs();
+  if (remainingBackoffMs > 0) {
+    return {
+      ok: false,
+      reason: `Lyrics API temporarily paused (cooldown ~${formatElapsedShort(remainingBackoffMs)}). Using backup cache.`,
+      status: "blocked"
+    };
+  }
+
   const apiUrl = buildLyricsApiUrl(artist, song);
   if (!apiUrl) {
     return {
@@ -1698,6 +1961,28 @@ async function fetchLyricsFromApi(artist, song) {
         } catch {
           errorText = "";
         }
+      }
+
+      const lowered = String(errorText || "").toLowerCase();
+      const looksBlocked =
+        response.status === 422 &&
+        (lowered.includes("captcha") ||
+          lowered.includes("blocked") ||
+          lowered.includes("bot") ||
+          lowered.includes("verify") ||
+          lowered.includes("cloudflare"));
+
+      if (looksBlocked) {
+        noteLyricsApiBackoff(
+          30 * 60 * 1000,
+          "Lyrics live-fetch appears blocked (captcha/bot protection). Using backup cache"
+        );
+        return {
+          ok: false,
+          reason: "Live lyrics blocked by Musixmatch (captcha/bot protection). Using backup cache.",
+          status: "blocked",
+          triedUrls
+        };
       }
 
       return {
@@ -2071,8 +2356,24 @@ async function spotifyFetch(path, options = {}) {
         throw error;
       }
 
-      const text = await response.text();
-      const error = new Error(`${response.status} ${text}`);
+      let text = "";
+      try {
+        text = await response.text();
+      } catch {
+        text = "";
+      }
+
+      // Prefer Spotify's JSON error.message when available.
+      let spotifyMessage = "";
+      try {
+        const json = JSON.parse(text);
+        spotifyMessage = String(json?.error?.message || "").trim();
+      } catch {
+        spotifyMessage = "";
+      }
+
+      const detail = spotifyMessage || String(text || "").trim();
+      const error = new Error(`${response.status} ${detail}`);
       error.status = response.status;
       throw error;
     }
@@ -2147,6 +2448,31 @@ async function spotifyNoContent(path, options = {}) {
     }
 
     const text = await response.text();
+
+    if (response.status === 404 && String(text || "").includes("NO_ACTIVE_DEVICE")) {
+      const error = new Error(
+        "No active Spotify device found. Open Spotify (phone/desktop/web) and start playback first."
+      );
+      error.status = 404;
+      throw error;
+    }
+
+    if (response.status === 403 && isInsufficientSpotifyScopeError({ message: text })) {
+      const error = new Error(
+        "Spotify permission missing (scope). Click Logout then Login again to refresh permissions."
+      );
+      error.status = 403;
+      throw error;
+    }
+
+    if (response.status === 401) {
+      const error = new Error(
+        "Spotify authorization failed (401). Click Logout then Login again."
+      );
+      error.status = 401;
+      throw error;
+    }
+
     const error = new Error(`${response.status} ${text}`);
     error.status = response.status;
     throw error;
@@ -2163,11 +2489,20 @@ async function getTrackById(trackId) {
   // Important: keep this as a single-attempt call.
   // Higher-level callers (like getTrackByIdWithRetry / getTracksByIds) control retries
   // to avoid retry-storms when Spotify is rate-limiting.
-  return spotifyFetchWithRetry(
-    `/tracks/${encodeURIComponent(trackId)}?market=from_token`,
-    {},
-    { maxAttempts: 1 }
-  );
+  const marketParam = getSpotifyMarketParam();
+  const suffix = marketParam ? `?${marketParam}` : "";
+
+  try {
+    return await spotifyFetchWithRetry(`/tracks/${encodeURIComponent(trackId)}${suffix}`, {}, { maxAttempts: 1 });
+  } catch (error) {
+    // Some tracks return 404 when a market is specified (unavailable/region-restricted).
+    // Retrying once without market often succeeds and is safe (single extra request).
+    const status = getErrorStatusCode(error);
+    if (marketParam && status === 404) {
+      return spotifyFetchWithRetry(`/tracks/${encodeURIComponent(trackId)}`, {}, { maxAttempts: 1 });
+    }
+    throw error;
+  }
 }
 
 const trackCacheById = new Map();
@@ -2273,40 +2608,116 @@ async function getTracksByIds(trackIds) {
   const ids = [...new Set((trackIds || []).map((id) => String(id || "").trim()).filter(Boolean))];
   const results = new Map();
 
+  // Cache-first to reduce API calls (Playlist Builder and moderation both benefit).
+  const missingIds = [];
+  for (const id of ids) {
+    const cached = getCachedSpotifyTrack(id);
+    if (cached) {
+      results.set(id, cached);
+    } else {
+      missingIds.push(id);
+    }
+  }
+
+  if (!missingIds.length) {
+    return results;
+  }
+
+  const bulkBlocked = isSpotifyBulkTracksBlocked();
+
   // Adaptive safety: keep bulk URLs short if a network filter / proxy blocks long query strings.
   // This lowers the chance of 403s on /tracks?ids=... while still batching.
   let bulkBatchSize = 50;
 
-  // Guardrail: if we fall back to per-track lookups, do not hammer Spotify for dozens of tracks.
-  // We'll stop early if we hit 429, and let the next sync attempt fill in remaining metadata.
-  const maxPerTrackFallback = 10;
+  const loadTrackViaApi = async (trackId) => {
+    const track = await getTrackByIdWithRetry(trackId);
+    const id = String(track?.id || "").trim();
+    if (id) {
+      results.set(id, track);
+      setCachedSpotifyTrack(id, track);
+    }
+  };
 
-  for (let i = 0; i < ids.length; i += bulkBatchSize) {
-    const chunk = ids.slice(i, i + bulkBatchSize);
+  const perTrackFetch = async (chunk) => {
+    for (const trackId of chunk) {
+      try {
+        await loadTrackViaApi(trackId);
+      } catch (innerError) {
+        const innerStatus = getErrorStatusCode(innerError);
+
+        // 404 is common for unavailable tracks; keep it quiet.
+        if (innerStatus && innerStatus !== 404) {
+          console.warn("Per-track Spotify lookup failed:", { trackId, error: innerError });
+        }
+
+        if (innerStatus === 429) {
+          logConsoleEvent(
+            "Spotify",
+            "Hit Spotify rate limit during per-track fallback; pausing further lookups until next sync.",
+            { trackId },
+            "warn"
+          );
+          break;
+        }
+      }
+    }
+  };
+
+  if (bulkBlocked) {
+    await perTrackFetch(missingIds);
+    return results;
+  }
+
+  let bulk403Count = 0;
+
+  for (let i = 0; i < missingIds.length; i += bulkBatchSize) {
+    const chunk = missingIds.slice(i, i + bulkBatchSize);
     if (!chunk.length) continue;
 
     // Note: Spotify expects comma-separated IDs. Encode each ID, but keep commas unescaped.
     const idsParam = chunk.map((id) => encodeURIComponent(id)).join(",");
+    const marketParam = getSpotifyMarketParam();
+    const suffix = marketParam ? `&${marketParam}` : "";
 
     let response;
     try {
-      response = await spotifyFetchWithRetry(`/tracks?ids=${idsParam}&market=from_token`);
+      response = await spotifyFetchWithRetry(`/tracks?ids=${idsParam}${suffix}`);
     } catch (error) {
       const status = getErrorStatusCode(error);
-      if (status === 403 && bulkBatchSize > 10) {
-        // Some environments appear to block longer /tracks?ids= URLs; retry with smaller batches.
-        bulkBatchSize = 10;
-        i -= bulkBatchSize;
-        logConsoleEvent(
-          "Spotify",
-          "Bulk track lookup returned 403; reducing batch size and retrying.",
-          { previousBatchSize: 50, nextBatchSize: bulkBatchSize, message: String(error?.message || "").slice(0, 160) },
-          "warn"
-        );
-        continue;
-      }
+      if (status === 403) {
+        bulk403Count += 1;
 
-      if (status === 403 || status === 400) {
+        if (bulkBatchSize > 10) {
+          // Some environments appear to block longer /tracks?ids= URLs; retry with smaller batches.
+          const previousBatchSize = bulkBatchSize;
+          bulkBatchSize = 10;
+          i -= bulkBatchSize;
+          logConsoleEvent(
+            "Spotify",
+            "Bulk track lookup returned 403; reducing batch size and retrying.",
+            { previousBatchSize, nextBatchSize: bulkBatchSize, message: String(error?.message || "").slice(0, 160) },
+            "warn"
+          );
+          continue;
+        }
+
+        // If 403 continues even with short batches, assume the /tracks?ids endpoint is blocked.
+        if (chunk.length <= 10 && bulk403Count >= 2) {
+          setSpotifyBulkTracksBlocked(true);
+          logConsoleEvent(
+            "Spotify",
+            "Bulk track lookup appears blocked (403). Switching to per-track lookups for this session.",
+            { status, chunkSize: chunk.length, message: String(error?.message || "").slice(0, 200) },
+            "warn"
+          );
+          await perTrackFetch(chunk);
+          const remaining = missingIds.slice(i + chunk.length);
+          if (remaining.length) {
+            await perTrackFetch(remaining);
+          }
+          return results;
+        }
+
         logConsoleEvent(
           "Spotify",
           "Bulk track lookup failed; falling back to per-track fetch.",
@@ -2314,40 +2725,18 @@ async function getTracksByIds(trackIds) {
           "warn"
         );
 
-        let perTrackCount = 0;
-        for (const trackId of chunk) {
-          if (perTrackCount >= maxPerTrackFallback) {
-            logConsoleEvent(
-              "Spotify",
-              "Stopping per-track fallback early to avoid rate-limit storms.",
-              { attempted: perTrackCount, remaining: Math.max(0, chunk.length - perTrackCount) },
-              "warn"
-            );
-            break;
-          }
+        await perTrackFetch(chunk);
+        continue;
+      }
 
-          perTrackCount += 1;
-
-          try {
-            const track = await getTrackByIdWithRetry(trackId);
-            const id = String(track?.id || "").trim();
-            if (id) results.set(id, track);
-          } catch (innerError) {
-            const innerStatus = getErrorStatusCode(innerError);
-            console.warn("Per-track Spotify lookup failed:", { trackId, error: innerError });
-
-            if (innerStatus === 429) {
-              logConsoleEvent(
-                "Spotify",
-                "Hit Spotify rate limit during per-track fallback; pausing further lookups until next sync.",
-                { trackId },
-                "warn"
-              );
-              break;
-            }
-          }
-        }
-
+      if (status === 400) {
+        logConsoleEvent(
+          "Spotify",
+          "Bulk track lookup failed; falling back to per-track fetch.",
+          { status, chunkSize: chunk.length, message: String(error?.message || "").slice(0, 200) },
+          "warn"
+        );
+        await perTrackFetch(chunk);
         continue;
       }
 
@@ -2357,7 +2746,9 @@ async function getTracksByIds(trackIds) {
     const tracks = Array.isArray(response?.tracks) ? response.tracks : [];
     for (const track of tracks) {
       const id = String(track?.id || "").trim();
-      if (id) results.set(id, track);
+      if (!id) continue;
+      results.set(id, track);
+      setCachedSpotifyTrack(id, track);
     }
   }
 
@@ -2432,6 +2823,21 @@ async function startPlaylistById(playlistId) {
 
   const device = await ensureActiveDevice();
 
+  const fadeMs = Math.max(0, Number(CONFIG.playbackTransportFadeMs || 0));
+  const hasKnownVolume = Number.isFinite(currentVolumePercent) && currentVolumePercent > 0;
+  const canAssumeVolume = !currentNowPlayingTrack && !hasKnownVolume && Number.isFinite(lastNonZeroVolumePercent) && lastNonZeroVolumePercent > 0;
+  const targetVolume = hasKnownVolume ? currentVolumePercent : canAssumeVolume ? lastNonZeroVolumePercent : 0;
+  const midVolume = Math.max(0, Math.min(100, Math.round(targetVolume * 0.35)));
+
+  if (fadeMs > 0 && targetVolume > 0) {
+    try {
+      await setPlaybackVolume(0);
+      updateVolumeUI(0);
+    } catch (error) {
+      console.warn("Volume fade-down before playlist start failed:", error);
+    }
+  }
+
   await spotifyNoContent(`/me/player/play?device_id=${encodeURIComponent(device.id)}`, {
     method: "PUT",
     headers: {
@@ -2441,6 +2847,89 @@ async function startPlaylistById(playlistId) {
       context_uri: `spotify:playlist:${playlistId}`
     })
   });
+
+  if (fadeMs > 0 && targetVolume > 0) {
+    const stepDelayMs = Math.max(50, Math.floor(fadeMs / 2));
+    try {
+      await wait(120);
+      await setPlaybackVolume(midVolume);
+      updateVolumeUI(midVolume);
+      await wait(stepDelayMs);
+      await setPlaybackVolume(targetVolume);
+      updateVolumeUI(targetVolume);
+    } catch (error) {
+      console.warn("Volume fade-up after playlist start failed:", error);
+    }
+  }
+}
+
+async function pausePlaybackWithTransition() {
+  await ensureActiveDevice();
+
+  const fadeMs = Math.max(0, Number(CONFIG.playbackTransportFadeMs || 0));
+  const targetVolume = Number.isFinite(currentVolumePercent) && currentVolumePercent > 0 ? currentVolumePercent : 0;
+  const midVolume = Math.max(0, Math.min(100, Math.round(targetVolume * 0.35)));
+
+  if (fadeMs > 0 && targetVolume > 0) {
+    const stepDelayMs = Math.max(50, Math.floor(fadeMs / 2));
+    try {
+      await setPlaybackVolume(midVolume);
+      updateVolumeUI(midVolume);
+      await wait(stepDelayMs);
+      await setPlaybackVolume(0);
+      updateVolumeUI(0);
+      await wait(60);
+    } catch (error) {
+      console.warn("Volume fade-down before pause failed:", error);
+    }
+  }
+
+  await spotifyNoContent("/me/player/pause", { method: "PUT" });
+
+  // Restore volume while paused so a resume can fade in.
+  if (fadeMs > 0 && targetVolume > 0) {
+    try {
+      await setPlaybackVolume(targetVolume);
+      updateVolumeUI(targetVolume);
+    } catch (error) {
+      console.warn("Volume restore after pause failed:", error);
+    }
+  }
+}
+
+async function resumePlaybackWithTransition() {
+  await ensureActiveDevice();
+
+  const fadeMs = Math.max(0, Number(CONFIG.playbackTransportFadeMs || 0));
+  const hasKnownVolume = Number.isFinite(currentVolumePercent) && currentVolumePercent > 0;
+  const targetVolume = hasKnownVolume ? currentVolumePercent : 0;
+  const midVolume = Math.max(0, Math.min(100, Math.round(targetVolume * 0.35)));
+
+  if (fadeMs > 0 && targetVolume > 0) {
+    try {
+      await setPlaybackVolume(0);
+      updateVolumeUI(0);
+      await wait(60);
+    } catch (error) {
+      console.warn("Volume fade-down before resume failed:", error);
+    }
+  }
+
+  await spotifyNoContent("/me/player/play", { method: "PUT" });
+
+  if (fadeMs > 0 && targetVolume > 0) {
+    const stepDelayMs = Math.max(50, Math.floor(fadeMs / 2));
+    try {
+      await wait(120);
+      await setPlaybackVolume(midVolume);
+      updateVolumeUI(midVolume);
+      await wait(stepDelayMs);
+      await setPlaybackVolume(targetVolume);
+      updateVolumeUI(targetVolume);
+    } catch (error) {
+      console.warn("Volume fade-up after resume failed:", error);
+    }
+  }
 }
 
 async function addTrackToPlaylist(playlistId, trackUri) {
@@ -2486,7 +2975,7 @@ async function addTrackToSpotifyQueue(trackUri) {
     }
 
     if (response.ok || response.status === 204) {
-      return;
+      return true;
     }
 
     const text = await response.text();
@@ -2519,6 +3008,8 @@ async function addTrackToSpotifyQueue(trackUri) {
 
     throw new Error(`${response.status} ${text}`);
   }
+
+  return false;
 }
 
 async function pausePlayback() {
@@ -2542,11 +3033,9 @@ async function skipToPreviousTrack() {
 }
 
 async function togglePlayPause() {
-  if (isPlaybackActive) {
-    await pausePlayback();
-  } else {
-    await resumePlayback();
-  }
+  const wasPlaying = !!isPlaybackActive;
+  if (wasPlaying) return pausePlayback();
+  return resumePlayback();
 }
 
 async function seekPlayback(positionMs) {
@@ -2585,10 +3074,21 @@ function findHeaderIndex(headers, candidates, fallbackIndex = -1) {
 async function fetchStudentRequestRows() {
   const url = `${CONFIG.requestsCsvUrl}${CONFIG.requestsCsvUrl.includes("?") ? "&" : "?"}t=${Date.now()}`;
 
-  const response = await fetch(url, {
-    method: "GET",
-    cache: "no-store"
-  });
+  let response;
+  try {
+    response = await fetch(url, {
+      method: "GET",
+      cache: "no-store"
+    });
+  } catch (error) {
+    const message = String(error?.message || error || "");
+    if (message.toLowerCase().includes("failed to fetch")) {
+      throw new Error(
+        "Could not fetch Google Sheet CSV (network/CORS). Make sure the sheet is published to the web and the CSV URL is accessible from this browser."
+      );
+    }
+    throw error;
+  }
 
   if (!response.ok) {
     throw new Error(`Failed to fetch Google Sheet CSV: ${response.status}`);
@@ -2602,11 +3102,12 @@ async function fetchStudentRequestRows() {
   const headers = rows[0].map((cell) => String(cell ?? "").trim());
 
   const timestampIndex = findHeaderIndex(headers, ["Timestamp"], 0);
-  const emailIndex = findHeaderIndex(headers, ["Email Address", "Email", "Student Email"], 1);
+  const emailIndex = findHeaderIndex(headers, ["Email Address", "Email", "Student Email"], -1);
   const spotifyLinkIndex = findHeaderIndex(
     headers,
     [
       "Please insert the Spotify song share link here:",
+      "Spotify link to the Exact Version of the song you want",
       "Spotify share link",
       "Spotify song share link",
       "Spotify link",
@@ -2629,6 +3130,8 @@ async function fetchStudentRequestRows() {
   const studentNameIndex = findHeaderIndex(
     headers,
     [
+      "Your full name",
+      "Full name",
       "Student Name",
       "Name",
       "Requested By",
@@ -2652,7 +3155,7 @@ async function fetchStudentRequestRows() {
     )
     .map((row) => ({
       timestamp: String(row[timestampIndex] ?? "").trim(),
-      email: String(row[emailIndex] ?? "").trim(),
+      email: emailIndex >= 0 ? String(row[emailIndex] ?? "").trim() : "",
       spotifyLink: String(row[spotifyLinkIndex] ?? "").trim(),
       theme: themeIndex >= 0 ? String(row[themeIndex] ?? "").trim() : "",
       studentName: studentNameIndex >= 0 ? String(row[studentNameIndex] ?? "").trim() : "",
@@ -2663,16 +3166,20 @@ async function fetchStudentRequestRows() {
 
 async function enrichRequestRows(rows) {
   const rejected = getRejectedIds();
+  const approvedSet = new Set(getApprovedQueue().map((item) => String(item?.requestId || "").trim()).filter(Boolean));
 
   const enriched = rows.map((row) => {
     const requestId = buildRequestId(row);
     const trackId = extractSpotifyTrackId(row.spotifyLink);
+
+    const approved = approvedSet.has(requestId);
 
     const result = {
       ...row,
       requestId,
       trackId,
       rejected: rejected.has(requestId),
+      approved,
       source: row.source || "request",
       spotify: null,
       error: null,
@@ -2725,6 +3232,11 @@ async function enrichRequestRows(rows) {
     const cached = getCachedSpotifyTrack(item.trackId);
     if (cached) {
       item.spotify = normalizeSpotifyTrack(cached);
+      continue;
+    }
+
+    // Don't burn Spotify lookups on items that will never render (already handled).
+    if (item.rejected || item.approved) {
       continue;
     }
 
@@ -3800,7 +4312,19 @@ async function fetchPlaylistTrackUriCounts(playlistId, { forceRefresh = false } 
   let fetched = 0;
 
   while (nextPath) {
-    const page = await spotifyFetchWithRetry(nextPath);
+    let page;
+    try {
+      page = await spotifyFetchWithRetry(nextPath);
+    } catch (error) {
+      const status = getErrorStatusCode(error);
+      if (status === 403) {
+        const scopeHint = isInsufficientSpotifyScopeError(error)
+          ? "Your Spotify login is missing playlist scopes. Click Logout, then log in again."
+          : "This usually means you do not have permission to read/edit that playlist with the current account (private playlists require owner or collaborator access).";
+        throw new Error(`Spotify blocked playlist access while checking duplicates (${status}). ${scopeHint} (${error?.message || error})`);
+      }
+      throw error;
+    }
     const items = Array.isArray(page?.items) ? page.items : [];
 
     for (const item of items) {
@@ -3949,51 +4473,13 @@ async function addTracksToPlaylistWithDuplicateReview({ playlistId, playlistName
   const uriCounts = await fetchPlaylistTrackUriCounts(safePlaylistId);
   const { normalizedTracks, uniqueToAdd, duplicates } = splitTracksByDuplicateStatus(tracks, uriCounts);
 
-  if (duplicates.length) {
-    const decision = await openPlaylistDuplicateModal({
-      title: "Duplicates Found",
-      description: `${duplicates.length} duplicate track(s) detected for ${playlistName}. Choose Add Anyway or Delete.`,
-      duplicates,
-      deleteLabel
-    });
-
-    if (decision === "cancel" || decision === "close") {
-      closePlaylistDuplicateModal();
-      return { decision: "cancel", added: 0, duplicates };
+  // STRICT MODE: never add duplicates.
+  if (duplicates.length && typeof onDeleteDuplicates === "function") {
+    try {
+      onDeleteDuplicates(duplicates);
+    } catch (error) {
+      console.warn("onDeleteDuplicates handler failed:", error);
     }
-
-    if (decision === "delete") {
-      closePlaylistDuplicateModal();
-
-      if (typeof onDeleteDuplicates === "function") {
-        onDeleteDuplicates(duplicates);
-      }
-
-      let added = 0;
-      for (const track of uniqueToAdd) {
-        await addTrackToPlaylist(safePlaylistId, track.uri);
-        added += 1;
-        uriCounts.set(track.uri, Number(uriCounts.get(track.uri) || 0) + 1);
-      }
-
-      return { decision: "delete", added, duplicates };
-    }
-
-    if (decision === "add-anyway") {
-      closePlaylistDuplicateModal();
-
-      let added = 0;
-      for (const track of normalizedTracks) {
-        await addTrackToPlaylist(safePlaylistId, track.uri);
-        added += 1;
-        uriCounts.set(track.uri, Number(uriCounts.get(track.uri) || 0) + 1);
-      }
-
-      return { decision: "add-anyway", added, duplicates };
-    }
-
-    closePlaylistDuplicateModal();
-    return { decision: "cancel", added: 0, duplicates };
   }
 
   let added = 0;
@@ -4003,7 +4489,7 @@ async function addTracksToPlaylistWithDuplicateReview({ playlistId, playlistName
     uriCounts.set(track.uri, Number(uriCounts.get(track.uri) || 0) + 1);
   }
 
-  return { decision: "added", added, duplicates: [] };
+  return { decision: duplicates.length ? "skipped-duplicates" : "added", added, duplicates };
 }
 
 function closePlaylistPicker() {
@@ -4190,8 +4676,8 @@ async function handlePlaylistPickerSelection(playlistId, playlistName) {
 
     const label = `${item?.spotify?.artist || "Unknown Artist"} - ${item?.spotify?.name || "Unknown Song"}`;
 
-    if (result?.decision === "delete" && Number(result?.added || 0) === 0) {
-      setStatus(`Duplicate already exists in ${safePlaylistName}. Deleted from Approved Queue: ${label}`);
+    if (Number(result?.added || 0) === 0 && Array.isArray(result?.duplicates) && result.duplicates.length) {
+      setStatus(`Already in ${safePlaylistName} (skipped duplicate): ${label}`);
       closePlaylistPicker();
       return;
     }
@@ -5993,13 +6479,20 @@ function closePlaylistBuilderPanel() {
 function updatePlaylistBuilderActionState() {
   const hasPlaylist = !!playlistBuilderSelectedPlaylistId;
   const hasTrack = !!playlistBuilderSelectedTrack?.uri;
+  const bulkQueue = Array.isArray(playlistBuilderBulkAddQueue) ? playlistBuilderBulkAddQueue : [];
+  const hasBulkQueue = bulkQueue.length > 0;
 
   if (el.btnPlaylistBuilderAddSelected) {
     el.btnPlaylistBuilderAddSelected.disabled = !(hasPlaylist && hasTrack);
   }
 
   if (el.btnPlaylistBuilderBulkAdd) {
-    el.btnPlaylistBuilderBulkAdd.disabled = !(hasPlaylist && Array.isArray(playlistBuilderBulkAddQueue) && playlistBuilderBulkAddQueue.length > 0);
+    el.btnPlaylistBuilderBulkAdd.disabled = !(hasPlaylist && hasBulkQueue);
+  }
+
+  if (el.btnPlaylistBuilderBulkAddClean) {
+    const hasCleanCandidate = hasPlaylist && hasBulkQueue && bulkQueue.some((spotify) => isPlaylistBuilderCleanCandidate(spotify));
+    el.btnPlaylistBuilderBulkAddClean.disabled = !hasCleanCandidate;
   }
 }
 
@@ -6030,7 +6523,7 @@ function renderPlaylistBuilderSearchResults() {
     .map((track) => {
       const spotify = normalizeSpotifyTrack(track);
       const isExplicit = spotify?.explicit === true;
-      const cached = spotify?.id ? playlistBuilderRatingCacheByTrackId.get(spotify.id) : null;
+      const cached = spotify?.id ? getCachedPlaylistBuilderRatingDetails(spotify.id) : null;
       const ratingShort = cached?.ratingCode || normalizeLyricsRatingCode(cached?.ratingLabel || "");
 
       return `
@@ -6098,6 +6591,15 @@ async function runPlaylistBuilderSearch() {
 }
 
 async function fetchLyricsMetaFromApi(artist, song) {
+  const remainingBackoffMs = getLyricsApiBackoffRemainingMs();
+  if (remainingBackoffMs > 0) {
+    return {
+      ok: false,
+      status: "blocked",
+      reason: `Lyrics API temporarily paused (cooldown ~${formatElapsedShort(remainingBackoffMs)}).`
+    };
+  }
+
   const apiUrl = buildLyricsApiUrl(artist, song);
   if (!apiUrl) {
     return {
@@ -6120,8 +6622,25 @@ async function fetchLyricsMetaFromApi(artist, song) {
     const json = await response.json().catch(() => ({}));
 
     if (!response.ok) {
-      const reason = String(json?.error || "").trim() || `Lyrics API responded with ${response.status}.`;
-      return { ok: false, status: "api-error", reason, json };
+      const reasonRaw = String(json?.error || "").trim() || `Lyrics API responded with ${response.status}.`;
+      const lowered = String(reasonRaw || "").toLowerCase();
+      const looksBlocked =
+        response.status === 422 &&
+        (lowered.includes("captcha") ||
+          lowered.includes("blocked") ||
+          lowered.includes("bot") ||
+          lowered.includes("verify") ||
+          lowered.includes("cloudflare"));
+
+      if (looksBlocked) {
+        noteLyricsApiBackoff(
+          30 * 60 * 1000,
+          "Lyrics live-fetch appears blocked (captcha/bot protection). Using backup cache"
+        );
+        return { ok: false, status: "blocked", reason: "Live lyrics blocked by Musixmatch (captcha/bot protection).", json };
+      }
+
+      return { ok: false, status: "api-error", reason: reasonRaw, json };
     }
 
     return {
@@ -6212,6 +6731,21 @@ async function fetchPlaylistBuilderRatingDetails(spotify) {
   };
 }
 
+function getPlaylistBuilderRatingShort(details) {
+  const ratingCode = normalizeLyricsRatingCode(details?.ratingCode || "") || normalizeLyricsRatingCode(details?.ratingLabel || "");
+  return ratingCode || "";
+}
+
+function isPlaylistBuilderCleanCandidate(spotify) {
+  if (!spotify?.id) return false;
+  if (spotify.explicit !== false) return false;
+
+  const details = getCachedPlaylistBuilderRatingDetails(spotify.id);
+  const ratingShort = getPlaylistBuilderRatingShort(details);
+  if (!ratingShort) return false;
+  return statusTagToneForLyricsRating(ratingShort) === "ok";
+}
+
 function renderPlaylistBuilderReview(track, details) {
   if (!el.playlistBuilderReview) return;
 
@@ -6280,9 +6814,23 @@ async function selectPlaylistBuilderTrack(trackId) {
   const safeTrackId = String(trackId || "").trim();
   if (!safeTrackId) return;
 
-  const track = playlistBuilderSearchResults.find((item) => String(item?.id || "") === safeTrackId);
+  let track = playlistBuilderSearchResults.find((item) => String(item?.id || "") === safeTrackId) || null;
   if (!track) {
-    updatePlaylistBuilderStatus("Selected search result is no longer available.");
+    track = playlistBuilderBulkTracksById?.get(safeTrackId) || null;
+  }
+  if (!track) {
+    try {
+      const fetched = await getTracksByIds([safeTrackId]);
+      track = fetched.get(safeTrackId) || null;
+      if (track && playlistBuilderBulkTracksById) {
+        playlistBuilderBulkTracksById.set(safeTrackId, track);
+      }
+    } catch {
+      // ignore
+    }
+  }
+  if (!track) {
+    updatePlaylistBuilderStatus("Selected track is no longer available.");
     return;
   }
 
@@ -6295,15 +6843,34 @@ async function selectPlaylistBuilderTrack(trackId) {
   }
   updatePlaylistBuilderActionState();
 
-  let details = playlistBuilderRatingCacheByTrackId.get(safeTrackId);
-  if (!details) {
-    details = await fetchPlaylistBuilderRatingDetails(normalizeSpotifyTrack(track));
-    playlistBuilderRatingCacheByTrackId.set(safeTrackId, details);
-  }
+  try {
+    let details = getCachedPlaylistBuilderRatingDetails(safeTrackId);
+    if (!details) {
+      details = await fetchPlaylistBuilderRatingDetails(normalizeSpotifyTrack(track));
+      setCachedPlaylistBuilderRatingDetails(safeTrackId, details);
+    }
 
-  renderPlaylistBuilderReview(track, details);
-  updatePlaylistBuilderActionState();
-  updatePlaylistBuilderStatus("Review rating details, then add to the selected playlist.");
+    renderPlaylistBuilderReview(track, details);
+    updatePlaylistBuilderActionState();
+    updatePlaylistBuilderStatus("Review rating details, then add to the selected playlist.");
+  } catch (error) {
+    console.error("Playlist Builder rating fetch failed:", error);
+
+    const fallbackDetails = {
+      ratingLabel: "",
+      ratingCode: "",
+      ratingReason: error?.message || String(error || "Rating lookup failed."),
+      ratingSelectorUsed: "",
+      isInstrumental: false,
+      instrumentalSource: "",
+      musixmatchUrl: "",
+      source: "error"
+    };
+
+    renderPlaylistBuilderReview(track, fallbackDetails);
+    updatePlaylistBuilderActionState();
+    updatePlaylistBuilderStatus(error?.message || "Failed to load rating details.");
+  }
 }
 
 async function addPlaylistBuilderSelectedToPlaylist() {
@@ -6352,8 +6919,8 @@ async function addPlaylistBuilderSelectedToPlaylist() {
       return;
     }
 
-    if (result?.decision === "delete" && Number(result?.added || 0) === 0) {
-      updatePlaylistBuilderStatus(`Duplicate already exists in ${playlistName}. Deleted selection: ${trackLabel}`);
+    if (Number(result?.added || 0) === 0 && Array.isArray(result?.duplicates) && result.duplicates.length) {
+      updatePlaylistBuilderStatus(`Already in ${playlistName} (skipped duplicate): ${trackLabel}`);
       return;
     }
 
@@ -6365,40 +6932,94 @@ async function addPlaylistBuilderSelectedToPlaylist() {
 
 function parsePlaylistBuilderCsvText(text) {
   const raw = String(text || "");
-  if (!raw.trim()) return [];
+  if (!raw.trim()) {
+    return { items: [], trackIds: [] };
+  }
 
-  const ids = [];
+  const items = [];
+  const trackIds = [];
+  const seenIds = new Set();
+  const seenQueries = new Set();
+
   const lines = raw.split(/\r?\n/);
 
   for (const line of lines) {
     const cells = String(line || "").split(",");
     for (const cell of cells) {
-      const id = extractSpotifyTrackIdLoose(cell);
-      if (id) ids.push(id);
+      const trimmed = String(cell || "").trim();
+      if (!trimmed) continue;
+      if (trimmed.startsWith("#")) continue;
+
+      const id = extractSpotifyTrackIdLoose(trimmed);
+      if (id) {
+        if (seenIds.has(id)) continue;
+        seenIds.add(id);
+        trackIds.push(id);
+        items.push({ type: "id", value: id, key: `id:${id}` });
+        continue;
+      }
+
+      // If it's not a track URL/ID, treat it as a Spotify search query.
+      // This lets bulk mode work with plain lines like: "Artist - Song".
+      if (/open\.spotify\.com\/(album|artist|playlist)\//i.test(trimmed)) continue;
+      if (/^spotify:(album|artist|playlist):/i.test(trimmed)) continue;
+      if (trimmed.length < 3) continue;
+
+      const queryKey = trimmed.toLowerCase();
+      if (seenQueries.has(queryKey)) continue;
+      seenQueries.add(queryKey);
+      items.push({ type: "query", value: trimmed, key: `query:${queryKey}` });
     }
   }
 
-  return [...new Set(ids)];
+  return { items, trackIds };
 }
 
 function renderPlaylistBuilderBulkList() {
   if (!el.playlistBuilderBulkList) return;
 
-  const ids = Array.isArray(playlistBuilderBulkParsedTrackIds) ? playlistBuilderBulkParsedTrackIds : [];
-  if (!ids.length) {
+  const items = Array.isArray(playlistBuilderBulkParsedItems) ? playlistBuilderBulkParsedItems : [];
+  if (!items.length) {
     el.playlistBuilderBulkList.innerHTML = '<div class="empty-state">Parsed tracks will appear here.</div>';
     return;
   }
 
-  el.playlistBuilderBulkList.innerHTML = ids
-    .map((trackId) => {
-      const track = playlistBuilderBulkTracksById?.get(trackId) || null;
+  el.playlistBuilderBulkList.innerHTML = items
+    .map((item) => {
+      const key = String(item?.key || "");
+      const type = String(item?.type || "");
+
+      let track = null;
+      if (type === "id") {
+        const trackId = String(item?.value || "").trim();
+        track = playlistBuilderBulkTracksById?.get(trackId) || null;
+      } else {
+        track = playlistBuilderBulkResolvedTrackByKey?.get(key) || null;
+      }
+
       const spotify = track ? normalizeSpotifyTrack(track) : null;
-      const label = spotify ? `${spotify.artist} - ${spotify.name}` : `Track ID: ${trackId}`;
-      const meta = spotify ? `${spotify.album || "Unknown Album"} - ${msToMinSec(spotify.durationMs || 0)}` : "Not loaded yet";
+      const label = spotify
+        ? `${spotify.artist} - ${spotify.name}`
+        : type === "query"
+          ? `Query: ${String(item?.value || "").trim()}`
+          : `Track ID: ${String(item?.value || "").trim()}`;
+
+      const meta = spotify
+        ? `${spotify.album || "Unknown Album"} - ${msToMinSec(spotify.durationMs || 0)}`
+        : "Not loaded yet";
+
+      const explicitTone = spotify?.explicit === true ? "danger" : spotify?.explicit === false ? "ok" : "neutral";
+      const explicitLabel = spotify?.explicit === true ? "Spotify: Explicit" : spotify?.explicit === false ? "Spotify: Clean" : "Spotify: Unknown";
+
+      const ratingDetails = spotify?.id ? getCachedPlaylistBuilderRatingDetails(spotify.id) : null;
+      const ratingShort = getPlaylistBuilderRatingShort(ratingDetails);
+      const ratingTone = ratingShort ? statusTagToneForLyricsRating(ratingShort) : "neutral";
+      const ratingTag = ratingShort ? `Musixmatch: ${ratingShort}` : "Musixmatch: --";
+
+      const cleanCandidate = spotify ? isPlaylistBuilderCleanCandidate(spotify) : false;
 
       return `
-        <div class="request-item">
+        <div class="request-item" data-playlist-builder-track-id="${escapeHtml(spotify?.id || "")}">
           <div class="request-art-wrap">
             ${spotify?.image
               ? `<img class="request-art" src="${escapeHtml(spotify.image)}" alt="${escapeHtml(spotify.name)} cover art">`
@@ -6408,7 +7029,26 @@ function renderPlaylistBuilderBulkList() {
           <div class="request-main">
             <div class="request-song">${escapeHtml(label)}</div>
             <div class="request-meta">${escapeHtml(meta)}</div>
+            ${spotify
+              ? `
+                <div class="request-status-tags">
+                  ${statusTagHtml(explicitLabel, explicitTone)}
+                  ${statusTagHtml(ratingTag, ratingTone)}
+                  ${cleanCandidate ? statusTagHtml("Clean Candidate", "ok") : ""}
+                </div>
+              `
+              : ""
+            }
           </div>
+          ${spotify
+            ? `
+              <div class="request-actions">
+                <a class="ghost-btn" href="${escapeHtml(spotify.externalUrl || "#")}" target="_blank" rel="noopener noreferrer">Open in Spotify</a>
+                <button class="playlist-builder-bulk-review-btn" data-track-id="${escapeHtml(spotify.id || "")}">Review Rating</button>
+              </div>
+            `
+            : ""
+          }
         </div>
       `;
     })
@@ -6432,13 +7072,23 @@ async function parsePlaylistBuilderBulkInput() {
     }
   }
 
-  const ids = parsePlaylistBuilderCsvText(text);
+  const parsed = parsePlaylistBuilderCsvText(text);
+  const items = Array.isArray(parsed?.items) ? parsed.items : [];
+  const ids = Array.isArray(parsed?.trackIds) ? parsed.trackIds : [];
+
+  playlistBuilderBulkParsedItems = items;
   playlistBuilderBulkParsedTrackIds = ids;
   playlistBuilderBulkTracksById = new Map();
+  playlistBuilderBulkResolvedTrackByKey = new Map();
   playlistBuilderBulkAddQueue = [];
 
   if (el.playlistBuilderBulkStatus) {
-    el.playlistBuilderBulkStatus.textContent = ids.length ? `Parsed ${ids.length} unique Spotify track ID(s).` : "No Spotify track URLs were found in that CSV.";
+    const queryCount = items.filter((i) => i?.type === "query").length;
+    if (ids.length || queryCount) {
+      el.playlistBuilderBulkStatus.textContent = `Parsed ${ids.length} track ID(s) and ${queryCount} search line(s).`;
+    } else {
+      el.playlistBuilderBulkStatus.textContent = "No Spotify track URLs/IDs or search lines were found in that CSV.";
+    }
   }
 
   renderPlaylistBuilderBulkList();
@@ -6448,26 +7098,118 @@ async function parsePlaylistBuilderBulkInput() {
 async function loadPlaylistBuilderBulkTracks() {
   if (playlistBuilderBulkLoadInFlight) return;
 
-  const ids = Array.isArray(playlistBuilderBulkParsedTrackIds) ? playlistBuilderBulkParsedTrackIds : [];
-  if (!ids.length) {
+  const items = Array.isArray(playlistBuilderBulkParsedItems) ? playlistBuilderBulkParsedItems : [];
+  if (!items.length) {
     if (el.playlistBuilderBulkStatus) el.playlistBuilderBulkStatus.textContent = "Parse a CSV first.";
     return;
   }
 
+  const ids = items
+    .filter((item) => item?.type === "id")
+    .map((item) => String(item?.value || "").trim())
+    .filter(Boolean);
+
+  const queries = items
+    .filter((item) => item?.type === "query")
+    .map((item) => String(item?.value || "").trim())
+    .filter(Boolean);
+
   playlistBuilderBulkLoadInFlight = true;
   try {
-    if (el.playlistBuilderBulkStatus) el.playlistBuilderBulkStatus.textContent = `Loading ${ids.length} Spotify track(s)...`;
+    if (el.playlistBuilderBulkStatus) {
+      el.playlistBuilderBulkStatus.textContent = `Loading ${ids.length} track ID(s) and searching ${queries.length} query line(s)...`;
+    }
 
-    const fetched = await getTracksByIds(ids);
+    playlistBuilderBulkResolvedTrackByKey = new Map();
+
+    const queryToTrackId = new Map();
+    let queryResolved = 0;
+
+    for (const query of queries) {
+      const queryKey = String(query || "").trim().toLowerCase();
+      if (!queryKey) continue;
+
+      const cachedTrackId = getCachedSpotifySearchTrackId(queryKey);
+      if (cachedTrackId) {
+        queryToTrackId.set(queryKey, cachedTrackId);
+        queryResolved += 1;
+        continue;
+      }
+
+      try {
+        const results = await searchSpotifyTracks(query);
+        const best = Array.isArray(results) && results.length ? results[0] : null;
+        const bestId = String(best?.id || "").trim();
+        if (bestId) {
+          queryToTrackId.set(queryKey, bestId);
+          setCachedSpotifySearchTrackId(queryKey, bestId);
+          queryResolved += 1;
+        }
+      } catch (error) {
+        console.warn("Bulk query search failed:", { query, error });
+      }
+
+      if (el.playlistBuilderBulkStatus && queries.length > 0 && (queryResolved % 5 === 0 || queryResolved === queries.length)) {
+        el.playlistBuilderBulkStatus.textContent = `Resolving searches... ${queryResolved}/${queries.length} query line(s) matched.`;
+      }
+    }
+
+    const allIds = [...new Set([...ids, ...Array.from(queryToTrackId.values())].map((id) => String(id || "").trim()).filter(Boolean))];
+    const fetched = allIds.length ? await getTracksByIds(allIds) : new Map();
     playlistBuilderBulkTracksById = fetched;
 
-    const loaded = Array.from(fetched.values()).filter(Boolean);
-    playlistBuilderBulkAddQueue = loaded
-      .map((track) => normalizeSpotifyTrack(track))
-      .filter((spotify) => spotify?.uri);
+    for (const id of ids) {
+      const track = fetched.get(id) || null;
+      playlistBuilderBulkResolvedTrackByKey.set(`id:${id}`, track);
+    }
+
+    for (const query of queries) {
+      const queryKey = String(query || "").trim().toLowerCase();
+      const trackId = String(queryToTrackId.get(queryKey) || "").trim();
+      const track = trackId ? (fetched.get(trackId) || null) : null;
+      playlistBuilderBulkResolvedTrackByKey.set(`query:${queryKey}`, track);
+    }
+
+    const queueByUri = new Map();
+
+    for (const item of items) {
+      const resolved = playlistBuilderBulkResolvedTrackByKey.get(String(item?.key || "")) || null;
+      if (!resolved) continue;
+      const spotify = normalizeSpotifyTrack(resolved);
+      const uri = normalizeSpotifyTrackUri(spotify?.uri || "");
+      if (!uri) continue;
+      if (!queueByUri.has(uri)) {
+        queueByUri.set(uri, spotify);
+      }
+    }
+
+    playlistBuilderBulkAddQueue = [...queueByUri.values()];
+
+    let rated = 0;
+    for (const spotify of playlistBuilderBulkAddQueue) {
+      const trackId = String(spotify?.id || "").trim();
+      if (!trackId) continue;
+
+      const cachedDetails = getCachedPlaylistBuilderRatingDetails(trackId);
+      if (!cachedDetails) {
+        try {
+          const details = await fetchPlaylistBuilderRatingDetails(spotify);
+          setCachedPlaylistBuilderRatingDetails(trackId, details);
+        } catch (error) {
+          console.warn("Bulk rating fetch failed:", { trackId, error });
+        }
+      }
+
+      rated += 1;
+      if (el.playlistBuilderBulkStatus && (rated % 10 === 0 || rated === playlistBuilderBulkAddQueue.length)) {
+        el.playlistBuilderBulkStatus.textContent = `Loaded tracks. Rating lookup ${rated}/${playlistBuilderBulkAddQueue.length}...`;
+      }
+    }
 
     if (el.playlistBuilderBulkStatus) {
-      el.playlistBuilderBulkStatus.textContent = `Loaded ${playlistBuilderBulkAddQueue.length}/${ids.length} track(s) from Spotify.`;
+      const loadedCount = Array.from(fetched.values()).filter(Boolean).length;
+      const cleanCount = playlistBuilderBulkAddQueue.filter((spotify) => isPlaylistBuilderCleanCandidate(spotify)).length;
+      el.playlistBuilderBulkStatus.textContent = `Loaded ${loadedCount}/${allIds.length} track(s). Ready: ${playlistBuilderBulkAddQueue.length} unique. Clean candidates: ${cleanCount}.`;
     }
 
     renderPlaylistBuilderBulkList();
@@ -6525,14 +7267,28 @@ async function addPlaylistBuilderBulkTracksToPlaylist() {
         playlistBuilderBulkAddQueue = (Array.isArray(playlistBuilderBulkAddQueue) ? playlistBuilderBulkAddQueue : [])
           .filter((spotify) => !dupUris.has(normalizeSpotifyTrackUri(spotify?.uri || "")));
 
-        playlistBuilderBulkParsedTrackIds = (Array.isArray(playlistBuilderBulkParsedTrackIds) ? playlistBuilderBulkParsedTrackIds : [])
-          .filter((trackId) => {
-            const id = String(trackId || "").trim();
+        playlistBuilderBulkParsedItems = (Array.isArray(playlistBuilderBulkParsedItems) ? playlistBuilderBulkParsedItems : [])
+          .filter((item) => {
+            const key = String(item?.key || "");
+            const type = String(item?.type || "");
+
+            if (type === "query") {
+              const resolved = playlistBuilderBulkResolvedTrackByKey?.get(key) || null;
+              const uri = normalizeSpotifyTrackUri(resolved?.uri || "");
+              return uri ? !dupUris.has(uri) : true;
+            }
+
+            const id = String(item?.value || "").trim();
             if (!id) return false;
             const track = playlistBuilderBulkTracksById?.get(id) || null;
             const uri = normalizeSpotifyTrackUri(track?.uri || (id ? `spotify:track:${id}` : ""));
             return uri ? !dupUris.has(uri) : true;
           });
+
+        playlistBuilderBulkParsedTrackIds = (Array.isArray(playlistBuilderBulkParsedItems) ? playlistBuilderBulkParsedItems : [])
+          .filter((item) => item?.type === "id")
+          .map((item) => String(item?.value || "").trim())
+          .filter(Boolean);
 
         renderPlaylistBuilderBulkList();
         updatePlaylistBuilderActionState();
@@ -6553,6 +7309,95 @@ async function addPlaylistBuilderBulkTracksToPlaylist() {
   } catch (error) {
     if (el.playlistBuilderBulkStatus) {
       el.playlistBuilderBulkStatus.textContent = error?.message || "Bulk add failed.";
+    }
+  } finally {
+    playlistBuilderBulkAddInFlight = false;
+  }
+}
+
+async function addPlaylistBuilderBulkCleanTracksToPlaylist() {
+  if (playlistBuilderBulkAddInFlight) return;
+
+  const playlistId = String(playlistBuilderSelectedPlaylistId || "").trim();
+  const playlistName = String(playlistBuilderSelectedPlaylistName || "Selected playlist").trim() || "Selected playlist";
+
+  if (!playlistId) {
+    if (el.playlistBuilderBulkStatus) el.playlistBuilderBulkStatus.textContent = "Choose a playlist first.";
+    return;
+  }
+
+  const queueAll = Array.isArray(playlistBuilderBulkAddQueue) ? playlistBuilderBulkAddQueue : [];
+  if (!queueAll.length) {
+    if (el.playlistBuilderBulkStatus) el.playlistBuilderBulkStatus.textContent = "Load tracks first.";
+    return;
+  }
+
+  const queue = queueAll.filter((spotify) => isPlaylistBuilderCleanCandidate(spotify));
+  if (!queue.length) {
+    if (el.playlistBuilderBulkStatus) el.playlistBuilderBulkStatus.textContent = "No clean candidates were found (Spotify Clean + Musixmatch OK).";
+    return;
+  }
+
+  playlistBuilderBulkAddInFlight = true;
+  try {
+    if (el.playlistBuilderBulkStatus) {
+      el.playlistBuilderBulkStatus.textContent = `Checking ${queue.length} clean track(s) for duplicates in ${playlistName}...`;
+    }
+
+    const tracks = queue
+      .map((spotify) => ({
+        uri: spotify?.uri,
+        id: spotify?.id,
+        name: spotify?.name,
+        artist: spotify?.artist
+      }))
+      .filter((track) => String(track?.uri || "").trim());
+
+    const result = await addTracksToPlaylistWithDuplicateReview({
+      playlistId,
+      playlistName,
+      tracks,
+      deleteLabel: "Delete from Bulk List",
+      onDeleteDuplicates: (duplicates) => {
+        const dupUris = new Set((duplicates || []).map((d) => normalizeSpotifyTrackUri(d?.uri)).filter(Boolean));
+        if (!dupUris.size) return;
+
+        playlistBuilderBulkAddQueue = (Array.isArray(playlistBuilderBulkAddQueue) ? playlistBuilderBulkAddQueue : [])
+          .filter((spotify) => !dupUris.has(normalizeSpotifyTrackUri(spotify?.uri || "")));
+
+        playlistBuilderBulkParsedItems = (Array.isArray(playlistBuilderBulkParsedItems) ? playlistBuilderBulkParsedItems : [])
+          .filter((item) => {
+            const key = String(item?.key || "");
+            const resolved = playlistBuilderBulkResolvedTrackByKey?.get(key) || null;
+            const uri = normalizeSpotifyTrackUri(resolved?.uri || "");
+            return uri ? !dupUris.has(uri) : true;
+          });
+
+        playlistBuilderBulkParsedTrackIds = (Array.isArray(playlistBuilderBulkParsedItems) ? playlistBuilderBulkParsedItems : [])
+          .filter((item) => item?.type === "id")
+          .map((item) => String(item?.value || "").trim())
+          .filter(Boolean);
+
+        renderPlaylistBuilderBulkList();
+        updatePlaylistBuilderActionState();
+      }
+    });
+
+    if (result?.decision === "cancel") {
+      if (el.playlistBuilderBulkStatus) el.playlistBuilderBulkStatus.textContent = "Clean-only add canceled.";
+      return;
+    }
+
+    const attempted = tracks.length;
+    const added = Number(result?.added || 0);
+    const skippedDup = Array.isArray(result?.duplicates) ? result.duplicates.length : 0;
+
+    if (el.playlistBuilderBulkStatus) {
+      el.playlistBuilderBulkStatus.textContent = `Done. Added ${added}/${attempted} clean track(s) to ${playlistName}. Skipped duplicates: ${skippedDup}.`;
+    }
+  } catch (error) {
+    if (el.playlistBuilderBulkStatus) {
+      el.playlistBuilderBulkStatus.textContent = error?.message || "Clean-only add failed.";
     }
   } finally {
     playlistBuilderBulkAddInFlight = false;
@@ -6645,17 +7490,22 @@ function wireStaticEvents() {
   });
 
   el.playlistBuilderSearchResults?.addEventListener("click", async (event) => {
-    const reviewBtn = event.target.closest(".playlist-builder-review-btn");
-    const addBtn = event.target.closest(".playlist-builder-add-btn");
+    try {
+      const reviewBtn = event.target.closest(".playlist-builder-review-btn");
+      const addBtn = event.target.closest(".playlist-builder-add-btn");
 
-    if (reviewBtn) {
-      await selectPlaylistBuilderTrack(reviewBtn.dataset.trackId || "");
-      return;
-    }
+      if (reviewBtn) {
+        await selectPlaylistBuilderTrack(reviewBtn.dataset.trackId || "");
+        return;
+      }
 
-    if (addBtn) {
-      await selectPlaylistBuilderTrack(addBtn.dataset.trackId || "");
-      await addPlaylistBuilderSelectedToPlaylist();
+      if (addBtn) {
+        await selectPlaylistBuilderTrack(addBtn.dataset.trackId || "");
+        await addPlaylistBuilderSelectedToPlaylist();
+      }
+    } catch (error) {
+      console.error(error);
+      updatePlaylistBuilderStatus(error?.message || "Playlist Builder action failed.");
     }
   });
 
@@ -6680,6 +7530,23 @@ function wireStaticEvents() {
 
   el.btnPlaylistBuilderBulkAdd?.addEventListener("click", async () => {
     await addPlaylistBuilderBulkTracksToPlaylist();
+  });
+
+  el.btnPlaylistBuilderBulkAddClean?.addEventListener("click", async () => {
+    await addPlaylistBuilderBulkCleanTracksToPlaylist();
+  });
+
+  el.playlistBuilderBulkList?.addEventListener("click", async (event) => {
+    try {
+      const reviewBtn = event.target.closest(".playlist-builder-bulk-review-btn");
+      if (!reviewBtn) return;
+      await selectPlaylistBuilderTrack(reviewBtn.dataset.trackId || "");
+    } catch (error) {
+      console.error(error);
+      if (el.playlistBuilderBulkStatus) {
+        el.playlistBuilderBulkStatus.textContent = error?.message || "Could not open rating review.";
+      }
+    }
   });
 
   el.btnAddApprovedToQueue?.addEventListener("click", async () => {
@@ -7053,7 +7920,8 @@ function wireStaticEvents() {
       setTransportBusy(true);
 
       // Optimistic UI response to keep controls feeling instant.
-      const nextPlaybackState = !isPlaybackActive;
+      const wasPlaying = !!isPlaybackActive;
+      const nextPlaybackState = !wasPlaying;
       isPlaybackActive = nextPlaybackState;
       updatePlaybackStateLabel();
       if (nextPlaybackState) {
@@ -7063,7 +7931,12 @@ function wireStaticEvents() {
         stopLocalProgressTimer();
       }
 
-      await togglePlayPause();
+      // IMPORTANT: use the real prior state to decide the API call.
+      if (wasPlaying) {
+        await pausePlaybackWithTransition();
+      } else {
+        await resumePlaybackWithTransition();
+      }
       await refreshPlayback();
       scheduleFastPlaybackSync();
       setStatus(isPlaybackActive ? "Playback resumed." : "Playback paused.");
@@ -7206,6 +8079,8 @@ async function init() {
   clearLegacyAuthStorage();
   ensureStorageDefaults();
   loadSpotifyTrackCacheFromStorage();
+  loadSpotifySearchCacheFromStorage();
+  loadPlaylistBuilderRatingCacheFromStorage();
   enforceSpotifyScopesFingerprint();
   loadModerationOverridesFromStorage();
   loadRequestAutoSyncPreference();

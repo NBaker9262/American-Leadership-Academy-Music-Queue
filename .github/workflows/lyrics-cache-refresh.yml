@@ -3,7 +3,7 @@ name: Lyrics Cache Refresh
 'on':
   workflow_dispatch:
   schedule:
-    - cron: "*/5 * * * *"
+    - cron: "0 */6 * * *"
   push:
     paths:
       - scripts/build_lyrics_cache.py

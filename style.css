@@ -1316,6 +1316,30 @@ body.mod-panel-open {
 }
 
 /* PLAYLIST BUILDER */
+.playlist-builder-overlay {
+  /* Keep this screen readable at normal zoom (esp. high-DPI displays). */
+  font-size: 1rem;
+}
+
+.playlist-builder-overlay .mod-overlay-header {
+  padding: 10px 14px 8px;
+}
+
+.playlist-builder-overlay .school-logo-small {
+  width: 36px;
+  height: 36px;
+  margin-bottom: 4px;
+}
+
+.playlist-builder-overlay .mod-overlay-title-row {
+  gap: 12px;
+}
+
+.playlist-builder-overlay .mod-overlay-body {
+  padding: 8px 10px 10px;
+  overflow: hidden;
+}
+
 .playlist-builder-overlay .mod-header-actions {
   display: flex;
   flex-wrap: wrap;
@@ -1325,8 +1349,8 @@ body.mod-panel-open {
 .playlist-builder-selected-playlist {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  padding: 7px 10px;
+  gap: 8px;
+  padding: 6px 9px;
   border-radius: 999px;
   border: 1px solid rgba(187, 200, 224, 0.35);
   background: rgba(130, 152, 190, 0.16);
@@ -1342,11 +1366,39 @@ body.mod-panel-open {
 .playlist-builder-grid {
   flex: 1;
   display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(340px, 1fr);
+  grid-template-columns: minmax(0, 1.25fr) minmax(300px, 1fr);
   grid-template-rows: minmax(0, 1fr);
-  gap: 10px;
+  gap: 8px;
   align-items: stretch;
   min-height: 0;
+}
+
+/* Slightly tighter spacing so more songs fit. */
+.playlist-builder-overlay .requests-list {
+  margin-top: 12px;
+  gap: 12px;
+}
+
+.playlist-builder-overlay .request-item {
+  grid-template-columns: 60px 1fr auto;
+  gap: 12px;
+  padding: 14px;
+}
+
+.playlist-builder-overlay .request-art {
+  width: 60px;
+  height: 60px;
+  border-radius: 16px;
+}
+
+.playlist-builder-overlay .request-song {
+  font-size: 1.02rem;
+  line-height: 1.25;
+}
+
+.playlist-builder-overlay .request-meta,
+.playlist-builder-overlay .request-submitted {
+  font-size: 0.95rem;
 }
 
 .playlist-builder-search-card {
@@ -1354,7 +1406,7 @@ body.mod-panel-open {
   flex-direction: column;
   min-height: 0;
   overflow: hidden;
-  padding: 16px;
+  padding: 12px;
 }
 
 #playlistBuilderSearchResults {
@@ -1366,8 +1418,9 @@ body.mod-panel-open {
 
 .playlist-builder-right-stack {
   display: grid;
-  grid-template-rows: minmax(240px, 0.95fr) minmax(260px, 1.05fr);
-  gap: 12px;
+  /* Give bulk add (CSV + list) a bit more vertical space. */
+  grid-template-rows: minmax(170px, 0.75fr) minmax(280px, 1.25fr);
+  gap: 10px;
   overflow: hidden;
   min-height: 0;
 }
@@ -1378,7 +1431,7 @@ body.mod-panel-open {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  padding: 16px;
+  padding: 12px;
 }
 
 #playlistBuilderReview,
@@ -1399,13 +1452,14 @@ body.mod-panel-open {
 .playlist-builder-csv-text {
   width: 100%;
   resize: vertical;
-  min-height: 96px;
+  min-height: 160px;
   padding: 12px 14px;
   border-radius: 18px;
   border: 1px solid var(--border);
   background: rgba(15, 18, 27, 0.9);
   color: var(--text);
   font-family: inherit;
+  font-size: 1rem;
   line-height: 1.45;
 }
 

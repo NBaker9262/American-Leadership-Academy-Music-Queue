@@ -868,7 +868,12 @@ class LyricsApiHandler(BaseHTTPRequestHandler):
         self.send_header("Access-Control-Allow-Methods", "GET, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
         self.end_headers()
-        self.wfile.write(body)
+        try:
+            self.wfile.write(body)
+        except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError):
+            # Client aborted the request (browser navigation/refresh/timeout).
+            # Avoid noisy stack traces for an expected condition.
+            return
 
     def do_OPTIONS(self) -> None:  # noqa: N802
         self.send_response(204)
@@ -979,7 +984,22 @@ class LyricsApiHandler(BaseHTTPRequestHandler):
 def main() -> None:
     port = int(os.environ.get("PORT", "8787"))
     bind_host = os.environ.get("BIND_HOST", "127.0.0.1")
-    server = ThreadingHTTPServer((bind_host, port), LyricsApiHandler)
+    try:
+        server = ThreadingHTTPServer((bind_host, port), LyricsApiHandler)
+    except OSError as exc:
+        # Most common on Windows when the port is already bound by another instance.
+        msg = str(exc).lower()
+        if "only one usage" in msg or "address already in use" in msg:
+            print(
+                "Could not start Lyrics API: port is already in use.\n"
+                f"- Someone is already running it on http://{bind_host}:{port}\n"
+                "- Close the other terminal/process, OR run with a different port:\n"
+                "    PowerShell: $env:PORT=8788; python lyrics_api_server.py\n"
+                "    cmd.exe:    set PORT=8788 && python lyrics_api_server.py\n"
+            )
+            raise SystemExit(1)
+        raise
+
     print(f"Lyrics API listening on http://{bind_host}:{port}")
     server.serve_forever()
 
