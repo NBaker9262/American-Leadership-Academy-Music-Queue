@@ -210,7 +210,7 @@
           </div>
 
           <button id="btnApproveAllCleanVisible" class="btn btn-small" type="button">
-            Approve All Clean
+            Queue All Clean
           </button>
 
           <button id="btnUndoModerationAction" class="btn btn-small" type="button">
@@ -225,6 +225,24 @@
     </div>
 
     <div class="mod-overlay-body">
+
+      <!-- PLAYBACK PREVIEW -->
+      <section class="card neon-card mod-playback-preview-card">
+        <div class="section-heading">
+          <div>
+            <p class="section-kicker">Playback</p>
+            <h2>Now Playing</h2>
+          </div>
+        </div>
+
+        <div class="mod-playback-preview">
+          <img id="modNowPlayingArt" class="control-cover mod-control-cover" src="" alt="Current track artwork" />
+          <div class="mod-playback-copy">
+            <p id="modNowPlaying" class="mod-playback-title">No song playing</p>
+            <p id="modNowPlayingMeta" class="mod-playback-meta">Start a playlist, then press Refresh.</p>
+          </div>
+        </div>
+      </section>
 
 
       <div class="mod-grid">
@@ -259,7 +277,7 @@
         </div>
 
         <div class="summary-text">
-          Search Spotify and add an exact song directly to the moderator queue.
+          Search Spotify and add an exact song directly to the active Spotify queue.
         </div>
 
         <div class="search-controls">
@@ -326,57 +344,21 @@
       </section>
 
         <div class="mod-right-stack">
-          <!-- APPROVED QUEUE -->
-          <section class="card approved-card neon-card mod-priority-card">
-            <div class="section-heading">
-              <div>
-                <p class="section-kicker">Moderator Queue</p>
-                <h2>Approved Songs</h2>
-              </div>
-
-              <div class="queue-nav">
-                <button id="btnRemoveAllApproved" class="btn btn-small" type="button">
-                  Remove All
-                </button>
-              </div>
-            </div>
-
-            <div id="approvedQueueList" class="queue-list">
-              <div class="empty-state">No approved songs yet.</div>
-            </div>
-          </section>
-
-          <!-- APPROVAL PREVIEW -->
-          <section class="card up-next-card neon-card">
-            <div class="card-accent card-accent-violet"></div>
+          <!-- ACTUAL SPOTIFY QUEUE -->
+          <section class="card neon-card mod-queue-card">
+            <div class="card-accent card-accent-blue"></div>
 
             <div class="section-heading">
               <div>
-                <p class="section-kicker">Approval Preview</p>
-                <h2>Selected Approved Song</h2>
-              </div>
-
-              <div class="queue-nav">
-                <button id="btnPrevQueue" class="btn btn-small" type="button">
-                  Prev
-                </button>
-                <button id="btnNextQueue" class="btn btn-small" type="button">
-                  Next
-                </button>
-                <button id="btnAddApprovedToQueue" class="btn btn-small btn-primary" type="button">
-                  Add to Queue
-                </button>
-                <button id="btnAddSelectedToPlaylistPicker" class="btn btn-small" type="button">
-                  Add to Playlist
-                </button>
+                <p class="section-kicker">Spotify Queue</p>
+                <h2>Up Next</h2>
               </div>
             </div>
 
-            <div id="approvedPreviewTable" class="requests-list approved-preview-large">
-              <div class="empty-state">No approved songs yet.</div>
+            <div id="modSpotifyQueueList" class="requests-list">
+              <div class="empty-state">Spotify queue will appear here.</div>
             </div>
           </section>
-
         </div>
       </div>
     </div>

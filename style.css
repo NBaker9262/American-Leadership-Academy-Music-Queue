@@ -1148,9 +1148,46 @@ body.mod-panel-open {
   min-height: 0;
 }
 
+.mod-playback-preview-card {
+  flex-shrink: 0;
+  padding: 12px 14px;
+}
+
+.mod-playback-preview {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mod-control-cover {
+  width: 54px;
+  height: 54px;
+  border-radius: 12px;
+}
+
+.mod-playback-copy {
+  min-width: 0;
+}
+
+.mod-playback-title {
+  margin: 0;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mod-playback-meta {
+  margin: 4px 0 0;
+  color: var(--text-muted);
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .mod-top-search-card {
-  grid-column: 3;
-  grid-row: 1;
   flex-shrink: 0;
   padding: 14px;
 }
@@ -1180,17 +1217,15 @@ body.mod-panel-open {
 
 .mod-grid {
   flex: 1;
-  display: grid;
-  grid-template-columns: minmax(0, 1.7fr) minmax(360px, 1fr) minmax(320px, 0.9fr);
-  grid-template-rows: minmax(0, 1fr);
+  display: flex;
+  flex-wrap: wrap;
   gap: 10px;
   align-items: stretch;
   min-height: 0;
 }
 
 .mod-overlay .requests-card {
-  grid-column: 1;
-  grid-row: 1;
+  flex: 2 1 560px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -1208,13 +1243,33 @@ body.mod-panel-open {
 }
 
 .mod-right-stack {
-  grid-column: 2;
-  grid-row: 1;
-  display: grid;
-  grid-template-rows: minmax(320px, 1.2fr) minmax(250px, 0.9fr);
+  flex: 1 1 360px;
+  display: flex;
+  flex-direction: column;
   gap: 12px;
-  overflow-y: hidden;
+  overflow: hidden;
   min-height: 0;
+}
+
+.mod-top-search-card {
+  flex: 1 1 340px;
+  min-width: 280px;
+}
+
+.mod-right-stack .mod-queue-card {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 16px;
+}
+
+#modSpotifyQueueList {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding-right: 4px;
 }
 
 .mod-right-stack .approved-card {
@@ -1513,22 +1568,19 @@ body.mod-panel-open {
   }
 
   .mod-grid {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto;
-    align-items: start;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
   }
 
   .mod-overlay .requests-card,
   .mod-top-search-card,
   .mod-right-stack {
-    grid-column: auto;
-    grid-row: auto;
+    flex: 1 1 auto;
   }
 
   .mod-right-stack {
-    display: grid;
-    grid-template-columns: 1fr;
-    grid-template-rows: auto;
+    overflow: visible;
   }
 
   .mod-overlay .requests-card,
@@ -2567,8 +2619,8 @@ body.mod-panel-open {
 }
 
 .mod-grid {
-  grid-template-columns: minmax(0, 1.7fr) minmax(360px, 1fr) minmax(320px, 0.9fr);
-  grid-template-rows: minmax(0, 1fr);
+  display: flex;
+  flex-wrap: wrap;
   gap: 10px;
   align-items: stretch;
   align-content: start;
@@ -2582,8 +2634,7 @@ body.mod-panel-open {
 }
 
 .mod-top-search-card,
-.mod-right-stack .approved-card,
-.mod-right-stack .up-next-card {
+.mod-right-stack .mod-queue-card {
   padding: 16px;
 }
 
@@ -2599,8 +2650,7 @@ body.mod-panel-open {
 
 .mod-overlay #requestTableBody,
 .mod-overlay #manualSearchResults,
-.mod-overlay #approvedQueueList,
-.mod-overlay #approvedPreviewTable {
+.mod-overlay #modSpotifyQueueList {
   overflow-y: auto;
   overflow-x: hidden;
   padding-right: 4px;
@@ -2616,8 +2666,7 @@ body.mod-panel-open {
   min-height: 0;
 }
 
-.mod-overlay #approvedQueueList,
-.mod-overlay #approvedPreviewTable {
+.mod-overlay #modSpotifyQueueList {
   flex: 1;
   min-height: 0;
 }
@@ -2644,15 +2693,13 @@ body.mod-panel-open {
 
   .mod-overlay .requests-card,
   .mod-top-search-card,
-  .mod-right-stack .approved-card,
-  .mod-right-stack .up-next-card {
+  .mod-right-stack .mod-queue-card {
     padding: 14px;
   }
 
   .mod-overlay #requestTableBody,
   .mod-overlay #manualSearchResults,
-  .mod-overlay #approvedQueueList,
-  .mod-overlay #approvedPreviewTable {
+  .mod-overlay #modSpotifyQueueList {
     overflow: visible;
     padding-right: 0;
   }

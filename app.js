@@ -156,6 +156,7 @@ const LS = {
   refreshToken: "ala_dash_refresh_token",
   expiresAt: "ala_dash_expires_at",
   spotifyScopesFingerprint: "ala_dash_spotify_scopes_fingerprint",
+  spotifyTrackCache: "ala_spotify_track_cache_v1",
   approvedQueue: "ala_approved_queue",
   rejectedIds: "ala_rejected_ids",
   queuePointer: "ala_queue_pointer",
@@ -257,6 +258,9 @@ const el = {
   nowPlaying: document.getElementById("nowPlaying"),
   nowPlayingMeta: document.getElementById("nowPlayingMeta"),
   nowPlayingArt: document.getElementById("nowPlayingArt"),
+  modNowPlaying: document.getElementById("modNowPlaying"),
+  modNowPlayingMeta: document.getElementById("modNowPlayingMeta"),
+  modNowPlayingArt: document.getElementById("modNowPlayingArt"),
   nowPlayingProgressText: document.getElementById("nowPlayingProgressText"),
   nowPlayingRemaining: document.getElementById("nowPlayingRemaining"),
   nowPlayingTotalTime: document.getElementById("nowPlayingTotalTime"),
@@ -273,6 +277,7 @@ const el = {
   approvedQueueList: document.getElementById("approvedQueueList"),
   approvedPreviewTable: document.getElementById("approvedPreviewTable"),
   spotifyQueueList: document.getElementById("spotifyQueueList"),
+  modSpotifyQueueList: document.getElementById("modSpotifyQueueList"),
   manualSearchInput: document.getElementById("manualSearchInput"),
   manualSearchResults: document.getElementById("manualSearchResults"),
   djStudentNameInput: document.getElementById("djStudentNameInput"),
@@ -2167,6 +2172,86 @@ async function getTrackById(trackId) {
 
 const trackCacheById = new Map();
 
+const SPOTIFY_TRACK_CACHE_TTL_MS = 1000 * 60 * 60 * 24 * 21; // 21 days
+const SPOTIFY_TRACK_CACHE_MAX_ENTRIES = 1200;
+const SPOTIFY_TRACK_CACHE_SAVE_DEBOUNCE_MS = 1500;
+
+let spotifyTrackCacheSaveTimer = null;
+
+function pruneTrackCacheMap(nowMs = Date.now()) {
+  for (const [key, entry] of trackCacheById.entries()) {
+    const fetchedAtMs = Number(entry?.fetchedAtMs || 0);
+    if (!fetchedAtMs || nowMs - fetchedAtMs > SPOTIFY_TRACK_CACHE_TTL_MS) {
+      trackCacheById.delete(key);
+    }
+  }
+
+  if (trackCacheById.size <= SPOTIFY_TRACK_CACHE_MAX_ENTRIES) return;
+
+  const ordered = [...trackCacheById.entries()].sort(
+    (a, b) => Number(b?.[1]?.fetchedAtMs || 0) - Number(a?.[1]?.fetchedAtMs || 0)
+  );
+  trackCacheById.clear();
+  for (const [key, value] of ordered.slice(0, SPOTIFY_TRACK_CACHE_MAX_ENTRIES)) {
+    trackCacheById.set(key, value);
+  }
+}
+
+function persistSpotifyTrackCacheNow() {
+  if (spotifyTrackCacheSaveTimer) {
+    window.clearTimeout(spotifyTrackCacheSaveTimer);
+    spotifyTrackCacheSaveTimer = null;
+  }
+
+  try {
+    pruneTrackCacheMap();
+    const payload = {
+      v: 1,
+      savedAtMs: Date.now(),
+      entries: [...trackCacheById.entries()].map(([id, entry]) => ({
+        id,
+        fetchedAtMs: Number(entry?.fetchedAtMs || 0),
+        track: entry?.track || null
+      }))
+    };
+
+    persistentStorage.setItem(LS.spotifyTrackCache, JSON.stringify(payload));
+  } catch (error) {
+    console.warn("Could not persist Spotify track cache:", error);
+  }
+}
+
+function schedulePersistSpotifyTrackCache() {
+  if (spotifyTrackCacheSaveTimer) {
+    window.clearTimeout(spotifyTrackCacheSaveTimer);
+  }
+  spotifyTrackCacheSaveTimer = window.setTimeout(persistSpotifyTrackCacheNow, SPOTIFY_TRACK_CACHE_SAVE_DEBOUNCE_MS);
+}
+
+function loadSpotifyTrackCacheFromStorage() {
+  const raw = persistentStorage.getItem(LS.spotifyTrackCache);
+  if (!raw) return;
+
+  try {
+    const parsed = JSON.parse(raw);
+    if (!parsed || parsed.v !== 1 || !Array.isArray(parsed.entries)) return;
+
+    for (const row of parsed.entries) {
+      const id = String(row?.id || "").trim();
+      if (!id) continue;
+      const fetchedAtMs = Number(row?.fetchedAtMs || 0);
+      const track = row?.track;
+      if (!track || !fetchedAtMs) continue;
+      trackCacheById.set(id, { track, fetchedAtMs });
+    }
+
+    pruneTrackCacheMap();
+  } catch (error) {
+    console.warn("Spotify track cache was invalid; clearing.", error);
+    persistentStorage.removeItem(LS.spotifyTrackCache);
+  }
+}
+
 function getCachedSpotifyTrack(trackId) {
   const key = String(trackId || "").trim();
   if (!key) return null;
@@ -2180,10 +2265,8 @@ function setCachedSpotifyTrack(trackId, track) {
 
   trackCacheById.set(key, { track, fetchedAtMs: Date.now() });
 
-  if (trackCacheById.size > 2000) {
-    const firstKey = trackCacheById.keys().next().value;
-    if (firstKey) trackCacheById.delete(firstKey);
-  }
+  pruneTrackCacheMap();
+  schedulePersistSpotifyTrackCache();
 }
 
 async function getTracksByIds(trackIds) {
@@ -2727,7 +2810,7 @@ function buildRequestSummary(requests) {
 // ======================================================
 // APPROVE / REJECT
 // ======================================================
-function approveRequest(request, options = {}) {
+async function approveRequest(request, options = {}) {
   const {
     silentStatus = false,
     allowExplicit = true,
@@ -2754,14 +2837,25 @@ function approveRequest(request, options = {}) {
   }
 
   const queue = getApprovedQueue();
-  if (
-    queue.some(
-      (item) =>
-        item.requestId === request.requestId ||
-        (!allowDuplicateTrack && item.spotify?.id && item.spotify.id === request.spotify.id)
-    )
-  ) {
-    if (!silentStatus) setStatus("Song is already approved.");
+  const alreadyProcessed = queue.some((item) => item.requestId === request.requestId);
+  const alreadyProcessedTrack = queue.some(
+    (item) => !allowDuplicateTrack && item.spotify?.id && item.spotify.id === request.spotify.id
+  );
+
+  if (alreadyProcessed || alreadyProcessedTrack) {
+    if (!silentStatus) setStatus("Song is already queued/processed.");
+    return false;
+  }
+
+  try {
+    const queued = await addTrackToSpotifyQueue(request.spotify.uri);
+    if (!queued) {
+      if (!silentStatus) setStatus("Could not add track to the Spotify queue.");
+      return false;
+    }
+  } catch (error) {
+    console.error(error);
+    if (!silentStatus) setStatus(error?.message || "Could not add track to the Spotify queue.");
     return false;
   }
 
@@ -2788,12 +2882,11 @@ function approveRequest(request, options = {}) {
     requestId: request.requestId
   });
 
-  renderApprovedQueue();
   renderRequests(currentRequests);
-  renderApprovedPreview();
+  refreshPlayback().catch(() => {});
 
   if (!silentStatus) {
-    setStatus(`Approved: ${request.spotify.artist} - ${request.spotify.name}`);
+    setStatus(`Queued: ${request.spotify.artist} - ${request.spotify.name}`);
   }
 
   return true;
@@ -2869,7 +2962,7 @@ function clearApprovedQueue() {
   setStatus("Removed all songs from the moderator queue.");
 }
 
-function approveAllVisibleCleanRequests() {
+async function approveAllVisibleCleanRequests() {
   const visible = getVisibleUnapprovedRequests(currentRequests);
   const cleanVisible = visible.filter((request) => {
     const moderation = ensureModerationMetadata(request);
@@ -2883,12 +2976,12 @@ function approveAllVisibleCleanRequests() {
 
   let approvedCount = 0;
   for (const request of cleanVisible) {
-    if (approveRequest(request, { silentStatus: true })) {
+    if (await approveRequest(request, { silentStatus: true })) {
       approvedCount += 1;
     }
   }
 
-  setStatus(`Approved ${approvedCount} clean visible request(s).`);
+  setStatus(`Queued ${approvedCount} clean visible request(s).`);
 }
 
 function undoLastModerationAction() {
@@ -3109,7 +3202,7 @@ function renderRequests(requests) {
             </button>
 
             <button class="approve-btn" data-request-id="${escapeHtml(request.requestId)}" ${approveDisabled}>
-              Approve
+              Queue
             </button>
 
             <button class="reject-btn" data-request-id="${escapeHtml(request.requestId)}">
@@ -3265,13 +3358,16 @@ function renderApprovedPreview() {
 }
 
 function renderSpotifyQueue(queueData) {
-  if (!el.spotifyQueueList) return;
+  const targets = [el.spotifyQueueList, el.modSpotifyQueueList].filter(Boolean);
+  if (!targets.length) return;
 
   const currentlyPlaying = queueData?.currently_playing;
   const queue = Array.isArray(queueData?.queue) ? queueData.queue : [];
 
   if (!currentlyPlaying && !queue.length) {
-    el.spotifyQueueList.innerHTML = `<div class="empty-state">Spotify queue is empty or unavailable.</div>`;
+    for (const target of targets) {
+      target.innerHTML = `<div class="empty-state">Spotify queue is empty or unavailable.</div>`;
+    }
     return;
   }
 
@@ -3359,7 +3455,10 @@ function renderSpotifyQueue(queueData) {
     `);
   });
 
-  el.spotifyQueueList.innerHTML = blocks.join("");
+  const html = blocks.join("");
+  for (const target of targets) {
+    target.innerHTML = html;
+  }
 }
 
 // ======================================================
@@ -3371,6 +3470,13 @@ function resetNowPlayingUI() {
   if (el.nowPlayingArt) {
     el.nowPlayingArt.src = "";
     el.nowPlayingArt.style.visibility = "hidden";
+  }
+
+  if (el.modNowPlaying) el.modNowPlaying.textContent = "No song playing";
+  if (el.modNowPlayingMeta) el.modNowPlayingMeta.textContent = "Start a playlist, then press Refresh.";
+  if (el.modNowPlayingArt) {
+    el.modNowPlayingArt.src = "";
+    el.modNowPlayingArt.style.visibility = "hidden";
   }
 
   currentPlaybackProgressMs = 0;
@@ -3452,10 +3558,19 @@ async function refreshPlayback() {
     el.nowPlayingMeta.textContent =
       `${artists} | ${item.album?.name || "Unknown Album"}`;
 
+    if (el.modNowPlaying) el.modNowPlaying.textContent = item.name || "Unknown Song";
+    if (el.modNowPlayingMeta) el.modNowPlayingMeta.textContent = `${artists} | ${item.album?.name || "Unknown Album"}`;
+
     if (el.nowPlayingArt) {
       el.nowPlayingArt.src = image;
       el.nowPlayingArt.alt = `${item.name} cover art`;
       el.nowPlayingArt.style.visibility = image ? "visible" : "hidden";
+    }
+
+    if (el.modNowPlayingArt) {
+      el.modNowPlayingArt.src = image;
+      el.modNowPlayingArt.alt = `${item.name} cover art`;
+      el.modNowPlayingArt.style.visibility = image ? "visible" : "hidden";
     }
 
     updatePlaybackProgressUI(currentPlaybackProgressMs, currentPlaybackDurationMs);
@@ -3487,9 +3602,17 @@ async function refreshPlayback() {
       el.nowPlayingMeta.textContent = error?.message || "Playback unavailable";
     }
 
+    if (el.modNowPlaying) el.modNowPlaying.textContent = "No song playing";
+    if (el.modNowPlayingMeta) el.modNowPlayingMeta.textContent = error?.message || "Playback unavailable";
+
     if (el.nowPlayingArt) {
       el.nowPlayingArt.src = "";
       el.nowPlayingArt.style.visibility = "hidden";
+    }
+
+    if (el.modNowPlayingArt) {
+      el.modNowPlayingArt.src = "";
+      el.modNowPlayingArt.style.visibility = "hidden";
     }
 
     updatePlaybackProgressUI(0, 0);
@@ -5607,7 +5730,7 @@ async function addManualSearchResultToQueue(trackId) {
   }
 
   const request = createManualApprovedRequest(verifiedTrack);
-  const wasApproved = approveRequest(request, {
+  const wasApproved = await approveRequest(request, {
     silentStatus: true,
     allowExplicit: true,
     allowDuplicateTrack: true,
@@ -5615,13 +5738,13 @@ async function addManualSearchResultToQueue(trackId) {
   });
 
   if (!wasApproved) {
-    setStatus("That Spotify track could not be added to the moderator queue.");
+    setStatus("That Spotify track could not be added to the Spotify queue.");
     renderManualSearchResults();
     return;
   }
 
   renderManualSearchResults();
-  setStatus(`Moderator override added: ${request.spotify.artist} - ${request.spotify.name}`);
+  setStatus(`Queued: ${request.spotify.artist} - ${request.spotify.name}`);
 }
 
 function setRequestAutoSyncStatus(message, tone = "neutral") {
@@ -6582,7 +6705,10 @@ function wireStaticEvents() {
   });
 
   el.btnApproveAllCleanVisible?.addEventListener("click", () => {
-    approveAllVisibleCleanRequests();
+    approveAllVisibleCleanRequests().catch((error) => {
+      console.error(error);
+      setStatus(error?.message || "Could not queue all clean requests.");
+    });
   });
 
   el.btnRemoveAllApproved?.addEventListener("click", () => {
@@ -6661,7 +6787,7 @@ function wireStaticEvents() {
     if (approveButton) {
       const requestId = approveButton.dataset.requestId;
       const request = currentRequests.find((r) => r.requestId === requestId);
-      if (request) approveRequest(request);
+      if (request) await approveRequest(request);
       return;
     }
 
@@ -7079,6 +7205,7 @@ function stopPlaybackPolling() {
 async function init() {
   clearLegacyAuthStorage();
   ensureStorageDefaults();
+  loadSpotifyTrackCacheFromStorage();
   enforceSpotifyScopesFingerprint();
   loadModerationOverridesFromStorage();
   loadRequestAutoSyncPreference();
