@@ -1345,19 +1345,15 @@ function isInsufficientSpotifyScopeError(error) {
 }
 
 function noteLyricsApiBackoff(waitMs, message) {
-  const now = Date.now();
-  const normalized = Math.max(5000, Math.min(60 * 60 * 1000, Math.round(Number(waitMs) || 0)));
-  lyricsApiBackoffUntilMs = Math.max(lyricsApiBackoffUntilMs, now + normalized);
-
-  if (now - lyricsApiLastBackoffNoticeAtMs > 15000) {
-    lyricsApiLastBackoffNoticeAtMs = now;
-    const remainingMs = Math.max(0, lyricsApiBackoffUntilMs - now);
-    setStatus(`${message} (cooling down ~${formatElapsedShort(remainingMs)}).`);
-  }
+  // Cooldown disabled by request: always allow live lyrics attempts.
+  // We still return a "blocked" result when the API indicates bot protection,
+  // but we do not enforce a timer-based pause.
+  void waitMs;
+  void message;
 }
 
 function getLyricsApiBackoffRemainingMs() {
-  return Math.max(0, lyricsApiBackoffUntilMs - Date.now());
+  return 0;
 }
 
 function pushModerationHistory(action) {
@@ -4829,8 +4825,153 @@ function getRequestById(requestId) {
   return (
     currentRequests.find((item) => item.requestId === key) ||
     getApprovedQueue().find((item) => item.requestId === key) ||
+    (moderationDetailContext?.requestId === key ? moderationDetailContext : null) ||
     null
   );
+}
+
+const moderatorLyricsFetchInFlight = new Set();
+
+function shouldAutoFetchLyricsForModerationDetails(request) {
+  if (!request || typeof request !== "object") return false;
+
+  const requestId = String(request.requestId || "").trim();
+  if (!requestId) return false;
+
+  const source = String(request.source || "").trim();
+  if (source !== "moderator") return false;
+
+  const artist = String(request?.spotify?.artist || "").trim();
+  const song = String(request?.spotify?.name || "").trim();
+  if (!artist || !song) return false;
+
+  return true;
+}
+
+async function fetchLyricsForModerationDetails(requestId) {
+  const key = String(requestId || "").trim();
+  if (!key) return;
+  if (moderatorLyricsFetchInFlight.has(key)) return;
+
+  const request = getRequestById(key);
+  if (!shouldAutoFetchLyricsForModerationDetails(request)) return;
+
+  const existingLyrics = sanitizeLyricsText(request?.lyricsData?.lyrics || "");
+  if (existingLyrics) return;
+
+  const existingState = lyricsFetchStateByRequestId.get(key);
+  if (existingState?.state === "loading") return;
+  if (existingState?.state === "success" && String(existingState?.lyrics || "").trim()) return;
+
+  moderatorLyricsFetchInFlight.add(key);
+
+  try {
+    setLyricsFetchStatus(key, "loading", "Fetching lyrics for moderation details...", {
+      source: "Lyrics API",
+      status: "loading",
+      updatedAt: new Date().toISOString()
+    });
+    renderRequests(currentRequests);
+    renderApprovedQueue();
+    renderApprovedPreview();
+    if (moderationDetailContext?.requestId === key) {
+      const updated = getRequestById(key) || moderationDetailContext;
+      openModerationReasonModal(updated);
+    }
+
+    const artist = String(request?.spotify?.artist || "").trim();
+    const song = String(request?.spotify?.name || "").trim();
+    const liveResult = await fetchLyricsFromApi(artist, song);
+
+    if (liveResult.ok) {
+      setLyricsFetchStatus(key, "success", `Live lyrics fetched from ${liveResult.source || "Lyrics API"}.`, {
+        lyrics: liveResult.lyrics,
+        source: liveResult.source || "Lyrics API",
+        selectorUsed: liveResult.selectorUsed || "",
+        ratingLabel: liveResult.ratingLabel || "",
+        ratingCode: liveResult.ratingCode || "",
+        ratingReason: liveResult.ratingReason || "",
+        ratingSelectorUsed: liveResult.ratingSelectorUsed || "",
+        isInstrumental: !!liveResult.isInstrumental,
+        instrumentalSource: liveResult.instrumentalSource || "",
+        status: "success",
+        updatedAt: new Date().toISOString()
+      });
+
+      buildRequestSummary(currentRequests);
+      renderRequests(currentRequests);
+      renderApprovedQueue();
+      renderApprovedPreview();
+      if (moderationDetailContext?.requestId === key) {
+        const updated = getRequestById(key) || moderationDetailContext;
+        openModerationReasonModal(updated);
+      }
+
+      return;
+    }
+
+    if (!lyricsCacheSnapshot) {
+      await fetchLyricsCacheSnapshot({ quiet: true });
+    }
+
+    const cacheEntry = getLyricsCacheEntryForRequest(getRequestById(key) || request, lyricsCacheSnapshot);
+    if (cacheEntry && sanitizeLyricsText(cacheEntry?.lyrics || "")) {
+      setLyricsFetchStatus(key, "success", "Lyrics loaded from backup cache (may be stale).", {
+        lyrics: sanitizeLyricsText(cacheEntry.lyrics || ""),
+        source: cacheEntry.source || "lyrics-cache.json",
+        selectorUsed: cacheEntry.selector_used || "",
+        ratingLabel: cacheEntry.rating_label || "",
+        ratingCode: cacheEntry.rating_code || "",
+        ratingReason: cacheEntry.rating_reason || "",
+        ratingSelectorUsed: cacheEntry.rating_selector_used || "",
+        isInstrumental: !!cacheEntry.is_instrumental,
+        instrumentalSource: String(cacheEntry.instrumental_source || ""),
+        status: "success",
+        updatedAt: new Date().toISOString()
+      });
+
+      buildRequestSummary(currentRequests);
+      renderRequests(currentRequests);
+      renderApprovedQueue();
+      renderApprovedPreview();
+      if (moderationDetailContext?.requestId === key) {
+        const updated = getRequestById(key) || moderationDetailContext;
+        openModerationReasonModal(updated);
+      }
+
+      return;
+    }
+
+    const fallbackState = liveResult.status === "api-error" || liveResult.status === "empty" || liveResult.status === "not-configured"
+      ? "fallback"
+      : "error";
+
+    setLyricsFetchStatus(key, fallbackState, liveResult.reason || "Lyrics API did not return live lyrics.", {
+      lyrics: "",
+      source: liveResult.source || "Lyrics API",
+      selectorUsed: liveResult.selectorUsed || "",
+      status: liveResult.status || fallbackState,
+      updatedAt: new Date().toISOString()
+    });
+
+    buildRequestSummary(currentRequests);
+    renderRequests(currentRequests);
+    renderApprovedQueue();
+    renderApprovedPreview();
+    if (moderationDetailContext?.requestId === key) {
+      const updated = getRequestById(key) || moderationDetailContext;
+      openModerationReasonModal(updated);
+    }
+  } finally {
+    moderatorLyricsFetchInFlight.delete(key);
+  }
+}
+
+function maybeAutoFetchLyricsForModerationDetails(request) {
+  if (!shouldAutoFetchLyricsForModerationDetails(request)) return;
+  fetchLyricsForModerationDetails(request.requestId).catch((error) => {
+    console.warn("Lyrics fetch for moderation details failed:", error);
+  });
 }
 
 function getNextThemeOverride(currentThemeStatus) {
@@ -5914,6 +6055,8 @@ function openModerationReasonModal(request) {
   el.moderationReasonBody.innerHTML = moderationReasonHtml(request, moderation);
   el.moderationReasonBackdrop.classList.add("moderation-reason-is-open");
   el.moderationReasonModal.classList.add("moderation-reason-is-open");
+
+  maybeAutoFetchLyricsForModerationDetails(request);
 }
 
 function closeModerationReasonModal() {
