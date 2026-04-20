@@ -11,569 +11,252 @@
     href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
     rel="stylesheet"
   />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap"
+    rel="stylesheet"
+  />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+  />
 
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="page-shell">
-    <main class="dashboard">
+  <div class="container">
+    <aside class="sidebar" aria-label="Sidebar navigation">
+      <div class="logo">
+        <img
+          class="school-logo"
+          src="https://raw.githubusercontent.com/NBaker9262/Noah-ALA-File-Hosting/refs/heads/main/Images/ALA%20Bear%20No%20BG.png"
+          alt="American Leadership Academy logo"
+          loading="lazy"
+        />
+        <div>
+          <div class="logo-title">ALA Music</div>
+          <div class="logo-subtitle">DJ Queue</div>
+        </div>
+      </div>
 
-      <!-- HERO -->
-      <section class="card hero-card neon-card hero-bento">
-        <div class="hero-glow hero-glow-a"></div>
-        <div class="hero-glow hero-glow-b"></div>
+      <nav class="sidebar-nav" aria-label="Main sections">
+        <button id="railNavHome" class="nav-item rail-nav-item-active" type="button">
+          <i class="fas fa-home" aria-hidden="true"></i>
+          <span>Home</span>
+        </button>
+        <button id="railNavPlayer" class="nav-item" type="button">
+          <i class="fas fa-book-open" aria-hidden="true"></i>
+          <span>Your Library</span>
+        </button>
+        <button id="railNavQueue" class="nav-item" type="button">
+          <i class="fas fa-magnifying-glass" aria-hidden="true"></i>
+          <span>Search</span>
+        </button>
+      </nav>
 
-        <div class="hero-top">
-          <div class="hero-copy">
-            <div class="school-brand">
-              <img
-                class="school-logo"
-                src="https://raw.githubusercontent.com/NBaker9262/Noah-ALA-File-Hosting/refs/heads/main/Images/ALA%20Bear%20No%20BG.png"
-                alt="American Leadership Academy bear logo"
-                loading="lazy"
-              />
-            </div>
-            <p class="eyebrow">American Leadership Academy</p>
-            <h1>Music Queue</h1>
-          </div>
+      <div class="playlist">
+        <button class="playlist-item" type="button">Main Dance Queue</button>
+        <button class="playlist-item" type="button">Slow Set</button>
+        <button class="playlist-item" type="button">Fun Set</button>
+      </div>
 
-          <div class="hero-actions">
-            <button id="btnLogin" class="btn btn-primary" type="button">
-              Login
-            </button>
-            <button id="btnLogout" class="btn" type="button">
-              Logout
-            </button>
-            <button id="btnPlayPlaylistPicker" class="btn btn-primary" type="button">
-              Play Playlist
-            </button>
-            <button id="btnOpenPlaylistBuilder" class="btn btn-primary" type="button">
-              Playlist Builder
-            </button>
-            <button id="btnOpenModeration" class="btn btn-moderation" type="button">
-              Moderation Panel
-            </button>
-          </div>
+      <div class="sidebar-actions">
+        <button id="btnLogin" class="btn btn-small" type="button"><i class="fas fa-right-to-bracket" aria-hidden="true"></i> Login</button>
+        <button id="btnLogout" class="btn btn-small" type="button"><i class="fas fa-right-from-bracket" aria-hidden="true"></i> Logout</button>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header id="mainHeader" class="header">
+        <div class="search-bar">
+          <i class="fas fa-search" aria-hidden="true"></i>
+          <input
+            id="globalSearchInput"
+            type="search"
+            placeholder="Search for artists, songs, or moderation requests"
+            aria-label="Global song search"
+          />
+          <button id="btnGlobalSearch" class="btn btn-small btn-primary" type="button">Search</button>
         </div>
 
-        <div id="status" class="status-pill">Ready.</div>
-        <div id="siteTimerBar" class="site-timer-bar" aria-live="polite"></div>
-      </section>
+        <div class="user-profile">
+          <img
+            src="https://raw.githubusercontent.com/NBaker9262/Noah-ALA-File-Hosting/refs/heads/main/Images/ALA%20Bear%20No%20BG.png"
+            alt="ALA profile"
+          />
+          <span>ALA DJ Booth</span>
+        </div>
+      </header>
 
-      <!-- NOW PLAYING -->
-      <section class="card now-playing-card neon-card playback-bento">
-        <div class="card-accent card-accent-green"></div>
+      <div class="view-stack">
+        <section id="heroSection" class="hero-strip main-view" data-main-view="home">
+          <h1>American Leadership Academy Music Queue</h1>
+          <p>Spotify-style control surface with moderation and playlist safety checks.</p>
+          <div id="status" class="status-pill">Ready.</div>
+          <div id="siteTimerBar" class="site-timer-bar" aria-live="polite"></div>
+        </section>
 
-        <div class="section-heading">
-          <div>
-            <p class="section-kicker">Player Controls</p>
-            <h2>Now Playing</h2>
+        <section id="queueSection" class="queue-shell main-view" data-main-view="home">
+          <div class="queue-shell-header">
+            <h2>Your Queue</h2>
+          </div>
+          <div id="spotifyQueueList" class="songs-list">
+            <div class="empty-state">Spotify queue will appear here.</div>
+          </div>
+        </section>
+
+        <section id="requestsSection" class="queue-shell main-view" data-main-view="home">
+          <div class="queue-shell-header">
+            <h2>Request Moderation Inbox</h2>
           </div>
 
-          <div class="queue-nav">
-            <button id="btnRefreshPlayback" class="btn btn-small" type="button">
-              Refresh
-            </button>
-            <button id="btnNowPlayingLyrics" class="btn btn-small btn-lyrics-action" type="button">
-              Lyrics
-            </button>
+          <div class="home-section-toolbar">
+            <button id="btnLoadRequests" class="btn btn-small" type="button">Sync Requests</button>
+            <button id="btnToggleAutoSync" class="btn btn-small" type="button">Auto Sync: On</button>
+            <label class="toggle-row" for="hideExplicitOnly">
+              <input type="checkbox" id="hideExplicitOnly" />
+              <span>Hide explicit</span>
+            </label>
+            <button id="btnApproveAllCleanVisible" class="btn btn-small" type="button">Queue All Clean</button>
+            <button id="btnUndoModerationAction" class="btn btn-small" type="button">Undo</button>
           </div>
-        </div>
 
-        <div class="playback-bento-grid">
-          <div class="player-controls-shell">
-            <div class="control-track-info">
-              <img
-                id="nowPlayingArt"
-                class="control-cover control-cover-featured"
-                src=""
-                alt="Current track artwork"
-              />
-              <div class="control-track-copy">
-                <p id="nowPlaying" class="control-title">Nothing currently loaded</p>
-                <p id="nowPlayingMeta" class="control-artist">Waiting for playback data...</p>
-              </div>
-            </div>
+          <div id="modAutoSyncStatus" class="summary-text" aria-live="polite">Request sync pending...</div>
+          <div id="requestSummary" class="summary-text">Loaded 0 request(s).</div>
 
-            <div class="playback-controls-panel">
-              <div class="playback-buttons">
-                <button id="btnPrevTrack" class="control-button" type="button" aria-label="Previous track">
-                  <span aria-hidden="true">Prev</span>
-                </button>
-                <button id="btnPlayPause" class="play-pause-button" type="button" aria-label="Play or pause">
-                  <span id="playPauseIcon" aria-hidden="true">Play</span>
-                </button>
-                <button id="btnNextTrack" class="control-button" type="button" aria-label="Next track">
-                  <span aria-hidden="true">Next</span>
-                </button>
-              </div>
-
-              <div class="progress-container">
-                <span id="nowPlayingProgressText" class="time-value">0:00</span>
-                <button
-                  id="nowPlayingSeekTrack"
-                  class="progress-bar"
-                  type="button"
-                  aria-label="Seek within current track"
-                >
-                  <div id="nowPlayingProgressBar" class="progress-fill"></div>
-                </button>
-                <span id="nowPlayingTotalTime" class="time-value">0:00</span>
-              </div>
-
-              <div class="transport-meta">
-                <div class="transport-chip">
-                  <span class="chip-label">Status</span>
-                  <span class="chip-value" id="playbackStateLabel">Playback Ready</span>
-                </div>
-                <div class="transport-chip">
-                  <span class="chip-label">Remaining</span>
-                  <span class="chip-value" id="nowPlayingRemaining">--:--</span>
-                </div>
-              </div>
-
-              <div class="volume-row">
-                <span class="volume-label">Volume</span>
-                <button
-                  id="nowPlayingVolumeTrack"
-                  class="volume-bar"
-                  type="button"
-                  aria-label="Set playback volume"
-                >
-                  <div id="nowPlayingVolumeBar" class="volume-fill"></div>
-                </button>
-                <span id="nowPlayingVolumeText" class="volume-percent">--%</span>
-              </div>
-            </div>
+          <div id="requestTableBody" class="songs-list">
+            <div class="empty-state">No unapproved requests available yet.</div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <!-- SPOTIFY QUEUE -->
-      <section class="card spotify-queue-card neon-card queue-bento">
-        <div class="card-accent card-accent-blue"></div>
-
-        <div class="section-heading">
-          <div>
-            <p class="section-kicker">Queue</p>
-            <h2>Up Next</h2>
+        <section id="approvedSection" class="queue-shell main-view" data-main-view="home">
+          <div class="queue-shell-header">
+            <h2>Approved Hold Queue</h2>
           </div>
-        </div>
 
-        <div id="spotifyQueueList" class="requests-list">
-          <div class="empty-state">Spotify queue will appear here.</div>
-        </div>
-      </section>
+          <div class="home-section-toolbar">
+            <button id="btnPrevQueue" class="btn btn-small" type="button">Prev</button>
+            <button id="btnNextQueue" class="btn btn-small" type="button">Next</button>
+            <button id="btnAddApprovedToQueue" class="btn btn-small btn-primary" type="button">Push to Spotify Queue</button>
+            <button id="btnAddSelectedToPlaylistPicker" class="btn btn-small" type="button">Add Selected to Library Playlist</button>
+            <button id="btnRemoveAllApproved" class="btn btn-small" type="button">Clear Hold Queue</button>
+          </div>
 
+          <div id="approvedQueueList" class="songs-list">
+            <div class="empty-state">No approved songs yet.</div>
+          </div>
+
+          <div id="approvedPreviewTable" class="songs-list">
+            <div class="empty-state">No approved songs yet.</div>
+          </div>
+        </section>
+
+        <section id="searchSection" class="queue-shell main-view is-hidden" data-main-view="search">
+          <div class="queue-shell-header">
+            <h2>Search Songs</h2>
+          </div>
+
+          <div class="search-bar secondary-search-bar">
+            <i class="fas fa-search" aria-hidden="true"></i>
+            <input
+              id="homeSongSearchInput"
+              type="search"
+              placeholder="Find tracks and add to queue or playlists"
+              aria-label="Search songs"
+            />
+            <button id="btnHomeSongSearch" class="btn btn-small btn-primary" type="button">Search</button>
+          </div>
+
+          <div id="homeSongSearchResults" class="songs-list">
+            <div class="empty-state">Search Spotify to see songs here.</div>
+          </div>
+
+          <div class="queue-shell-header">
+            <h2>DJ Assisted Request</h2>
+          </div>
+
+          <div class="home-section-toolbar">
+            <input
+              id="djStudentNameInput"
+              class="search-input"
+              type="text"
+              placeholder="Student name (optional)"
+              aria-label="Student name"
+            />
+            <input
+              id="djThemeInput"
+              class="search-input"
+              type="text"
+              placeholder="Theme (optional, for moderation)"
+              aria-label="Request theme"
+            />
+            <input
+              id="djSpotifyLinkInput"
+              class="search-input"
+              type="url"
+              placeholder="Spotify track link"
+              aria-label="Spotify track link"
+            />
+            <button id="btnAddDjAssistedRequest" class="btn btn-small btn-primary" type="button">Add DJ Request</button>
+          </div>
+        </section>
+
+        <section id="librarySection" class="queue-shell main-view is-hidden" data-main-view="library">
+          <div class="queue-shell-header">
+            <h2>Your Playlists</h2>
+          </div>
+
+          <div class="library-toolbar">
+            <button id="btnLibraryRefreshPlaylists" class="btn btn-small" type="button">Refresh</button>
+            <input id="libraryNewPlaylistName" type="text" class="search-input" placeholder="New playlist name" aria-label="New playlist name" />
+            <button id="btnLibraryCreatePlaylist" class="btn btn-small btn-primary" type="button">Create Playlist</button>
+          </div>
+
+          <div id="librarySelectedPlaylist" class="summary-text">Selected playlist: none</div>
+
+          <div id="libraryPlaylistList" class="songs-list">
+            <div class="empty-state">Load playlists to get started.</div>
+          </div>
+        </section>
+      </div>
     </main>
   </div>
 
-  <!-- MODERATION BACKDROP -->
-  <div id="modBackdrop" class="mod-backdrop"></div>
-
-  <!-- MODERATION PANEL -->
-  <aside
-    id="modOverlay"
-    class="mod-overlay"
-    role="dialog"
-    aria-modal="true"
-    aria-label="Moderation Panel"
-  >
-    <div class="mod-overlay-header">
-      <div class="mod-overlay-title-row">
-        <div>
-          <img
-            class="school-logo school-logo-small"
-            src="https://raw.githubusercontent.com/NBaker9262/Noah-ALA-File-Hosting/refs/heads/main/Images/ALA%20Bear%20No%20BG.png"
-            alt="ALA logo"
-            loading="lazy"
-          />
-          <p class="eyebrow">American Leadership Academy</p>
-          <h2>Moderation Panel</h2>
-        </div>
-
-        <div class="mod-header-actions">
-          <label class="toggle-row" for="hideExplicitOnly">
-            <input type="checkbox" id="hideExplicitOnly" />
-            <span>Hide explicit</span>
-          </label>
-
-          <button id="btnLoadRequests" class="btn btn-small" type="button">
-            Sync Now
-          </button>
-
-          <button id="btnToggleAutoSync" class="btn btn-small" type="button">
-            Auto Sync: On
-          </button>
-          <div id="modAutoSyncStatus" class="lyrics-cache-pill lyrics-sync-pill" aria-live="polite">
-            Request sync pending...
-          </div>
-
-          <button id="btnApproveAllCleanVisible" class="btn btn-small" type="button">
-            Queue All Clean
-          </button>
-
-          <button id="btnUndoModerationAction" class="btn btn-small" type="button">
-            Undo
-          </button>
-
-          <button id="btnCloseModeration" class="btn mod-close-btn" type="button">
-            &#x2715; Close
-          </button>
-        </div>
+  <section id="playerSection" class="playback-bar" aria-label="Playback controls">
+    <div class="playback-info">
+      <img id="nowPlayingArt" src="" alt="Album cover" class="playback-cover" />
+      <div class="playback-song-copy">
+        <div class="song-title" id="nowPlaying">No song playing</div>
+        <div class="song-artist" id="nowPlayingMeta">Start a playlist, then press Refresh.</div>
       </div>
     </div>
 
-    <div class="mod-overlay-body">
-
-      <!-- PLAYBACK PREVIEW -->
-      <section class="card neon-card mod-playback-preview-card">
-        <div class="section-heading">
-          <div>
-            <p class="section-kicker">Playback</p>
-            <h2>Now Playing</h2>
-          </div>
-        </div>
-
-        <div class="mod-playback-preview">
-          <img id="modNowPlayingArt" class="control-cover mod-control-cover" src="" alt="Current track artwork" />
-          <div class="mod-playback-copy">
-            <p id="modNowPlaying" class="mod-playback-title">No song playing</p>
-            <p id="modNowPlayingMeta" class="mod-playback-meta">Start a playlist, then press Refresh.</p>
-          </div>
-        </div>
-      </section>
-
-
-      <div class="mod-grid">
-
-        <!-- REQUESTS -->
-        <section class="card requests-card neon-card">
-          <div class="section-heading">
-            <div>
-              <p class="section-kicker">Moderation</p>
-              <h2>Student Requests</h2>
-            </div>
-          </div>
-
-          <div id="requestSummary" class="summary-text">
-            Loaded 0 request(s) | Valid Spotify links: 0 | Clean: 0 | Explicit: 0 | Errors: 0
-          </div>
-
-          <div id="requestTableBody" class="requests-list">
-            <div class="empty-state">
-              No unapproved requests available yet.
-            </div>
-          </div>
-        </section>
-        
-      <!-- MODERATOR SEARCH -->
-      <section class="card search-card mod-top-search-card neon-card">
-        <div class="section-heading">
-          <div>
-            <p class="section-kicker">Moderator Search</p>
-            <h2>Find and Add a Track</h2>
-          </div>
-        </div>
-
-        <div class="summary-text">
-          Search Spotify and add an exact song directly to the active Spotify queue.
-        </div>
-
-        <div class="search-controls">
-          <input
-            id="manualSearchInput"
-            class="search-input"
-            type="search"
-            placeholder="Search by song title, artist, or both"
-            aria-label="Search Spotify tracks"
-          />
-          <button id="btnSearchSongs" class="btn btn-small btn-primary" type="button">
-            Search
-          </button>
-        </div>
-
-        <div id="manualSearchResults" class="requests-list">
-          <div class="empty-state">
-            Search Spotify to verify and add the exact track you want.
-          </div>
-        </div>
-
-        <div class="dj-desk-divider" aria-hidden="true"></div>
-
-        <div class="section-heading dj-desk-heading">
-          <div>
-            <p class="section-kicker">DJ Assisted Request</p>
-            <h2>Add Request for Student</h2>
-          </div>
-        </div>
-
-        <div class="summary-text">
-          For students without phones: paste a Spotify track link, optional student name, and optional theme.
-        </div>
-
-        <div class="dj-desk-grid">
-          <input
-            id="djStudentNameInput"
-            class="search-input"
-            type="text"
-            placeholder="Student name (optional)"
-            aria-label="Student name"
-          />
-
-          <input
-            id="djThemeInput"
-            class="search-input"
-            type="text"
-            placeholder="Theme (optional, for moderation)"
-            aria-label="Request theme"
-          />
-
-          <input
-            id="djSpotifyLinkInput"
-            class="search-input"
-            type="url"
-            placeholder="Spotify track link"
-            aria-label="Spotify track link"
-          />
-
-          <button id="btnAddDjAssistedRequest" class="btn btn-small btn-primary" type="button">
-            Add DJ Request
-          </button>
-        </div>
-      </section>
-
-        <div class="mod-right-stack">
-          <!-- ACTUAL SPOTIFY QUEUE -->
-          <section class="card neon-card mod-queue-card">
-            <div class="card-accent card-accent-blue"></div>
-
-            <div class="section-heading">
-              <div>
-                <p class="section-kicker">Spotify Queue</p>
-                <h2>Up Next</h2>
-              </div>
-            </div>
-
-            <div id="modSpotifyQueueList" class="requests-list">
-              <div class="empty-state">Spotify queue will appear here.</div>
-            </div>
-          </section>
-        </div>
+    <div class="playback-controls" role="group" aria-label="Playback transport controls">
+      <div class="control-buttons">
+        <button id="btnPrevTrack" class="control-button" type="button" aria-label="Previous track"><i class="fas fa-step-backward"></i></button>
+        <button id="btnPlayPause" class="control-button play-toggle" type="button" aria-label="Play or pause"><span id="playPauseIcon">Play</span></button>
+        <button id="btnNextTrack" class="control-button" type="button" aria-label="Next track"><i class="fas fa-step-forward"></i></button>
+        <button id="btnRefreshPlayback" class="control-button" type="button" aria-label="Refresh playback"><i class="fas fa-rotate-right"></i></button>
+        <button id="btnNowPlayingLyrics" class="control-button" type="button" aria-label="Open lyrics"><i class="fas fa-microphone-lines"></i></button>
       </div>
-    </div>
-  </aside>
 
-  <!-- PLAYLIST BUILDER BACKDROP -->
-  <div id="playlistBuilderBackdrop" class="mod-backdrop"></div>
-
-  <!-- PLAYLIST BUILDER PANEL -->
-  <aside
-    id="playlistBuilderOverlay"
-    class="mod-overlay playlist-builder-overlay"
-    role="dialog"
-    aria-modal="true"
-    aria-label="Playlist Builder"
-  >
-    <div class="mod-overlay-header">
-      <div class="mod-overlay-title-row">
-        <div>
-          <img
-            class="school-logo school-logo-small"
-            src="https://raw.githubusercontent.com/NBaker9262/Noah-ALA-File-Hosting/refs/heads/main/Images/ALA%20Bear%20No%20BG.png"
-            alt="ALA logo"
-            loading="lazy"
-          />
-          <p class="eyebrow">American Leadership Academy</p>
-          <h2>Playlist Builder</h2>
-          <div id="playlistBuilderStatus" class="summary-text">Choose a playlist, then search Spotify.</div>
-        </div>
-
-        <div class="mod-header-actions">
-          <div class="playlist-builder-selected-playlist">
-            <span class="chip-label">Selected Playlist</span>
-            <span id="playlistBuilderSelectedPlaylist" class="chip-value">None</span>
-          </div>
-          <button id="btnPlaylistBuilderChoosePlaylist" class="btn btn-small" type="button">
-            Choose Playlist
-          </button>
-          <button id="btnPlaylistBuilderClose" class="btn mod-close-btn" type="button">
-            &#x2715; Close
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <div class="mod-overlay-body">
-      <div class="playlist-builder-grid">
-        <section class="card search-card neon-card playlist-builder-search-card">
-          <div class="section-heading">
-            <div>
-              <p class="section-kicker">Single Add</p>
-              <h2>Search Spotify</h2>
-            </div>
-          </div>
-
-          <div class="summary-text">Type a song name (optionally with an artist), review Musixmatch rating details, then add it to the selected playlist.</div>
-
-          <div class="search-controls">
-            <input
-              id="playlistBuilderSearchInput"
-              class="search-input"
-              type="search"
-              placeholder="Search by song title, artist, or both"
-              aria-label="Search Spotify tracks for playlist add"
-            />
-            <button id="btnPlaylistBuilderSearch" class="btn btn-small btn-primary" type="button">
-              Search
-            </button>
-          </div>
-
-          <div id="playlistBuilderSearchResults" class="requests-list">
-            <div class="empty-state">Search Spotify to get started.</div>
-          </div>
-        </section>
-
-        <div class="playlist-builder-right-stack">
-          <section class="card neon-card playlist-builder-review-card">
-            <div class="section-heading">
-              <div>
-                <p class="section-kicker">Review</p>
-                <h2>Rating Details</h2>
-              </div>
-              <div class="queue-nav">
-                <button id="btnPlaylistBuilderAddSelected" class="btn btn-small btn-primary" type="button" disabled>
-                  Add to Playlist
-                </button>
-              </div>
-            </div>
-
-            <div id="playlistBuilderReview" class="requests-list">
-              <div class="empty-state">Select a search result to preview rating details.</div>
-            </div>
-          </section>
-
-          <section class="card neon-card playlist-builder-bulk-card">
-            <div class="section-heading">
-              <div>
-                <p class="section-kicker">Bulk Add</p>
-                <h2>CSV / Song List</h2>
-              </div>
-              <div class="queue-nav">
-                <button id="btnPlaylistBuilderBulkLoad" class="btn btn-small" type="button">
-                  Load Tracks
-                </button>
-                <button id="btnPlaylistBuilderBulkAddClean" class="btn btn-small" type="button" disabled>
-                  Add Clean Only
-                </button>
-                <button id="btnPlaylistBuilderBulkAdd" class="btn btn-small btn-primary" type="button" disabled>
-                  Add Loaded
-                </button>
-              </div>
-            </div>
-
-            <div class="summary-text">Upload/paste Spotify track URLs/IDs, or one song per line like “Artist - Song”. The selected playlist stays pinned so you can add song after song quickly.</div>
-
-            <div class="playlist-builder-bulk-controls">
-              <input id="playlistBuilderCsvFile" class="search-input" type="file" accept=".csv,text/csv" />
-              <textarea
-                id="playlistBuilderCsvText"
-                class="playlist-builder-csv-text"
-                rows="4"
-                placeholder="Paste Spotify URLs/IDs, or lines like: Whitney Houston - I Wanna Dance with Somebody"
-                aria-label="Bulk Spotify URL input"
-              ></textarea>
-              <button id="btnPlaylistBuilderBulkParse" class="btn btn-small" type="button">
-                Parse CSV
-              </button>
-              <div id="playlistBuilderBulkStatus" class="summary-text">No CSV loaded yet.</div>
-            </div>
-
-            <div id="playlistBuilderBulkList" class="requests-list">
-              <div class="empty-state">Parsed tracks will appear here.</div>
-            </div>
-          </section>
-        </div>
-      </div>
-    </div>
-  </aside>
-
-
-  <!-- PLAYLIST PICKER BACKDROP -->
-  <div id="playlistPickerBackdrop" class="playlist-picker-backdrop"></div>
-
-  <!-- PLAYLIST PICKER MODAL -->
-  <aside
-    id="playlistPickerModal"
-    class="playlist-picker-modal"
-    role="dialog"
-    aria-modal="true"
-    aria-label="Playlist Picker"
-  >
-    <div class="playlist-picker-header">
-      <div>
-        <p class="section-kicker">Spotify Playlists</p>
-        <h2 id="playlistPickerTitle">Choose a Playlist</h2>
-      </div>
-      <div class="playlist-picker-header-actions">
-        <button id="btnRefreshPlaylistPicker" class="btn btn-small" type="button">
-          Refresh
+      <div class="progress-wrap">
+        <span id="nowPlayingProgressText" class="time-label">0:00</span>
+        <button id="nowPlayingSeekTrack" class="progress-bar" type="button" aria-label="Seek within current track">
+          <div id="nowPlayingProgressBar" class="progress"></div>
         </button>
-        <button id="btnClosePlaylistPicker" class="btn lyrics-close-btn" type="button">
-          &#x2715; Close
-        </button>
+        <span id="nowPlayingTotalTime" class="time-label">0:00</span>
       </div>
     </div>
 
-    <div id="playlistPickerDescription" class="summary-text playlist-picker-description">
-      Loading playlists...
-    </div>
-    <div id="playlistPickerList" class="playlist-picker-list">
-      <div class="empty-state">Loading playlists...</div>
-    </div>
-  </aside>
-
-  <!-- PLAYLIST DUPLICATES BACKDROP -->
-  <div id="playlistDuplicateBackdrop" class="playlist-duplicate-backdrop"></div>
-
-  <!-- PLAYLIST DUPLICATES MODAL -->
-  <aside
-    id="playlistDuplicateModal"
-    class="playlist-duplicate-modal"
-    role="dialog"
-    aria-modal="true"
-    aria-label="Playlist Duplicate Review"
-  >
-    <div class="playlist-duplicate-header">
-      <div>
-        <p class="section-kicker">Playlist Safety</p>
-        <h2 id="playlistDuplicateTitle">Duplicates Found</h2>
-      </div>
-      <button id="btnClosePlaylistDuplicateModal" class="btn lyrics-close-btn" type="button">
-        &#x2715; Close
+    <div class="volume-control" aria-label="Volume controls">
+      <span id="playbackStateLabel" class="playback-state">Playback Ready</span>
+      <span id="nowPlayingRemaining" class="time-label">--:--</span>
+      <button id="nowPlayingVolumeTrack" class="volume-track" type="button" aria-label="Set playback volume">
+        <div id="nowPlayingVolumeBar" class="volume-progress"></div>
       </button>
+      <span id="nowPlayingVolumeText" class="time-label">--%</span>
     </div>
-
-    <div id="playlistDuplicateDescription" class="summary-text playlist-duplicate-description">
-      Review duplicates before adding.
-    </div>
-
-    <div id="playlistDuplicateList" class="playlist-duplicate-list">
-      <div class="empty-state">No duplicates.</div>
-    </div>
-
-    <div class="playlist-duplicate-actions">
-      <button id="btnPlaylistDuplicateAddAnyway" class="btn btn-small btn-primary" type="button">
-        Add Anyway
-      </button>
-      <button id="btnPlaylistDuplicateDelete" class="btn btn-small" type="button">
-        Delete
-      </button>
-      <button id="btnPlaylistDuplicateCancel" class="btn btn-small" type="button">
-        Cancel
-      </button>
-    </div>
-  </aside>
+  </section>
 
   <!-- MODERATION REASONING BACKDROP -->
   <div id="moderationReasonBackdrop" class="moderation-reason-backdrop"></div>

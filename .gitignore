@@ -1,2 +1,18 @@
 __pycache__/
 *.pyc
+
+# Local virtualenvs
+.venv/
+
+# Local scraper state
+data/
+*.db
+*.sqlite
+*.sqlite3
+
+# Secrets/env files
+.env
+.env.*
+
+# Export folders (choose what you want committed)
+# cache/
