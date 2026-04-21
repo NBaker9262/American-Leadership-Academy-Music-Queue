@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ALA Music Queue</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,500,1,0" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="left-rail panel">
+      <div class="spotify-dot">S</div>
+      <div class="library-top">
+        <button class="icon-button" aria-label="Back"><span class="material-symbols-rounded">chevron_left</span></button>
+        <div class="library-title">New...</div>
+        <button class="icon-button" aria-label="Add"><span class="material-symbols-rounded">add</span></button>
+      </div>
+      <div class="library-chip-row">
+        <button class="chip active">By you</button>
+      </div>
+      <div class="library-search-row">
+        <span class="material-symbols-rounded muted-symbol">search</span>
+        <span class="muted-label">Recents</span>
+      </div>
+      <div id="sidebarPlaylistList" class="sidebar-playlists"></div>
+    </aside>
+
+    <main class="center-stage panel">
+      <header class="top-search-bar">
+        <button class="round-icon active" data-view="overview" aria-label="Home"><span class="material-symbols-rounded">home</span></button>
+        <div class="search-shell">
+          <span class="material-symbols-rounded search-icon">search</span>
+          <input id="searchInput" class="search-field" type="search" placeholder="What do you want to play?" />
+          <button id="searchBtn" class="search-action" aria-label="Search"><span class="material-symbols-rounded">library_music</span></button>
+        </div>
+        <div class="top-actions">
+          <button id="refreshAllBtn" class="text-action">Refresh</button>
+          <button id="startWorkerBtn" class="text-action">Start</button>
+          <button id="pauseWorkerBtn" class="text-action">Pause</button>
+        </div>
+      </header>
+
+      <section class="home-surface">
+        <div class="filter-row">
+          <button class="filter-pill selected" data-view="overview">All</button>
+          <button class="filter-pill" data-view="search">Music</button>
+          <button class="filter-pill" data-view="requests">Requests</button>
+          <button class="filter-pill" data-view="scrape">Dashboard</button>
+        </div>
+
+        <section id="view-overview" class="view active">
+          <div class="playlist-hero-grid" id="heroGrid"></div>
+
+          <div class="section-head">
+            <div>
+              <div class="section-kicker">Made for</div>
+              <h1>ALA DJ Booth</h1>
+            </div>
+            <button class="link-action" data-view="playlists">Show all</button>
+          </div>
+          <div id="madeForGrid" class="made-for-grid"></div>
+
+          <div class="section-head compact">
+            <div>
+              <div class="section-kicker">Status</div>
+              <h2>Worker and cache</h2>
+            </div>
+          </div>
+          <div id="heroStats" class="stats-row"></div>
+        </section>
+
+        <section id="view-search" class="view">
+          <div class="section-head compact">
+            <div>
+              <div class="section-kicker">Search</div>
+              <h2>Find tracks before they hit playlists or queue</h2>
+            </div>
+          </div>
+          <div class="request-attach-row">
+            <select id="requestMatchSelect" class="spotify-field">
+              <option value="">No request selected</option>
+            </select>
+          </div>
+          <div id="searchResults" class="list-surface empty-state">Search results will appear here.</div>
+        </section>
+
+        <section id="view-playlists" class="view">
+          <div class="section-head compact">
+            <div>
+              <div class="section-kicker">Your Library</div>
+              <h2>Playlists</h2>
+            </div>
+          </div>
+          <div class="inline-tools">
+            <input id="playlistNameInput" class="spotify-field grow" type="text" placeholder="Create playlist" />
+            <button id="createPlaylistBtn" class="spotify-button">Create</button>
+          </div>
+          <div class="split-grid">
+            <div id="playlistList" class="list-surface"></div>
+            <div>
+              <div class="detail-title" id="playlistDetailTitle">Playlist Detail</div>
+              <div id="playlistTracks" class="list-surface empty-state">Choose a playlist to view tracks.</div>
+            </div>
+          </div>
+        </section>
+
+        <section id="view-queue" class="view">
+          <div class="section-head compact">
+            <div>
+              <div class="section-kicker">Up Next</div>
+              <h2>DJ Queue</h2>
+            </div>
+          </div>
+          <div id="queueList" class="list-surface empty-state">Queue is empty.</div>
+        </section>
+
+        <section id="view-requests" class="view">
+          <div class="section-head compact">
+            <div>
+              <div class="section-kicker">Student Input</div>
+              <h2>Request inbox</h2>
+            </div>
+          </div>
+          <div class="split-grid">
+            <div class="form-card">
+              <input id="requestSongInput" class="spotify-field" type="text" placeholder="Song title or artist" />
+              <input id="requestStudentInput" class="spotify-field" type="text" placeholder="Student name (optional)" />
+              <textarea id="requestNoteInput" class="spotify-field request-note" placeholder="Notes or event context"></textarea>
+              <button id="addRequestBtn" class="spotify-button wide">Save Request</button>
+            </div>
+            <div id="requestList" class="list-surface empty-state">No requests yet.</div>
+          </div>
+        </section>
+
+        <section id="view-scrape" class="view">
+          <div class="section-head compact">
+            <div>
+              <div class="section-kicker">Scrape System</div>
+              <h2>Import, cache, and export</h2>
+            </div>
+          </div>
+          <div class="split-grid">
+            <form id="uploadForm" class="form-card">
+              <input id="uploadFileInput" class="spotify-field" type="file" accept=".txt,.csv" required />
+              <input id="uploadPlaylistInput" class="spotify-field" type="text" placeholder="Playlist name for imported songs" value="Imported Seeds" />
+              <select id="uploadFormatInput" class="spotify-field">
+                <option value="auto">Auto detect text format</option>
+                <option value="title-artist">Title - Artist</option>
+                <option value="artist-title">Artist - Title</option>
+              </select>
+              <button class="spotify-button wide" type="submit">Upload + Queue for Scrape</button>
+            </form>
+            <div class="form-card">
+              <input id="spotifyPlaylistInput" class="spotify-field" type="text" placeholder="Spotify playlist URL or id" />
+              <input id="spotifyDestinationInput" class="spotify-field" type="text" placeholder="Destination playlist name" />
+              <button id="importSpotifyBtn" class="spotify-button wide">Import Playlist</button>
+              <button id="exportBtn" class="spotify-button ghost wide" type="button">Export Cached Catalog</button>
+              <p class="subtle-copy" id="statusText">Loading the local catalog and scrape dashboard...</p>
+            </div>
+          </div>
+          <div id="scrapeStatus" class="stats-row"></div>
+          <div id="scrapeRecentTracks" class="list-surface empty-state">Recent scrape activity will appear here.</div>
+        </section>
+      </section>
+    </main>
+
+    <aside class="right-rail panel">
+      <div class="right-header">
+        <div class="right-title">DJ - Vibes</div>
+      </div>
+      <div id="featureTrackCard" class="feature-track-card">
+        <div class="feature-image"></div>
+        <div class="feature-overlay">
+          <div class="feature-title">No song selected</div>
+          <div class="feature-artist">Import tracks to begin</div>
+        </div>
+      </div>
+      <div class="right-block">
+        <div class="right-subtitle">Related music videos</div>
+        <div id="rightRailList" class="mini-list"></div>
+      </div>
+    </aside>
+  </div>
+
+  <footer class="bottom-player">
+    <div class="player-left">
+      <div id="bottomArt" class="mini-cover"></div>
+      <div>
+        <div id="bottomTrackTitle" class="bottom-title">No song selected</div>
+        <div id="bottomTrackArtist" class="bottom-artist">ALA Music Queue</div>
+      </div>
+      <button class="plain-circle" aria-label="Add"><span class="material-symbols-rounded">add_circle</span></button>
+    </div>
+
+    <div class="player-center">
+      <div class="transport-row">
+        <button class="transport-button" aria-label="Shuffle"><span class="material-symbols-rounded">shuffle</span></button>
+        <button class="transport-button" aria-label="Previous"><span class="material-symbols-rounded">skip_previous</span></button>
+        <button class="play-button" aria-label="Play"><span class="material-symbols-rounded">play_arrow</span></button>
+        <button class="transport-button" aria-label="Next"><span class="material-symbols-rounded">skip_next</span></button>
+        <button class="transport-button" aria-label="Lyrics"><span class="material-symbols-rounded">lyrics</span></button>
+      </div>
+      <div class="timeline-row">
+        <span id="bottomStartTime">0:00</span>
+        <div class="timeline">
+          <div id="timelineFill" class="timeline-fill"></div>
+        </div>
+        <span id="bottomEndTime">0:00</span>
+      </div>
+    </div>
+
+    <div class="player-right">
+      <span class="status-indicator material-symbols-rounded">radio_button_checked</span>
+      <span class="player-right-copy">Lyrics filter ready</span>
+      <div class="volume-line">
+        <div class="volume-fill"></div>
+      </div>
+    </div>
+  </footer>
+
+  <template id="trackRowTemplate">
+    <article class="track-row">
+      <div class="track-row-main">
+        <div class="track-row-cover"></div>
+        <div class="track-row-copy">
+          <div class="track-row-top">
+            <div class="track-row-title"></div>
+            <div class="track-row-badges"></div>
+          </div>
+          <div class="track-row-meta"></div>
+          <div class="track-row-reasons"></div>
+        </div>
+      </div>
+      <div class="track-row-actions"></div>
+    </article>
+  </template>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

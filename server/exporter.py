@@ -1,14 +1,10 @@
 from __future__ import annotations
 
 import json
-import os
 import sqlite3
-from datetime import UTC, datetime
 from pathlib import Path
 
-
-def now_iso() -> str:
-    return datetime.now(UTC).isoformat().replace("+00:00", "Z")
+from .db import now_iso
 
 
 def export_cache(
@@ -19,56 +15,47 @@ def export_cache(
     include_lyrics: bool = True,
 ) -> dict:
     out_dir.mkdir(parents=True, exist_ok=True)
-
-    rows = conn.execute(
-        """
-        SELECT song_key, artist, title, status, genius_id, genius_url, meta_json, lyrics, attempts, last_error, updated_at
-        FROM songs
-        ORDER BY id ASC
-        """
-    ).fetchall()
-
-    def row_to_entry(row: sqlite3.Row) -> dict:
+    rows = conn.execute("SELECT * FROM tracks ORDER BY id ASC").fetchall()
+    entries = []
+    for row in rows:
         entry = {
+            "id": int(row["id"]),
             "song_key": str(row["song_key"]),
+            "spotify_id": str(row["spotify_id"] or ""),
+            "title": str(row["title"]),
             "artist": str(row["artist"]),
-            "song": str(row["title"]),
-            "status": str(row["status"]),
-            "genius_id": str(row["genius_id"] or ""),
-            "genius_url": str(row["genius_url"] or ""),
-            "genius_meta": str(row["meta_json"] or ""),
-            "attempts": int(row["attempts"] or 0),
-            "error": str(row["last_error"] or ""),
+            "album": str(row["album"] or ""),
+            "spotify_rating": str(row["spotify_rating"] or ""),
+            "lyrics_rating": str(row["lyrics_rating"] or ""),
+            "merged_rating": str(row["merged_rating"] or ""),
+            "lyrics_status": str(row["lyrics_status"] or ""),
+            "lyrics_source_url": str(row["lyrics_source_url"] or ""),
+            "spotify_url": str(row["spotify_url"] or ""),
             "updated_at": str(row["updated_at"] or ""),
+            "rating_reasons": json.loads(str(row["rating_reasons_json"] or "[]")),
+            "metadata": json.loads(str(row["metadata_json"] or "{}")),
         }
         if include_lyrics:
             entry["lyrics"] = str(row["lyrics"] or "")
-        return entry
-
-    entries = [row_to_entry(row) for row in rows]
+        entries.append(entry)
 
     chunk_size = max(1, int(chunk_size))
     chunks: list[Path] = []
-
     for start in range(0, len(entries), chunk_size):
         chunk_index = (start // chunk_size) + 1
         chunk_entries = entries[start : start + chunk_size]
-        path = out_dir / f"chunk_{chunk_index:04d}.json"
+        path = out_dir / f"tracks_{chunk_index:04d}.json"
         path.write_text(json.dumps(chunk_entries, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         chunks.append(path)
 
     summary = {
         "generated_at": now_iso(),
-        "source": {
-            "notes": "Exported by server/exporter.py",
-        },
         "stats": {
             "rows": len(entries),
             "chunks": len(chunks),
             "chunk_size": chunk_size,
         },
-        "chunks": [str(p.as_posix()) for p in chunks],
+        "chunks": [path.as_posix() for path in chunks],
     }
-
     (out_dir / "index.json").write_text(json.dumps(summary, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     return summary
