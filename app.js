@@ -1778,12 +1778,71 @@ function extractSpotifyTrackId(url) {
   return null;
 }
 
+// ------------------------------------------------------
+// Fuzzy title matching helpers
+// ------------------------------------------------------
+function normalizeForMatch(s) {
+  return String(s || "")
+    .normalize("NFKD")
+    .replace(/\p{Diacritic}/gu, "")
+    .replace(/[\u2018\u2019'`\.,!\?\(\)\[\]:;"\®™–—-]/g, " ")
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function levenshtein(a, b) {
+  const al = a.length;
+  const bl = b.length;
+  if (al === 0) return bl;
+  if (bl === 0) return al;
+  const v0 = new Array(bl + 1).fill(0).map((_, i) => i);
+  const v1 = new Array(bl + 1).fill(0);
+  for (let i = 0; i < al; i++) {
+    v1[0] = i + 1;
+    for (let j = 0; j < bl; j++) {
+      const cost = a[i] === b[j] ? 0 : 1;
+      v1[j + 1] = Math.min(v1[j] + 1, v0[j + 1] + 1, v0[j] + cost);
+    }
+    for (let k = 0; k <= bl; k++) v0[k] = v1[k];
+  }
+  return v1[bl];
+}
+
+function tokenJaccard(a, b) {
+  const ta = new Set(a.split(" ").filter(Boolean));
+  const tb = new Set(b.split(" ").filter(Boolean));
+  if (!ta.size || !tb.size) return 0;
+  let inter = 0;
+  for (const t of ta) if (tb.has(t)) inter += 1;
+  const union = new Set([...ta, ...tb]).size;
+  return inter / union;
+}
+
+function fuzzyTitleMatches(requestText, trackTitle) {
+  const a = normalizeForMatch(requestText);
+  const b = normalizeForMatch(trackTitle);
+  if (!a || !b) return false;
+
+  // If one contains the other, accept
+  if (a.includes(b) || b.includes(a)) return true;
+
+  const jaccard = tokenJaccard(a, b);
+  const lev = levenshtein(a, b);
+  const levScore = 1 - lev / Math.max(1, Math.max(a.length, b.length));
+
+  // Accept on decent token overlap or reasonable edit similarity
+  return jaccard >= 0.52 || levScore >= 0.72;
+}
+
 const spotifyOembedResolveCache = new Map();
 
 async function resolveSpotifyTrackIdFromLink(spotifyLink) {
   const trimmed = String(spotifyLink || "").trim();
   if (!trimmed) return null;
 
+  // Fast path: direct Spotify URL or URI
   const direct = extractSpotifyTrackId(trimmed);
   if (direct) return direct;
 
@@ -1791,50 +1850,91 @@ async function resolveSpotifyTrackIdFromLink(spotifyLink) {
     return spotifyOembedResolveCache.get(trimmed);
   }
 
+  // Try to use authenticated Spotify Web API search (works from browser with token and CORS)
   try {
-    const response = await fetch(`https://open.spotify.com/oembed?url=${encodeURIComponent(trimmed)}`, {
-      method: "GET",
-      headers: {
-        Accept: "application/json"
-      }
-    });
+    const token = await getAccessToken();
+    if (token) {
+      const q = encodeURIComponent(trimmed);
+      const res = await fetch(`https://api.spotify.com/v1/search?q=${q}&type=track&limit=1`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
 
-    if (!response.ok) {
-      spotifyOembedResolveCache.set(trimmed, null);
-      return null;
+      if (res.ok) {
+        const js = await res.json();
+        const foundId = js?.tracks?.items?.[0]?.id || null;
+        spotifyOembedResolveCache.set(trimmed, foundId);
+        return foundId;
+      }
+      // If search fails (rate limit or auth), fall through to heuristics below.
     }
-
-    const json = await response.json();
-
-    const candidateStrings = [
-      json?.uri,
-      json?.url,
-      json?.provider_url,
-      json?.html,
-      json?.thumbnail_url,
-      json?.title
-    ]
-      .map((value) => String(value || "").trim())
-      .filter(Boolean);
-
-    for (const candidate of candidateStrings) {
-      const found = extractSpotifyTrackId(candidate);
-      if (found) {
-        spotifyOembedResolveCache.set(trimmed, found);
-        return found;
-      }
-
-      const embedFound = candidate.match(/open\.spotify\.com\/embed\/track\/([A-Za-z0-9]+)/i);
-      if (embedFound) {
-        spotifyOembedResolveCache.set(trimmed, embedFound[1]);
-        return embedFound[1];
-      }
-    }
-  } catch {
-    // Ignore and fall through.
+  } catch (err) {
+    // Ignore errors and continue to local heuristics
+    console.warn("Spotify search fallback failed:", err);
   }
 
+  // Local heuristics: try to transform common "Artist - Title" or "Title by Artist" share text
+  try {
+    // Break on common separators and try combining into a short query
+    const parts = trimmed.split(/\s+-\s+|\s+—\s+|\s+–\s+|\s+by\s+/i).map(s => s.trim()).filter(Boolean);
+    if (parts.length >= 1) {
+      const guessQuery = encodeURIComponent(parts.join(" "));
+      const token2 = await getAccessToken();
+      if (token2) {
+        const res2 = await fetch(`https://api.spotify.com/v1/search?q=${guessQuery}&type=track&limit=1`, {
+          headers: { Authorization: `Bearer ${token2}` }
+        });
+        if (res2.ok) {
+          const js2 = await res2.json();
+          const id2 = js2?.tracks?.items?.[0]?.id || null;
+          spotifyOembedResolveCache.set(trimmed, id2);
+          return id2;
+        }
+      }
+    }
+  } catch (err) {
+    // swallow
+  }
+
+  // No reliable resolution possible from the client context; cache null to avoid repeat work.
   spotifyOembedResolveCache.set(trimmed, null);
+  return null;
+}
+
+async function resolveTrackIdFromArtistSong(artist, song) {
+  const safeArtist = String(artist || "").trim();
+  const safeSong = String(song || "").trim();
+  if (!safeSong && !safeArtist) return null;
+
+  // Try careful queries: prefer explicit qualifiers first
+  const queries = [];
+  if (safeSong && safeArtist) {
+    queries.push(`track:"${safeSong}" artist:"${safeArtist}"`);
+    queries.push(`${safeSong} ${safeArtist}`);
+  }
+  if (safeSong) queries.push(`${safeSong}`);
+  if (safeArtist) queries.push(`artist:"${safeArtist}"`);
+
+  for (const q of queries) {
+    try {
+      const tracks = await searchSpotifyTracks(q);
+      if (Array.isArray(tracks) && tracks.length) {
+        // Prefer first track that fuzzy-matches the requested song title
+        for (const t of tracks) {
+          const title = String(t?.name || "");
+          if (fuzzyTitleMatches(safeSong || safeArtist, title)) {
+            return String(t?.id || null);
+          }
+        }
+        // If none matched by title, return first result as fallback
+        return String(tracks[0]?.id || null);
+      }
+    } catch (err) {
+      // ignore and try next query
+    }
+  }
+
   return null;
 }
 
@@ -3116,6 +3216,23 @@ async function fetchStudentRequestRows() {
     ],
     2
   );
+  const songTitleIndex = findHeaderIndex(
+    headers,
+    [
+      "Song Title",
+      "Song",
+      "Title",
+      "Track",
+      "Track Name",
+      "Song Name"
+    ],
+    -1
+  );
+  const artistIndex = findHeaderIndex(
+    headers,
+    ["Artist", "Artist Name", "Performer", "Band", "Singer"],
+    -1
+  );
   const themeIndex = findHeaderIndex(
     headers,
     [
@@ -3157,6 +3274,8 @@ async function fetchStudentRequestRows() {
       timestamp: String(row[timestampIndex] ?? "").trim(),
       email: emailIndex >= 0 ? String(row[emailIndex] ?? "").trim() : "",
       spotifyLink: String(row[spotifyLinkIndex] ?? "").trim(),
+      artist: artistIndex >= 0 ? String(row[artistIndex] ?? "").trim() : "",
+      song: songTitleIndex >= 0 ? String(row[songTitleIndex] ?? "").trim() : "",
       theme: themeIndex >= 0 ? String(row[themeIndex] ?? "").trim() : "",
       studentName: studentNameIndex >= 0 ? String(row[studentNameIndex] ?? "").trim() : "",
       source: "request"
@@ -3193,7 +3312,7 @@ async function enrichRequestRows(rows) {
     return result;
   });
 
-  const itemsNeedingResolve = enriched.filter((item) => !item.trackId && item.spotifyLink);
+  const itemsNeedingResolve = enriched.filter((item) => !item.trackId && (item.spotifyLink || item.artist || item.song));
   if (itemsNeedingResolve.length) {
     logConsoleEvent(
       "Spotify",
@@ -3211,10 +3330,31 @@ async function enrichRequestRows(rows) {
         idx += 1;
 
         try {
-          const resolved = await resolveSpotifyTrackIdFromLink(current.spotifyLink);
+          let resolved = null;
+          if (current.spotifyLink) {
+            resolved = await resolveSpotifyTrackIdFromLink(current.spotifyLink);
+          } else {
+            resolved = await resolveTrackIdFromArtistSong(current.artist, current.song);
+          }
+
           if (resolved) {
-            current.trackId = resolved;
-            current.error = null;
+            // Verify the resolved track's title roughly matches the requested song text
+            try {
+              const track = await getTrackByIdWithRetry(resolved);
+              const trackName = String(track?.name || "");
+              const requestText = String(current.song || current.spotifyLink || current.artist || "");
+              const ok = fuzzyTitleMatches(requestText, trackName);
+              if (ok) {
+                current.trackId = resolved;
+                current.error = null;
+              } else {
+                current.trackId = null;
+                current.error = `Resolved track title \"${trackName}\" did not match request`;
+              }
+            } catch (err) {
+              current.trackId = resolved;
+              current.error = null;
+            }
           }
         } catch {
           // Keep existing error.
@@ -5006,12 +5146,22 @@ function getLyricsFetchStatusTag(requestId) {
 
   if (state.state === "success") {
     const source = String(state.source || "").toLowerCase();
-    const label = source.includes("cache") ? "Lyrics: Cached" : "Lyrics: Fetched";
+    let label = "Lyrics: Fetched";
+    if (source.includes("lyrics-cache") || source.includes("backup") || source.includes("cache")) {
+      label = "Lyrics: Backup Cache";
+    } else if (source.includes("request-cache") || source.includes("runtime-cache") || source.includes("request")) {
+      label = "Lyrics: Request Cache";
+    } else if (source.includes("lyrics api") || source.includes("musixmatch") || source.includes("live") || source.includes("api")) {
+      label = "Lyrics: Live API";
+    }
+
+    const updated = state.updatedAt ? `Updated: ${state.updatedAt}` : "";
+    const sourceDetail = state.source ? `Source: ${state.source}` : "";
 
     return {
       label,
       tone: "ok",
-      detail: state.detail || "Lyrics were loaded successfully."
+      detail: state.detail || `${sourceDetail} ${updated}`.trim()
     };
   }
 
@@ -5991,10 +6141,16 @@ function renderLyricsLoading() {
 function renderLyricsSuccess({ lyrics, selectorUsed, source }) {
   if (!el.lyricsModalBody) return;
 
+  const safeSource = String(source || "Lyrics API").trim();
+  const sourceTag = safeSource.toLowerCase().includes("cache")
+    ? `<span class="lyrics-cache-pill">Backup Cache</span>`
+    : `<span class="lyrics-sync-pill" data-tone="ok">Live API</span>`;
+
   el.lyricsModalBody.innerHTML = `
     <div class="lyrics-success-wrap">
+      <div class="lyrics-success-header">${sourceTag} ${selectorUsed ? `<span class="lyrics-selector">Selector: ${escapeHtml(selectorUsed)}</span>` : ""}</div>
       <pre class="lyrics-text-pre">${escapeHtml(sanitizeLyricsText(lyrics))}</pre>
-      <p class="lyrics-fallback-copy">Source: ${escapeHtml(source || "Lyrics API")} ${selectorUsed ? `- Selector: ${escapeHtml(selectorUsed)}` : ""}</p>
+      <p class="lyrics-fallback-copy">Source detail: ${escapeHtml(safeSource)}</p>
     </div>
   `;
 }
