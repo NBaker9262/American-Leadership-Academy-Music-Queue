@@ -6941,35 +6941,89 @@ function parsePlaylistBuilderCsvText(text) {
   const seenIds = new Set();
   const seenQueries = new Set();
 
+  // Robust-ish CSV line parser that respects quoted fields.
+  function splitCsvLine(line) {
+    const out = [];
+    let cur = "";
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') {
+        if (inQuotes && i + 1 < line.length && line[i + 1] === '"') {
+          // Escaped quote
+          cur += '"';
+          i += 1;
+        } else {
+          inQuotes = !inQuotes;
+        }
+        continue;
+      }
+      if (ch === ',' && !inQuotes) {
+        out.push(cur);
+        cur = "";
+        continue;
+      }
+      cur += ch;
+    }
+    out.push(cur);
+    return out;
+  }
+
   const lines = raw.split(/\r?\n/);
 
   for (const line of lines) {
-    const cells = String(line || "").split(",");
-    for (const cell of cells) {
-      const trimmed = String(cell || "").trim();
-      if (!trimmed) continue;
-      if (trimmed.startsWith("#")) continue;
+    const trimmedLine = String(line || "").trim();
+    if (!trimmedLine) continue;
+    if (trimmedLine.startsWith("#")) continue;
 
-      const id = extractSpotifyTrackIdLoose(trimmed);
-      if (id) {
-        if (seenIds.has(id)) continue;
-        seenIds.add(id);
-        trackIds.push(id);
-        items.push({ type: "id", value: id, key: `id:${id}` });
-        continue;
-      }
+    // Parse CSV row into fields. Expected: date/time, song, artist
+    const fields = splitCsvLine(trimmedLine).map((f) => String(f || "").trim());
 
-      // If it's not a track URL/ID, treat it as a Spotify search query.
-      // This lets bulk mode work with plain lines like: "Artist - Song".
-      if (/open\.spotify\.com\/(album|artist|playlist)\//i.test(trimmed)) continue;
-      if (/^spotify:(album|artist|playlist):/i.test(trimmed)) continue;
-      if (trimmed.length < 3) continue;
-
-      const queryKey = trimmed.toLowerCase();
-      if (seenQueries.has(queryKey)) continue;
-      seenQueries.add(queryKey);
-      items.push({ type: "query", value: trimmed, key: `query:${queryKey}` });
+    // If a field looks like a Spotify track URL or ID anywhere, prefer that.
+    // Check all fields for a track id.
+    let foundId = null;
+    for (const f of fields) {
+      if (!f) continue;
+      const id = extractSpotifyTrackIdLoose(f);
+      if (id) { foundId = id; break; }
     }
+    if (foundId) {
+      if (!seenIds.has(foundId)) {
+        seenIds.add(foundId);
+        trackIds.push(foundId);
+        items.push({ type: "id", value: foundId, key: `id:${foundId}` });
+      }
+      continue;
+    }
+
+    // Build song+artist query from expected columns: [0]=date/time, [1]=song, [2]=artist
+    const song = fields[1] || fields[0] || ""; // fallback if song in col0
+    const artist = fields[2] || "";
+
+    // If both song and artist are missing, try to join remaining fields as a single query
+    let query = "";
+    if (song && artist) {
+      query = `${song} ${artist}`.trim();
+    } else if (song) {
+      query = song.trim();
+    } else {
+      // fallback: join all non-empty fields except obvious date-like first field
+      const joinFields = fields.filter((f, idx) => String(f || "").trim() && idx !== 0);
+      query = joinFields.join(" ").trim() || "";
+    }
+
+    if (!query) continue;
+    // Skip short/garbage rows
+    if (query.length < 3) continue;
+
+    // Skip queries that look like album/artist/playlist URLs
+    if (/open\.spotify\.com\/(album|artist|playlist)\//i.test(query)) continue;
+    if (/^spotify:(album|artist|playlist):/i.test(query)) continue;
+
+    const queryKey = query.toLowerCase();
+    if (seenQueries.has(queryKey)) continue;
+    seenQueries.add(queryKey);
+    items.push({ type: "query", value: query, key: `query:${queryKey}` });
   }
 
   return { items, trackIds };
