@@ -1228,6 +1228,20 @@ function applyModerationOverrides(request, moderation) {
     }
   }
 
+  // Apply an attached track override (persisted when moderators attach a search result)
+  if (override.attachedTrack && request) {
+    try {
+      const at = override.attachedTrack;
+      if (at && typeof at === 'object') {
+        request.trackId = String(at.id || request.trackId || "");
+        request.spotify = normalizeSpotifyTrack(at);
+        request.error = null;
+      }
+    } catch (err) {
+      // swallow
+    }
+  }
+
   moderation.manualOverride = true;
   moderation.manualOverrideUpdatedAt = override.updatedAt || new Date().toISOString();
 
@@ -5935,6 +5949,23 @@ function moderationReasonHtml(request, moderation) {
     </div>
 
     <div class="moderation-reason-section">
+      <h3>Resolve Missing Track / Adjust Match</h3>
+      <div class="moderation-lookup">
+        <p>CSV fields for this request:</p>
+        <ul>
+          <li><strong>Spotify Link:</strong> ${escapeHtml(String(request?.spotifyLink || ""))}</li>
+          <li><strong>Artist:</strong> ${escapeHtml(String(request?.artist || ""))}</li>
+          <li><strong>Song:</strong> ${escapeHtml(String(request?.song || ""))}</li>
+        </ul>
+        <div class="moderation-lookup-controls">
+          <input class="moderation-lookup-input" data-request-id="${escapeHtml(requestIdValue)}" placeholder="Search Spotify by title or artist" value="${escapeHtml(String(request?.song || request?.artist || ""))}">
+          <button class="btn moderation-search-btn" data-request-id="${escapeHtml(requestIdValue)}" type="button">Search</button>
+        </div>
+        <div class="moderation-search-results" data-request-id="${escapeHtml(requestIdValue)}"></div>
+      </div>
+    </div>
+
+    <div class="moderation-reason-section">
       <h3>Quick Controls</h3>
       <div class="request-status-tags moderation-tags-wrap">
         ${quickTags}
@@ -7998,13 +8029,107 @@ function wireStaticEvents() {
 
   el.btnCloseModerationReason?.addEventListener("click", () => closeModerationReasonModal());
   el.moderationReasonBackdrop?.addEventListener("click", () => closeModerationReasonModal());
-  el.moderationReasonBody?.addEventListener("click", (event) => {
+  async function attachTrackToRequest(requestId, trackId) {
+    const key = String(requestId || "").trim();
+    const tid = String(trackId || "").trim();
+    if (!key || !tid) throw new Error("Missing requestId or trackId");
+
+    const request = getRequestById(key);
+    if (!request) throw new Error("Request not found");
+
+    const track = await getTrackByIdWithRetry(tid);
+    if (!track) throw new Error("Could not fetch Spotify track metadata");
+
+    const normalized = normalizeSpotifyTrack(track);
+    request.trackId = String(normalized.id || tid);
+    request.spotify = normalized;
+    request.error = null;
+
+    // Persist attached track as a moderation override so it survives syncs
+    try {
+      setModerationOverride(key, { attachedTrack: normalized });
+    } catch (err) {
+      console.warn("Could not persist attached track override:", err);
+    }
+
+    // Clear any prior lyrics fetch state so UI will re-evaluate and allow fresh fetch
+    try {
+      lyricsFetchStateByRequestId.delete(key);
+    } catch {}
+
+    buildRequestSummary(currentRequests);
+    renderRequests(currentRequests);
+    renderApprovedQueue();
+  }
+
+  el.moderationReasonBody?.addEventListener("click", async (event) => {
     const bypassButton = event.target.closest(".moderation-bypass-btn");
     if (bypassButton) {
       applyModerationBypass(
         bypassButton.dataset.requestId || "",
         bypassButton.dataset.bypassField || ""
       );
+      return;
+    }
+
+    const searchBtn = event.target.closest(".moderation-search-btn");
+    if (searchBtn) {
+      const reqId = String(searchBtn.dataset.requestId || "").trim();
+      const input = el.moderationReasonBody.querySelector(`.moderation-lookup-input[data-request-id="${reqId}"]`);
+      const q = String(input?.value || "").trim();
+      if (!q) {
+        setStatus("Enter a query to search Spotify.");
+        return;
+      }
+      setStatus(`Searching Spotify for \"${q}\"...`);
+      try {
+        const tracks = await searchSpotifyTracks(q);
+        const resultsEl = el.moderationReasonBody.querySelector(`.moderation-search-results[data-request-id="${reqId}"]`);
+        if (!resultsEl) return;
+        resultsEl.innerHTML = tracks.length
+          ? tracks
+              .map((t) => {
+                const s = normalizeSpotifyTrack(t);
+                return `
+                  <div class="moderation-search-item">
+                    <div class="request-art-wrap">
+                      ${s.image ? `<img class="request-art" src="${escapeHtml(s.image)}" alt="${escapeHtml(s.name)} cover art">` : `<div class="request-art request-art-placeholder">No Art</div>`}
+                    </div>
+                    <div class="request-main">
+                      <div class="request-song">${escapeHtml(s.name)}</div>
+                      <div class="request-artist">${escapeHtml(s.artist)}</div>
+                      <div class="request-meta">${escapeHtml(s.album)} - ${escapeHtml(msToMinSec(s.durationMs || 0))}</div>
+                    </div>
+                    <div class="request-actions">
+                      <button class="btn moderation-add-search-result-btn" data-request-id="${escapeHtml(reqId)}" data-track-id="${escapeHtml(s.id)}">Attach to Request</button>
+                    </div>
+                  </div>
+                `;
+              })
+              .join("")
+          : `<div class="empty-state">No results found.</div>`;
+        setStatus(`Found ${tracks.length} result(s). Review before attaching.`);
+      } catch (err) {
+        console.error(err);
+        setStatus("Spotify search failed.");
+      }
+      return;
+    }
+
+    const addBtn = event.target.closest('.moderation-add-search-result-btn');
+    if (addBtn) {
+      const reqId = String(addBtn.dataset.requestId || "").trim();
+      const trackId = String(addBtn.dataset.trackId || "").trim();
+      if (!reqId || !trackId) return;
+      setStatus("Attaching selected track to request...");
+      try {
+        await attachTrackToRequest(reqId, trackId);
+        setStatus("Track attached to request.");
+        openModerationDetailsByRequestId(reqId);
+      } catch (err) {
+        console.error(err);
+        setStatus("Could not attach track to request.");
+      }
       return;
     }
 
