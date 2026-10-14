@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-10-13T22:24:59.218052Z",
-  "next_refresh_at": "2026-10-13T22:29:59.218068Z",
+  "generated_at": "2026-10-14T04:01:27.722600Z",
+  "next_refresh_at": "2026-10-14T04:06:27.722616Z",
   "refresh_interval_minutes": 5,
   "source": {
     "requests_csv_url": "https://docs.google.com/spreadsheets/d/e/2PACX-1vQyc3RRDmjc-nN-XgMMDocbnn1tlxue5ynNoNnYSxnRKxgp2LRGNmYZXnVgAFLH7IViwTAtmIAkvDsK/pub?output=csv",
@@ -42,7 +42,7 @@
       "is_instrumental": false,
       "instrumental_source": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-10-13T22:23:12.587944Z",
+      "updated_at": "2026-10-14T03:58:54.348075Z",
       "error": "403 Client Error: Forbidden for url: https://apic.musixmatch.com/captcha.html?callback_url=https://www.musixmatch.com/captcha?redirectUrl=en%252Flyrics%252FUnknown-Artist-5%252Fbacktofriends-2",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/back-to-friends"
@@ -68,7 +68,7 @@
       "is_instrumental": false,
       "instrumental_source": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-10-13T22:23:24.029803Z",
+      "updated_at": "2026-10-14T03:59:06.873407Z",
       "error": "403 Client Error: Forbidden for url: https://apic.musixmatch.com/captcha.html?callback_url=https://www.musixmatch.com/captcha?redirectUrl=en%252Flyrics%252FUnknown-Artist%252FBlinding-Lights",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/Blinding-Lights"
@@ -94,7 +94,7 @@
       "is_instrumental": false,
       "instrumental_source": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-10-13T22:23:25.029557Z",
+      "updated_at": "2026-10-14T03:59:07.682037Z",
       "error": "403 Client Error: Forbidden for url: https://apic.musixmatch.com/captcha.html?callback_url=https://www.musixmatch.com/captcha?redirectUrl=en%252Flyrics%252FUnknown-Artist%252Frockstar",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/rockstar-feat-21-Savage",
@@ -121,7 +121,7 @@
       "is_instrumental": false,
       "instrumental_source": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-10-13T22:23:26.206634Z",
+      "updated_at": "2026-10-14T03:59:08.989186Z",
       "error": "403 Client Error: Forbidden for url: https://apic.musixmatch.com/captcha.html?callback_url=https://www.musixmatch.com/captcha?redirectUrl=en%252Flyrics%252FUnknown-Artist%252FCruel-Summer",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/Cruel-Summer"
@@ -147,7 +147,7 @@
       "is_instrumental": false,
       "instrumental_source": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-10-13T22:23:27.332378Z",
+      "updated_at": "2026-10-14T03:59:09.802256Z",
       "error": "403 Client Error: Forbidden for url: https://apic.musixmatch.com/captcha.html?callback_url=https://www.musixmatch.com/captcha?redirectUrl=en%252Flyrics%252FUnknown-Artist%252FActor",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/Actor"
@@ -173,8 +173,8 @@
       "is_instrumental": false,
       "instrumental_source": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-10-13T22:23:28.082872Z",
-      "error": "403 Client Error: Forbidden for url: https://apic.musixmatch.com/captcha.html?callback_url=https://www.musixmatch.com/captcha?redirectUrl=en%252Flyrics%252FUnknown-Artist%252FBrain-Stew",
+      "updated_at": "2026-10-14T03:59:10.522908Z",
+      "error": "405 Client Error: Not Allowed for url: https://www.musixmatch.com/lyrics/Unknown-Artist/Brain-Stew",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/Brain-Stew"
       ],
@@ -199,8 +199,8 @@
       "is_instrumental": false,
       "instrumental_source": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-10-13T22:23:29.324239Z",
-      "error": "403 Client Error: Forbidden for url: https://apic.musixmatch.com/captcha.html?callback_url=https://www.musixmatch.com/captcha?redirectUrl=en%252Flyrics%252FUnknown-Artist%252FOne-Dance",
+      "updated_at": "2026-10-14T03:59:11.482305Z",
+      "error": "405 Client Error: Not Allowed for url: https://www.musixmatch.com/lyrics/Unknown-Artist/One-Dance",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/One-Dance"
       ],
@@ -225,7 +225,7 @@
       "is_instrumental": false,
       "instrumental_source": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-10-13T22:23:30.083228Z",
+      "updated_at": "2026-10-14T03:59:12.520422Z",
       "error": "405 Client Error: Not Allowed for url: https://www.musixmatch.com/lyrics/Unknown-Artist/One-Dance",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/One-Dance"
@@ -251,7 +251,7 @@
       "is_instrumental": false,
       "instrumental_source": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-10-13T22:23:30.728689Z",
+      "updated_at": "2026-10-14T03:59:13.015570Z",
       "error": "405 Client Error: Not Allowed for url: https://www.musixmatch.com/lyrics/Unknown-Artist/bad-guy",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/bad-guy"
@@ -277,7 +277,7 @@
       "is_instrumental": false,
       "instrumental_source": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-10-13T22:23:31.386269Z",
+      "updated_at": "2026-10-14T03:59:13.754805Z",
       "error": "405 Client Error: Not Allowed for url: https://www.musixmatch.com/lyrics/Unknown-Artist/The-Real-Slim-Shady",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/The-Real-Slim-Shady"
@@ -303,8 +303,8 @@
       "is_instrumental": false,
       "instrumental_source": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-10-13T22:23:31.927527Z",
-      "error": "405 Client Error: Not Allowed for url: https://www.musixmatch.com/lyrics/Unknown-Artist/Dance-Monkey",
+      "updated_at": "2026-10-14T03:59:14.274878Z",
+      "error": "Lyrics element not found or extracted text was too short.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/Dance-Monkey"
       ],
@@ -329,8 +329,8 @@
       "is_instrumental": false,
       "instrumental_source": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-10-13T22:23:32.499361Z",
-      "error": "405 Client Error: Not Allowed for url: https://www.musixmatch.com/lyrics/Unknown-Artist/Time-is-Running-Out",
+      "updated_at": "2026-10-14T03:59:23.614412Z",
+      "error": "Lyrics element not found or extracted text was too short.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/Time-is-Running-Out"
       ],
@@ -355,8 +355,8 @@
       "is_instrumental": false,
       "instrumental_source": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-10-13T22:23:33.177363Z",
-      "error": "405 Client Error: Not Allowed for url: https://www.musixmatch.com/lyrics/Unknown-Artist/Don-t-Start-Now",
+      "updated_at": "2026-10-14T03:59:32.898718Z",
+      "error": "Lyrics element not found or extracted text was too short.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/Don-t-Start-Now"
       ],
@@ -381,8 +381,8 @@
       "is_instrumental": false,
       "instrumental_source": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-10-13T22:23:33.949397Z",
-      "error": "405 Client Error: Not Allowed for url: https://www.musixmatch.com/lyrics/Unknown-Artist/WAP",
+      "updated_at": "2026-10-14T03:59:42.314791Z",
+      "error": "Lyrics element not found or extracted text was too short.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/WAP-feat-Megan-Thee-Stallion",
         "https://www.musixmatch.com/lyrics/Unknown-Artist/WAP"
@@ -408,7 +408,7 @@
       "is_instrumental": false,
       "instrumental_source": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-10-13T22:23:35.163192Z",
+      "updated_at": "2026-10-14T03:59:55.972030Z",
       "error": "Lyrics element not found or extracted text was too short.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/Happier-Than-Ever"
@@ -434,7 +434,7 @@
       "is_instrumental": false,
       "instrumental_source": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-10-13T22:23:42.596008Z",
+      "updated_at": "2026-10-14T04:00:05.229639Z",
       "error": "Lyrics element not found or extracted text was too short.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/Prelude-for-Piano-No-11-in-F-Sharp-Minor"
@@ -460,7 +460,7 @@
       "is_instrumental": false,
       "instrumental_source": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-10-13T22:23:50.741323Z",
+      "updated_at": "2026-10-14T04:00:14.670044Z",
       "error": "Lyrics element not found or extracted text was too short.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Skit/Paul"
@@ -486,7 +486,7 @@
       "is_instrumental": false,
       "instrumental_source": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-10-13T22:23:54.662665Z",
+      "updated_at": "2026-10-14T04:00:19.656883Z",
       "error": "Lyrics element not found or extracted text was too short.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/God-s-Plan"
@@ -512,7 +512,7 @@
       "is_instrumental": false,
       "instrumental_source": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-10-13T22:24:01.959288Z",
+      "updated_at": "2026-10-14T04:00:28.981780Z",
       "error": "Lyrics element not found or extracted text was too short.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/Watermelon-Sugar"
@@ -538,7 +538,7 @@
       "is_instrumental": false,
       "instrumental_source": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-10-13T22:24:10.327558Z",
+      "updated_at": "2026-10-14T04:00:38.270507Z",
       "error": "Lyrics element not found or extracted text was too short.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/24K-Magic"
@@ -564,7 +564,7 @@
       "is_instrumental": false,
       "instrumental_source": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-10-13T22:24:17.890142Z",
+      "updated_at": "2026-10-14T04:00:47.582248Z",
       "error": "Lyrics element not found or extracted text was too short.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/XO-Tour-Llif3"
@@ -590,7 +590,7 @@
       "is_instrumental": false,
       "instrumental_source": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-10-13T22:24:25.719743Z",
+      "updated_at": "2026-10-14T04:00:55.518305Z",
       "error": "Lyrics element not found or extracted text was too short.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/HUMBLE"
@@ -616,7 +616,7 @@
       "is_instrumental": false,
       "instrumental_source": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-10-13T22:24:29.986726Z",
+      "updated_at": "2026-10-14T04:00:59.279324Z",
       "error": "Lyrics element not found or extracted text was too short.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/Shape-of-You"
@@ -642,7 +642,7 @@
       "is_instrumental": false,
       "instrumental_source": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-10-13T22:24:37.548404Z",
+      "updated_at": "2026-10-14T04:01:06.468738Z",
       "error": "Lyrics element not found or extracted text was too short.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/A-Bar-Song-Tipsy",
@@ -669,7 +669,7 @@
       "is_instrumental": false,
       "instrumental_source": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-10-13T22:24:52.109095Z",
+      "updated_at": "2026-10-14T04:01:21.246556Z",
       "error": "Lyrics element not found or extracted text was too short.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/When-I-Look-At-You"
@@ -697,7 +697,7 @@
       "is_instrumental": false,
       "instrumental_source": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-10-13T22:23:12.587944Z",
+      "updated_at": "2026-10-14T03:58:54.348075Z",
       "error": "403 Client Error: Forbidden for url: https://apic.musixmatch.com/captcha.html?callback_url=https://www.musixmatch.com/captcha?redirectUrl=en%252Flyrics%252FUnknown-Artist-5%252Fbacktofriends-2",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/back-to-friends"
@@ -723,7 +723,7 @@
       "is_instrumental": false,
       "instrumental_source": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-10-13T22:23:24.029803Z",
+      "updated_at": "2026-10-14T03:59:06.873407Z",
       "error": "403 Client Error: Forbidden for url: https://apic.musixmatch.com/captcha.html?callback_url=https://www.musixmatch.com/captcha?redirectUrl=en%252Flyrics%252FUnknown-Artist%252FBlinding-Lights",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/Blinding-Lights"
@@ -749,7 +749,7 @@
       "is_instrumental": false,
       "instrumental_source": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-10-13T22:23:25.029557Z",
+      "updated_at": "2026-10-14T03:59:07.682037Z",
       "error": "403 Client Error: Forbidden for url: https://apic.musixmatch.com/captcha.html?callback_url=https://www.musixmatch.com/captcha?redirectUrl=en%252Flyrics%252FUnknown-Artist%252Frockstar",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/rockstar-feat-21-Savage",
@@ -776,7 +776,7 @@
       "is_instrumental": false,
       "instrumental_source": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-10-13T22:23:26.206634Z",
+      "updated_at": "2026-10-14T03:59:08.989186Z",
       "error": "403 Client Error: Forbidden for url: https://apic.musixmatch.com/captcha.html?callback_url=https://www.musixmatch.com/captcha?redirectUrl=en%252Flyrics%252FUnknown-Artist%252FCruel-Summer",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/Cruel-Summer"
@@ -802,7 +802,7 @@
       "is_instrumental": false,
       "instrumental_source": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-10-13T22:23:27.332378Z",
+      "updated_at": "2026-10-14T03:59:09.802256Z",
       "error": "403 Client Error: Forbidden for url: https://apic.musixmatch.com/captcha.html?callback_url=https://www.musixmatch.com/captcha?redirectUrl=en%252Flyrics%252FUnknown-Artist%252FActor",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/Actor"
@@ -828,8 +828,8 @@
       "is_instrumental": false,
       "instrumental_source": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-10-13T22:23:28.082872Z",
-      "error": "403 Client Error: Forbidden for url: https://apic.musixmatch.com/captcha.html?callback_url=https://www.musixmatch.com/captcha?redirectUrl=en%252Flyrics%252FUnknown-Artist%252FBrain-Stew",
+      "updated_at": "2026-10-14T03:59:10.522908Z",
+      "error": "405 Client Error: Not Allowed for url: https://www.musixmatch.com/lyrics/Unknown-Artist/Brain-Stew",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/Brain-Stew"
       ],
@@ -854,7 +854,7 @@
       "is_instrumental": false,
       "instrumental_source": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-10-13T22:23:30.083228Z",
+      "updated_at": "2026-10-14T03:59:12.520422Z",
       "error": "405 Client Error: Not Allowed for url: https://www.musixmatch.com/lyrics/Unknown-Artist/One-Dance",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/One-Dance"
@@ -880,7 +880,7 @@
       "is_instrumental": false,
       "instrumental_source": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-10-13T22:23:30.728689Z",
+      "updated_at": "2026-10-14T03:59:13.015570Z",
       "error": "405 Client Error: Not Allowed for url: https://www.musixmatch.com/lyrics/Unknown-Artist/bad-guy",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/bad-guy"
@@ -906,7 +906,7 @@
       "is_instrumental": false,
       "instrumental_source": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-10-13T22:23:31.386269Z",
+      "updated_at": "2026-10-14T03:59:13.754805Z",
       "error": "405 Client Error: Not Allowed for url: https://www.musixmatch.com/lyrics/Unknown-Artist/The-Real-Slim-Shady",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/The-Real-Slim-Shady"
@@ -932,8 +932,8 @@
       "is_instrumental": false,
       "instrumental_source": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-10-13T22:23:31.927527Z",
-      "error": "405 Client Error: Not Allowed for url: https://www.musixmatch.com/lyrics/Unknown-Artist/Dance-Monkey",
+      "updated_at": "2026-10-14T03:59:14.274878Z",
+      "error": "Lyrics element not found or extracted text was too short.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/Dance-Monkey"
       ],
@@ -958,8 +958,8 @@
       "is_instrumental": false,
       "instrumental_source": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-10-13T22:23:32.499361Z",
-      "error": "405 Client Error: Not Allowed for url: https://www.musixmatch.com/lyrics/Unknown-Artist/Time-is-Running-Out",
+      "updated_at": "2026-10-14T03:59:23.614412Z",
+      "error": "Lyrics element not found or extracted text was too short.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/Time-is-Running-Out"
       ],
@@ -984,8 +984,8 @@
       "is_instrumental": false,
       "instrumental_source": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-10-13T22:23:33.177363Z",
-      "error": "405 Client Error: Not Allowed for url: https://www.musixmatch.com/lyrics/Unknown-Artist/Don-t-Start-Now",
+      "updated_at": "2026-10-14T03:59:32.898718Z",
+      "error": "Lyrics element not found or extracted text was too short.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/Don-t-Start-Now"
       ],
@@ -1010,8 +1010,8 @@
       "is_instrumental": false,
       "instrumental_source": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-10-13T22:23:33.949397Z",
-      "error": "405 Client Error: Not Allowed for url: https://www.musixmatch.com/lyrics/Unknown-Artist/WAP",
+      "updated_at": "2026-10-14T03:59:42.314791Z",
+      "error": "Lyrics element not found or extracted text was too short.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/WAP-feat-Megan-Thee-Stallion",
         "https://www.musixmatch.com/lyrics/Unknown-Artist/WAP"
@@ -1037,7 +1037,7 @@
       "is_instrumental": false,
       "instrumental_source": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-10-13T22:23:35.163192Z",
+      "updated_at": "2026-10-14T03:59:55.972030Z",
       "error": "Lyrics element not found or extracted text was too short.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/Happier-Than-Ever"
@@ -1063,7 +1063,7 @@
       "is_instrumental": false,
       "instrumental_source": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-10-13T22:23:42.596008Z",
+      "updated_at": "2026-10-14T04:00:05.229639Z",
       "error": "Lyrics element not found or extracted text was too short.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/Prelude-for-Piano-No-11-in-F-Sharp-Minor"
@@ -1089,7 +1089,7 @@
       "is_instrumental": false,
       "instrumental_source": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-10-13T22:23:50.741323Z",
+      "updated_at": "2026-10-14T04:00:14.670044Z",
       "error": "Lyrics element not found or extracted text was too short.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Skit/Paul"
@@ -1115,7 +1115,7 @@
       "is_instrumental": false,
       "instrumental_source": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-10-13T22:23:54.662665Z",
+      "updated_at": "2026-10-14T04:00:19.656883Z",
       "error": "Lyrics element not found or extracted text was too short.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/God-s-Plan"
@@ -1141,7 +1141,7 @@
       "is_instrumental": false,
       "instrumental_source": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-10-13T22:24:01.959288Z",
+      "updated_at": "2026-10-14T04:00:28.981780Z",
       "error": "Lyrics element not found or extracted text was too short.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/Watermelon-Sugar"
@@ -1167,7 +1167,7 @@
       "is_instrumental": false,
       "instrumental_source": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-10-13T22:24:10.327558Z",
+      "updated_at": "2026-10-14T04:00:38.270507Z",
       "error": "Lyrics element not found or extracted text was too short.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/24K-Magic"
@@ -1193,7 +1193,7 @@
       "is_instrumental": false,
       "instrumental_source": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-10-13T22:24:17.890142Z",
+      "updated_at": "2026-10-14T04:00:47.582248Z",
       "error": "Lyrics element not found or extracted text was too short.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/XO-Tour-Llif3"
@@ -1219,7 +1219,7 @@
       "is_instrumental": false,
       "instrumental_source": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-10-13T22:24:25.719743Z",
+      "updated_at": "2026-10-14T04:00:55.518305Z",
       "error": "Lyrics element not found or extracted text was too short.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/HUMBLE"
@@ -1245,7 +1245,7 @@
       "is_instrumental": false,
       "instrumental_source": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-10-13T22:24:29.986726Z",
+      "updated_at": "2026-10-14T04:00:59.279324Z",
       "error": "Lyrics element not found or extracted text was too short.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/Shape-of-You"
@@ -1271,7 +1271,7 @@
       "is_instrumental": false,
       "instrumental_source": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-10-13T22:24:37.548404Z",
+      "updated_at": "2026-10-14T04:01:06.468738Z",
       "error": "Lyrics element not found or extracted text was too short.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/A-Bar-Song-Tipsy",
@@ -1298,7 +1298,7 @@
       "is_instrumental": false,
       "instrumental_source": "",
       "source": "github-actions-cache",
-      "updated_at": "2026-10-13T22:24:52.109095Z",
+      "updated_at": "2026-10-14T04:01:21.246556Z",
       "error": "Lyrics element not found or extracted text was too short.",
       "attempted_urls": [
         "https://www.musixmatch.com/lyrics/Unknown-Artist/When-I-Look-At-You"
